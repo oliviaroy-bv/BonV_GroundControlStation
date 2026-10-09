@@ -1,0 +1,68 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file alias="ConnectIcon.png">media/icons/ConnectIcon.png</file>
+        <file alias="connect.png">media/icons/ConnectIcon.png</file>
+        <file alias="DisconnectIcon.png">media/icons/DisconnectIcon.png</file>
+        <file alias="disconnect.png">media/icons/DisconnectIcon.png</file>
+        <file alias="ExpandScreen.png">media/icons/ExpandScreen.png</file>
+        <file alias="expand.png">media/icons/ExpandScreen.png</file>
+        <file alias="Link.png">media/icons/Link.png</file>
+        <file alias="link.png">media/icons/Link.png</file>
+        <file alias="Notification.png">media/icons/Notification.png</file>
+        <file alias="notification.png">media/icons/Notification.png</file>
+        <file alias="Setting.png">media/icons/Setting.png</file>
+        <file alias="setting.png">media/icons/Setting.png</file>
+        <file alias="add.png">media/icons/Add.png</file>
+        <file alias="add-file.png">media/icons/AddFile.png</file>
+        <file alias="motor.png">media/icons/motor.png</file>
+        <file alias="joystick.png">media/icons/joystick.png</file>
+    </qresource>
+    <qresource prefix="/models">
+        <file alias="JoystickModel.png">media/models/JoystickModel.png</file>
+    </qresource>
+    <qresource prefix="/logo">
+        <file alias="BvLogo.ico">media/logo/BvLogo.ico</file>
+        <file alias="BvLogo.png">media/logo/BvLogo.png</file>
+        <file alias="BonVGCS_Icon.ico">media/logo/BonVGCS_Icon.ico</file>
+        <file alias="BonVGCS_Icon.png">media/logo/BonVGCS_Icon.png</file>
+    </qresource>
+    <qresource prefix="/backgrounds">
+        <file alias="Activation_Background.png">media/backgrounds/Activation_Background.png</file>
+        <file alias="topo_background.png">media/backgrounds/topo_background.png</file>
+        <file alias="drone_model.png">media/backgrounds/drone_model.png</file>
+    </qresource>
+    <qresource prefix="/resources">
+        <file alias="map.html">integrations/map_provider/map/map.html</file>
+        <file alias="maplibre-gl.css">integrations/map_provider/lib/maplibre-gl.css</file>
+        <file alias="maplibre-gl.js">integrations/map_provider/lib/maplibre-gl.js</file>
+    </qresource>
+    <qresource prefix="/qml">
+        <file alias="accessories/Palette.qml">ui/qml/accessories/Palette.qml</file>
+        <file alias="accessories/StateText.qml">ui/qml/accessories/StateText.qml</file>
+        <file alias="accessories/TelemetryIcon.qml">ui/qml/accessories/TelemetryIcon.qml</file>
+        <file alias="accessories/TelemetryText.qml">ui/qml/accessories/TelemetryText.qml</file>
+        <file alias="buttons/CommandButton.qml">ui/qml/buttons/CommandButton.qml</file>
+        <file alias="activation/ActivationWindow.qml">ui/qml/activation/ActivationWindow.qml</file>
+        <file alias="activation/LoginWindow.qml">ui/qml/activation/LoginWindow.qml</file>
+        <file alias="core/App.qml">ui/qml/core/App.qml</file>
+        <file alias="core/FlyView.qml">ui/qml/core/FlyView.qml</file>
+        <file alias="map/FlyMap.qml">ui/qml/map/FlyMap.qml</file>
+        <file alias="map/OfflineTerrainMap.qml">ui/qml/map/OfflineTerrainMap.qml</file>
+        <file alias="offline3d/DroneEntity.qml">integrations/Offline-3DMaps/qml/DroneEntity.qml</file>
+        <file alias="offline3d/TerrainView.qml">integrations/Offline-3DMaps/qml/TerrainView.qml</file>
+        <file alias="panels/BottomPanel.qml">ui/qml/panels/BottomPanel.qml</file>
+        <file alias="panels/BottomTelemetryText.qml">ui/qml/panels/BottomTelemetryText.qml</file>
+        <file alias="panels/LeftSidePanel.qml">ui/qml/panels/LeftSidePanel.qml</file>
+        <file alias="panels/MissionBuilderPanel.qml">ui/qml/panels/MissionBuilderPanel.qml</file>
+        <file alias="panels/MotorTestPanel.qml">ui/qml/panels/MotorTestPanel.qml</file>
+        <file alias="panels/ServoPanel.qml">ui/qml/panels/ServoPanel.qml</file>
+        <file alias="panels/TopPanel.qml">ui/qml/panels/TopPanel.qml</file>
+        <file alias="panels/VerticalTelemetryPanel.qml">ui/qml/panels/VerticalTelemetryPanel.qml</file>
+        <file alias="settings/OemSettingsPage.qml">ui/qml/settings/OemSettingsPage.qml</file>
+        <file alias="settings/MavlinkInspectorPage.qml">ui/qml/settings/MavlinkInspectorPage.qml</file>
+        <file alias="settings/MavlinkForwardingPage.qml">ui/qml/settings/MavlinkForwardingPage.qml</file>
+        <file alias="settings/SettingsWindow.qml">ui/qml/settings/SettingsWindow.qml</file>
+        <file alias="video/Video.qml">ui/qml/video/Video.qml</file>
+        <file alias="core/MainPage.qml">ui/qml/core/MainPage.qml</file>
+    </qresource>
+</RCC>

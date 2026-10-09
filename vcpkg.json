@@ -1,0 +1,8 @@
+{
+  "name": "bonv-ground-control-station",
+  "version-string": "1.0.0",
+  "dependencies": [
+    "openssl"
+  ],
+  "builtin-baseline": "a1cae005c39be7b18ba319fced856b68d7276271"
+}

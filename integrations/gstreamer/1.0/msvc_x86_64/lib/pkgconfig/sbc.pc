@@ -1,0 +1,11 @@
+prefix=${pcfiledir}/../..
+exec_prefix=${prefix}
+libdir=C:/projects/repos/cerbero.git/1.22/build/dist/msvc_x86_64/lib
+includedir=${prefix}/include
+
+Name: SBC
+Description: SBC library
+Version: 2.0
+Libs: -L${libdir} -lsbc
+Cflags: -I${includedir}
+

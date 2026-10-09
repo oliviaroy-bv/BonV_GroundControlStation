@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<meta charset="utf-8"/>
+
+<link
+href="bonv://tile/maplibre-gl.css"
+rel="stylesheet"
+/>
+
+<script src="bonv://tile/maplibre-gl.js"></script>
+
+<style>
+
+html, body, #map {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #11161b;
+}
+
+.maplibregl-ctrl-top-right {
+    top: 96px;
+}
+
+.drone-marker {
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.drone-arrow {
+    width: 34px;
+    height: 34px;
+    background: #00E5FF;
+    clip-path: polygon(50% 0%, 100% 100%, 50% 70%, 0% 100%);
+    border: 2px solid white;
+    box-shadow: 0 0 14px rgba(0, 229, 255, 0.8);
+    transform-origin: center center;
+}
+
+.mission-marker {
+    min-width: 22px;
+    height: 22px;
+    padding: 0 5px;
+    border-radius: 11px;
+    border: 2px solid white;
+    background: #16A3FF;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font: 700 11px/1 Arial, sans-serif;
+    box-shadow: 0 0 12px rgba(22, 163, 255, 0.75);
+}
+
+.mission-marker-command {
+    background: #FF8A00;
+    box-shadow: 0 0 12px rgba(255, 138, 0, 0.75);
+}
+
+.home-marker {
+    min-width: 42px;
+    height: 22px;
+    padding: 0 8px;
+    border-radius: 11px;
+    border: 2px solid white;
+    background: #F28A49;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font: 800 10px/1 Arial, sans-serif;
+    letter-spacing: 0;
+    box-shadow: 0 0 14px rgba(242, 138, 73, 0.8);
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div id="map"></div>
+
+<script>
+
+function tileProxyUrl(url)
+{
+    if (!/^https?:\/\//i.test(url)) {
+        return url;
+    }
+
+    const encodedUrl = btoa(url)
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=+$/, '');
+    return 'bonv://tile/' + encodedUrl;
+}
+
+const mapStyles = {
+    satellite: tileProxyUrl('https://api.maptiler.com/maps/hybrid/style.json?key=KtcPHyoVykbWCHELF8E8'),
+    street: tileProxyUrl('https://api.maptiler.com/maps/streets/style.json?key=KtcPHyoVykbWCHELF8E8')
+};
+let currentMapViewMode = 'satellite';
+let lastMissionWaypoints = [];
+let lastRasterOverlays = [];
+let lastRasterEnabled = false;
+let mapStyleReady = false;
+let pendingOperations = [];
+let droneMarker = null;
+let droneElement = null;
+let droneArrow = null;
+let missionMarkers = [];
+let homeMarker = null;
+let vehicleTrailCoordinates = [];
+const vehicleTrailSourceId = 'vehicle-trail';
+const vehicleTrailGlowLayerId = 'vehicle-trail-glow';
+const vehicleTrailLineLayerId = 'vehicle-trail-line';
+const minVehicleTrailPointSpacingMeters = 0.75;
+const maxVehicleTrailPoints = 5000;
+const rasterOverlayLayerPrefix = 'raster-overlay-layer-';
+const rasterOverlaySourcePrefix = 'raster-overlay-source-';
+
+const map = new maplibregl.Map({
+    container: 'map',
+    style: mapStyles[currentMapViewMode],
+    center: [0, 0],
+    zoom: 15,
+    pitch: 0,
+    bearing: 0,
+    antialias: true,
+    // Keep every MapTiler request same-origin. The native scheme handler fetches
+    // and caches the real URL, avoiding Chromium's CORS check on bonv://tile.
+    transformRequest: (url) => ({ url: tileProxyUrl(url) })
+});
+
+map.addControl(new maplibregl.NavigationControl());
+
+function getMapView()
+{
+    const center = map.getCenter();
+    return {
+        latitude: center.lat,
+        longitude: center.lng,
+        zoom: map.getZoom()
+    };
+}
+
+function flushPendingMapOperations()
+{
+    mapStyleReady = true;
+    console.log('MAP STYLE READY');
+
+    const operations = pendingOperations;
+    pendingOperations = [];
+    operations.forEach(operation => operation());
+}
+
+map.on('load', flushPendingMapOperations);
+map.on('style.load', () => {
+    flushPendingMapOperations();
+    if (lastMissionWaypoints.length > 0) {
+        setMissionWaypoints(lastMissionWaypoints);
+    }
+    refreshVehicleTrail();
+    setRasterOverlays(lastRasterOverlays, lastRasterEnabled);
+});
+
+map.on('error', event => {
+    console.log('MAP ERROR:', event && event.error ? event.error.message : event);
+});
+
+function runWhenMapReady(operation)
+{
+    if (mapStyleReady) {
+        operation();
+    } else {
+        pendingOperations.push(operation);
+    }
+}
+
+function isValidCoordinate(lat, lon)
+{
+    return Number.isFinite(lat)
+        && Number.isFinite(lon)
+        && lat >= -90
+        && lat <= 90
+        && lon >= -180
+        && lon <= 180
+        && !(lat === 0 && lon === 0);
+}
+
+function distanceMeters(fromLon, fromLat, toLon, toLat)
+{
+    const earthRadiusMeters = 6371000.0;
+    const toRadians = degrees => degrees * Math.PI / 180.0;
+    const lat1 = toRadians(fromLat);
+    const lat2 = toRadians(toLat);
+    const deltaLat = toRadians(toLat - fromLat);
+    const deltaLon = toRadians(toLon - fromLon);
+    const a = Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2)
+        + Math.cos(lat1) * Math.cos(lat2) * Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return earthRadiusMeters * c;
+}
+
+function vehicleTrailGeoJson()
+{
+    return {
+        type: 'Feature',
+        properties: {},
+        geometry: {
+            type: 'LineString',
+            coordinates: vehicleTrailCoordinates
+        }
+    };
+}
+
+function ensureVehicleTrail()
+{
+    if (!map.getSource(vehicleTrailSourceId)) {
+        map.addSource(vehicleTrailSourceId, {
+            type: 'geojson',
+            data: vehicleTrailGeoJson()
+        });
+    }
+
+    const beforeLayerId = map.getLayer('mission-route-line') ? 'mission-route-line' : undefined;
+
+    if (!map.getLayer(vehicleTrailGlowLayerId)) {
+        map.addLayer({
+            id: vehicleTrailGlowLayerId,
+            type: 'line',
+            source: vehicleTrailSourceId,
+            layout: {
+                'line-cap': 'round',
+                'line-join': 'round'
+            },
+            paint: {
+                'line-color': '#00E5FF',
+                'line-width': 9,
+                'line-opacity': 0.22
+            }
+        }, beforeLayerId);
+    }
+
+    if (!map.getLayer(vehicleTrailLineLayerId)) {
+        map.addLayer({
+            id: vehicleTrailLineLayerId,
+            type: 'line',
+            source: vehicleTrailSourceId,
+            layout: {
+                'line-cap': 'round',
+                'line-join': 'round'
+            },
+            paint: {
+                'line-color': '#00E5FF',
+                'line-width': 4,
+                'line-opacity': 0.95
+            }
+        }, beforeLayerId);
+    }
+}
+
+function setHomeMarker(lon, lat)
+{
+    if (homeMarker) {
+        return;
+    }
+
+    const markerElement = document.createElement('div');
+    markerElement.className = 'home-marker';
+    markerElement.textContent = 'HOME';
+
+    homeMarker = new maplibregl.Marker({
+        element: markerElement,
+        anchor: 'bottom',
+        offset: [0, -12]
+    })
+    .setLngLat([lon, lat])
+    .addTo(map);
+}
+
+function refreshVehicleTrail()
+{
+    runWhenMapReady(() => {
+        ensureVehicleTrail();
+        const source = map.getSource(vehicleTrailSourceId);
+        if (source) {
+            source.setData(vehicleTrailGeoJson());
+        }
+
+        if (vehicleTrailCoordinates.length > 0) {
+            const homeCoordinate = vehicleTrailCoordinates[0];
+            setHomeMarker(homeCoordinate[0], homeCoordinate[1]);
+        }
+    });
+}
+
+function setMapViewMode(mode)
+{
+    const nextMode = mode === 'street' ? 'street' : 'satellite';
+    if (nextMode === currentMapViewMode) {
+        return;
+    }
+
+    currentMapViewMode = nextMode;
+    mapStyleReady = false;
+    map.setStyle(mapStyles[currentMapViewMode]);
+}
+
+function centerMap(lat, lon, zoom = 15)
+{
+    console.log('CENTER MAP:', lat, lon, zoom);
+
+    if (!isValidCoordinate(lat, lon)) {
+        console.log('IGNORING INVALID CENTER COORDINATE:', lat, lon);
+        return;
+    }
+
+    runWhenMapReady(() => {
+        map.jumpTo({
+            center: [lon, lat],
+            zoom: zoom
+        });
+    });
+}
+
+function initializeMap(lat, lon)
+{
+    centerMap(lat, lon, 17);
+}
+
+function ensureDroneMarker(lon, lat)
+{
+    if (droneMarker) {
+        return;
+    }
+
+    droneElement = document.createElement('div');
+    droneElement.className = 'drone-marker';
+
+    droneArrow = document.createElement('div');
+    droneArrow.className = 'drone-arrow';
+    droneElement.appendChild(droneArrow);
+
+    droneMarker = new maplibregl.Marker({
+        element: droneElement,
+        anchor: 'center',
+        rotationAlignment: 'map'
+    })
+    .setLngLat([lon, lat])
+    .addTo(map);
+}
+
+function autoPanToKeepDroneVisible(lon, lat)
+{
+    const canvas = map.getCanvas();
+    const width = canvas.clientWidth || map.getContainer().clientWidth;
+    const height = canvas.clientHeight || map.getContainer().clientHeight;
+
+    if (width <= 0 || height <= 0) {
+        return;
+    }
+
+    const horizontalPadding = Math.max(28, Math.min(72, width * 0.25));
+    const verticalPadding = Math.max(28, Math.min(72, height * 0.25));
+    const point = map.project([lon, lat]);
+    let deltaX = 0;
+    let deltaY = 0;
+
+    if (point.x < horizontalPadding) {
+        deltaX = point.x - horizontalPadding;
+    } else if (point.x > width - horizontalPadding) {
+        deltaX = point.x - (width - horizontalPadding);
+    }
+
+    if (point.y < verticalPadding) {
+        deltaY = point.y - verticalPadding;
+    } else if (point.y > height - verticalPadding) {
+        deltaY = point.y - (height - verticalPadding);
+    }
+
+    if (deltaX === 0 && deltaY === 0) {
+        return;
+    }
+
+    const centerPoint = map.project(map.getCenter());
+    const nextCenter = map.unproject([
+        centerPoint.x + deltaX,
+        centerPoint.y + deltaY
+    ]);
+
+    map.easeTo({
+        center: nextCenter,
+        duration: 350
+    });
+}
+
+function updateDrone(lat, lon, heading, follow = true, keepVisible = follow)
+{
+    console.log('UPDATE DRONE:', lat, lon, heading, follow, keepVisible);
+
+    if (!isValidCoordinate(lat, lon)) {
+        console.log('IGNORING INVALID DRONE COORDINATE:', lat, lon);
+        return;
+    }
+
+    runWhenMapReady(() => {
+        ensureDroneMarker(lon, lat);
+        droneMarker.setLngLat([lon, lat]);
+
+        const safeHeading = Number.isFinite(heading) ? heading : 0;
+        droneArrow.style.transform = `rotate(${safeHeading}deg)`;
+
+        if (follow) {
+            map.easeTo({
+                center: [lon, lat],
+                duration: 500
+            });
+        } else if (keepVisible) {
+            autoPanToKeepDroneVisible(lon, lat);
+        }
+    });
+}
+
+function updateVehicleTrail(lat, lon)
+{
+    if (!isValidCoordinate(lat, lon)) {
+        return;
+    }
+
+    runWhenMapReady(() => {
+        const coordinate = [lon, lat];
+        const previousCoordinate = vehicleTrailCoordinates.length > 0
+            ? vehicleTrailCoordinates[vehicleTrailCoordinates.length - 1]
+            : null;
+
+        if (previousCoordinate) {
+            const spacing = distanceMeters(previousCoordinate[0], previousCoordinate[1], lon, lat);
+            if (spacing < minVehicleTrailPointSpacingMeters) {
+                return;
+            }
+        }
+
+        vehicleTrailCoordinates.push(coordinate);
+        if (vehicleTrailCoordinates.length > maxVehicleTrailPoints) {
+            vehicleTrailCoordinates = vehicleTrailCoordinates.slice(vehicleTrailCoordinates.length - maxVehicleTrailPoints);
+        }
+
+        ensureVehicleTrail();
+        setHomeMarker(vehicleTrailCoordinates[0][0], vehicleTrailCoordinates[0][1]);
+
+        const source = map.getSource(vehicleTrailSourceId);
+        if (source) {
+            source.setData(vehicleTrailGeoJson());
+        }
+    });
+}
+
+function clearVehicleTrail()
+{
+    runWhenMapReady(() => {
+        vehicleTrailCoordinates = [];
+
+        if (homeMarker) {
+            homeMarker.remove();
+            homeMarker = null;
+        }
+
+        if (map.getLayer(vehicleTrailLineLayerId)) {
+            map.removeLayer(vehicleTrailLineLayerId);
+        }
+        if (map.getLayer(vehicleTrailGlowLayerId)) {
+            map.removeLayer(vehicleTrailGlowLayerId);
+        }
+        if (map.getSource(vehicleTrailSourceId)) {
+            map.removeSource(vehicleTrailSourceId);
+        }
+    });
+}
+
+function clearRasterOverlays()
+{
+    runWhenMapReady(() => {
+        const style = map.getStyle();
+        const layerIds = style.layers
+            .map(layer => layer.id)
+            .filter(id => id.startsWith(rasterOverlayLayerPrefix));
+
+        layerIds.forEach(id => {
+            if (map.getLayer(id)) {
+                map.removeLayer(id);
+            }
+        });
+
+        const sourceIds = Object.keys(style.sources)
+            .filter(id => id.startsWith(rasterOverlaySourcePrefix));
+
+        sourceIds.forEach(id => {
+            if (map.getSource(id)) {
+                map.removeSource(id);
+            }
+        });
+    });
+}
+
+function setRasterOverlays(overlays, enabled)
+{
+    lastRasterOverlays = Array.isArray(overlays) ? overlays : [];
+    lastRasterEnabled = !!enabled;
+    runWhenMapReady(() => {
+        clearRasterOverlays();
+
+        if (!enabled || !Array.isArray(overlays)) {
+            return;
+        }
+
+        let combinedBounds = null;
+
+        overlays.forEach(overlay => {
+            if (!overlay || !overlay.visible || !overlay.image || !Array.isArray(overlay.coordinates) || overlay.coordinates.length !== 4) {
+                return;
+            }
+
+            const sourceId = rasterOverlaySourcePrefix + overlay.id;
+            const layerId = rasterOverlayLayerPrefix + overlay.id;
+            const opacity = Number.isFinite(Number(overlay.opacity)) ? Math.max(0, Math.min(1, Number(overlay.opacity))) : 0.85;
+            
+            console.log("=================================");
+            console.log("Overlay:", overlay.name);
+            console.log("Image:", overlay.image);
+            console.log("Coordinates:", overlay.coordinates);
+            console.log("Opacity:", overlay.opacity);
+            console.log("=================================");
+            
+            map.addSource(sourceId, {
+                type: 'image',
+                url: overlay.image,
+                coordinates: overlay.coordinates
+            });
+
+            console.log("Added source:", sourceId);
+
+            const beforeLayerId = map.getLayer(vehicleTrailGlowLayerId)
+                ? vehicleTrailGlowLayerId
+                : map.getLayer('mission-route-line') ? 'mission-route-line' : undefined;
+            map.addLayer({
+                id: layerId,
+                type: 'raster',
+                source: sourceId,
+                paint: {
+                    'raster-opacity': opacity,
+                    'raster-fade-duration': 0
+                }
+            }, beforeLayerId);
+
+            console.log("Added layer:", layerId);
+
+            overlay.coordinates.forEach(coordinate => {
+                if (!Array.isArray(coordinate) || coordinate.length < 2) {
+                    return;
+                }
+
+                const lon = Number(coordinate[0]);
+                const lat = Number(coordinate[1]);
+                if (!Number.isFinite(lon) || !Number.isFinite(lat)) {
+                    return;
+                }
+
+                if (!combinedBounds) {
+                    combinedBounds = new maplibregl.LngLatBounds([lon, lat], [lon, lat]);
+                } else {
+                    combinedBounds.extend([lon, lat]);
+                }
+            });
+        });
+
+        if (combinedBounds) {
+            map.fitBounds(combinedBounds, { padding: 40, duration: 0, maxZoom: 18 });
+        }
+    });
+}
+function setRasterOverlayOpacity(id, opacity)
+{
+    runWhenMapReady(() => {
+        const layerId = rasterOverlayLayerPrefix + id;
+        if (!map.getLayer(layerId)) {
+            return;
+        }
+
+        const safeOpacity = Number.isFinite(Number(opacity)) ? Math.max(0, Math.min(1, Number(opacity))) : 0.85;
+        map.setPaintProperty(layerId, 'raster-opacity', safeOpacity);
+    });
+}
+function clearMissionWaypoints(clearCachedMission = true)
+{
+    runWhenMapReady(() => {
+        if (clearCachedMission) {
+            lastMissionWaypoints = [];
+        }
+
+        missionMarkers.forEach(marker => marker.remove());
+        missionMarkers = [];
+
+        if (map.getLayer('mission-route-line')) {
+            map.removeLayer('mission-route-line');
+        }
+        if (map.getSource('mission-route')) {
+            map.removeSource('mission-route');
+        }
+    });
+}
+
+function setMissionWaypoints(points)
+{
+    lastMissionWaypoints = Array.isArray(points) ? points : [];
+    runWhenMapReady(() => {
+        const safePoints = Array.isArray(points)
+            ? points.filter(point => isValidCoordinate(Number(point.lat), Number(point.lon)))
+            : [];
+
+        clearMissionWaypoints(false);
+
+        if (safePoints.length === 0) {
+            return;
+        }
+
+        const coordinates = safePoints.map(point => [Number(point.lon), Number(point.lat)]);
+        map.addSource('mission-route', {
+            type: 'geojson',
+            data: {
+                type: 'Feature',
+                properties: {},
+                geometry: {
+                    type: 'LineString',
+                    coordinates
+                }
+            }
+        });
+
+        map.addLayer({
+            id: 'mission-route-line',
+            type: 'line',
+            source: 'mission-route',
+            layout: {
+                'line-cap': 'round',
+                'line-join': 'round'
+            },
+            paint: {
+                'line-color': '#16A3FF',
+                'line-width': 4,
+                'line-opacity': 0.9
+            }
+        });
+
+        const duplicateGroups = new Map();
+        safePoints.forEach(point => {
+            const key = `${Number(point.lat).toFixed(7)},${Number(point.lon).toFixed(7)}`;
+            duplicateGroups.set(key, (duplicateGroups.get(key) || 0) + 1);
+        });
+
+        const duplicateIndexes = new Map();
+        safePoints.forEach((point, index) => {
+            const markerElement = document.createElement('div');
+            markerElement.className = point.hasCoordinate === false ? 'mission-marker mission-marker-command' : 'mission-marker';
+            markerElement.textContent = point.seq !== undefined ? point.seq : index + 1;
+
+            const key = `${Number(point.lat).toFixed(7)},${Number(point.lon).toFixed(7)}`;
+            const duplicateCount = duplicateGroups.get(key) || 1;
+            const duplicateIndex = duplicateIndexes.get(key) || 0;
+            duplicateIndexes.set(key, duplicateIndex + 1);
+
+            let offset = [0, 0];
+            if (duplicateCount > 1) {
+                const angle = (Math.PI * 2 * duplicateIndex) / duplicateCount - Math.PI / 2;
+                const radius = Math.min(34, 14 + duplicateCount * 2.5);
+                offset = [Math.cos(angle) * radius, Math.sin(angle) * radius];
+            }
+
+            const marker = new maplibregl.Marker({
+                element: markerElement,
+                anchor: 'center',
+                offset
+            })
+            .setLngLat([Number(point.lon), Number(point.lat)])
+            .addTo(map);
+
+            missionMarkers.push(marker);
+        });
+
+        if (coordinates.length === 1) {
+            map.easeTo({ center: coordinates[0], zoom: Math.max(map.getZoom(), 16), duration: 500 });
+            return;
+        }
+
+        const bounds = coordinates.reduce(
+            (currentBounds, coordinate) => currentBounds.extend(coordinate),
+            new maplibregl.LngLatBounds(coordinates[0], coordinates[0])
+        );
+        map.fitBounds(bounds, { padding: 90, maxZoom: 17, duration: 600 });
+    });
+}
+
+window.setMapViewMode = setMapViewMode;
+window.centerMap = centerMap;
+window.initializeMap = initializeMap;
+window.updateDrone = updateDrone;
+window.updateVehicleTrail = updateVehicleTrail;
+window.clearVehicleTrail = clearVehicleTrail;
+window.setMissionWaypoints = setMissionWaypoints;
+window.clearMissionWaypoints = clearMissionWaypoints;
+window.setRasterOverlays = setRasterOverlays;
+window.setRasterOverlayOpacity = setRasterOverlayOpacity;
+window.clearRasterOverlays = clearRasterOverlays;
+
+console.log('MAP FUNCTIONS EXPORTED');
+
+</script>
+
+</body>
+
+</html>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Package>
+    <DisplayName>BonVGroundStation</DisplayName>
+    <Description>Install BonVGroundStation STAGED_1.0 application</Description>
+    <Version>STAGED_1.1</Version>
+    <ReleaseDate>2026-07-28</ReleaseDate>
+    <Default>true</Default>
+    <Script>installscript.qs</Script>
+    <SortingPriority>100</SortingPriority>
+    <Updateable>true</Updateable>
+</Package>
+
+<!-- <?xml version="1.0" encoding="UTF-8"?>
+
+<Package>
+
+    <DisplayName>BonV Ground Station</DisplayName>
+
+    <Description>Ground Control Station</Description>
+
+    <Version>1.0.0</Version>
+
+    <ReleaseDate>2026-07-28</ReleaseDate>
+
+    <Default>true</Default>
+
+    <Script></Script>
+
+</Package> -->

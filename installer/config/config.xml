@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Installer>
+	<Name>BonVGroundStation</Name>
+    <Version>STAGED_1.1</Version>
+	<Title>BonVGroundStation Installer</Title>
+	<Publisher>BonV Aero</Publisher>
+	<StartMenuDir>BonVGroundStation_Staged_v1.1</StartMenuDir>
+	<TargetDir>@ApplicationsDir@/BonVGroundStation</TargetDir>
+	<ControlScript>controlscript.qs</ControlScript>
+	<RemoteRepositories>
+	</RemoteRepositories>
+</Installer>
+
+
+<!-- <?xml version="1.0" encoding="UTF-8"?>
+
+<Installer>
+
+    <Name>BonV Ground Station</Name>
+
+    <Version>1.0.0</Version>
+
+    <Title>BonV Ground Station</Title>
+
+    <Publisher>BonV Aero</Publisher>
+
+    <StartMenuDir>BonVGroundStation</StartMenuDir>
+
+    <TargetDir>@ApplicationsDir@/BonVGroundStation</TargetDir>
+
+</Installer> -->

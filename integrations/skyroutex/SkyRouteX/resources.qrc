@@ -1,0 +1,34 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qml/main.qml</file>
+        <file>qml/MainView.qml</file>
+        <file>qml/MapView.qml</file>
+        <file>qml/NavButton.qml</file>
+        <file>qml/DroneFleetPanel.qml</file>
+        <file>qml/PinGate.qml</file>
+        <file>qml/View3D.qml</file>
+        <file>qml/SectionBlock.qml</file>
+        <file>qml/TerrainProfile.qml</file>
+        <file>qml/TooltipRow.qml</file>
+        <file>qml/LegendDot.qml</file>
+        <file>qml/FormRow.qml</file>
+        <file>qml/TitleBar.qml</file>
+        <file>qml/SideNav.qml</file>
+        <file>qml/ActivityLog.qml</file>
+        <file>qml/StatusBar.qml</file>
+        <file>qml/TripToggle.qml</file>
+        <file>qml/CoordGroup.qml</file>
+        <file>qml/DistanceBadge.qml</file>
+        <file>qml/FpInput.qml</file>
+        <file>qml/FpButton.qml</file>
+        <file>qml/FpComboBox.qml</file>
+        <file>qml/FpSpinBox.qml</file>
+        <file>qml/FpSectionTitle.qml</file>
+        <file>qml/Theme.qml</file>
+        <file>qml/qmldir</file>
+        <file>qml/ActivationWindow.qml</file>
+    </qresource>
+    <qresource prefix="/images">
+        <file>images/bonv_logo.ico</file>
+    </qresource>
+</RCC>
