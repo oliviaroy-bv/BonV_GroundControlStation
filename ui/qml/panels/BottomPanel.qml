@@ -12,6 +12,17 @@ Rectangle {
     property var vehicle: null
     property string flightModeText: "--"
     property bool darkTheme: true
+    property bool payloadButtonVisible: false
+    property bool vpsModuleEnabled: false
+    readonly property bool vpsConnected: root.vehicleConnected && root.mavlinkObject.vpsConnected
+    property real payloadPanelRightInset: 0
+    property int tacticalPayloadSpacing: 12
+    readonly property int tacticalPayloadActionCount: 7
+    readonly property int tacticalPayloadActionHeight: 36
+    readonly property int tacticalPayloadActionSpacing: 6
+    readonly property int tacticalPayloadContentSpacing: 8
+    readonly property int tacticalPayloadHeaderHeight: 26
+    readonly property int tacticalPayloadPadding: 10
     readonly property bool vehicleConnected: root.mavlinkObject ? root.mavlinkObject.connected : false
     readonly property bool vehicleArmed: root.vehicle ? root.vehicle.armed : false
     readonly property bool hasMissionPlan: root.mavlinkObject && root.mavlinkObject.missionUploaded
@@ -30,6 +41,7 @@ Rectangle {
     property bool armConfirmationVisible: false
     property string armConfirmationAction: "arm"
     property bool flightModeExpanded: false
+    property int tacticalPayloadStep: 0
     signal generateMissionRequested()
     signal graphRequested()
     signal statusMessageRequested(string message)
@@ -93,6 +105,48 @@ Rectangle {
         takeoffAltitudeDialog.close()
         root.mavlinkObject.takeoff(altitude)
         root.statusMessageRequested("Takeoff requested")
+    }
+
+    function openTacticalPayloadPanel() {
+        vpsPanel.close()
+        tacticalPayloadStep = 0
+        tacticalPayloadPanel.open()
+    }
+
+    function openVpsPanel() {
+        tacticalPayloadPanel.close()
+        vpsPanel.open()
+    }
+
+    function requestVpsStart(action, label) {
+        if (!root.vpsConnected || !root.mavlinkObject.startVpsAction(action)) {
+            root.statusMessageRequested("VPS command could not be sent")
+            return
+        }
+        root.statusMessageRequested(label + " start requested")
+    }
+
+    onVpsModuleEnabledChanged: if (!vpsModuleEnabled) vpsPanel.close()
+    onVehicleConnectedChanged: if (!vehicleConnected) vpsPanel.close()
+
+    function advanceTacticalPayloadStep(step) {
+        if (step === tacticalPayloadStep)
+            tacticalPayloadStep += 1
+    }
+
+    function sendTacticalPayloadCommand(step, label, commandId, watchdogMinutes) {
+        if (!root.mavlinkObject || !root.vehicleConnected) {
+            root.statusMessageRequested("Connect a vehicle before sending a payload command")
+            return
+        }
+
+        if (!root.mavlinkObject.sendPayloadCommand(commandId, watchdogMinutes)) {
+            root.statusMessageRequested("Payload command could not be sent")
+            return
+        }
+
+        root.advanceTacticalPayloadStep(step)
+        root.statusMessageRequested(label + " payload command sent")
     }
 
     onVehicleArmedChanged: {
@@ -301,14 +355,20 @@ Rectangle {
         Separator {}
 
         ControlGroup {
+            id: criticalActions
             title: "CRITICAL ACTIONS"
             dangerTitle: true
+            buttonSpacing: root.width < 1600 ? 8 : 14
             buttons: [
                 { label: "ARM", accent: "#1fc969", action: "arm", enabled: root.vehicleConnected && !root.vehicleArmed },
                 { label: "DISARM", accent: "#ff4b46", fill: "#261016", hoverFill: "#35141b", action: "disarm", enabled: root.vehicleConnected && root.vehicleArmed },
                 { label: "LAND", accent: "#9d2bd4", action: "land", enabled: root.vehicleConnected },
                 { label: "RTL", accent: "#ff8a00", action: "rtl", enabled: root.vehicleConnected }
-            ]
+            ].concat(root.payloadButtonVisible && root.vehicleConnected ? [
+                { label: "Payload", accent: "#a48cd8", action: "payload", enabled: true }
+            ] : []).concat(root.vpsModuleEnabled && root.vehicleConnected ? [
+                { label: "VPS", accent: "#00c7df", action: "vps", enabled: true }
+            ] : [])
             onActionRequested: function(action) {
                 if (!root.mavlinkObject) return
                 if (action === "arm") root.requestArmToggle()
@@ -319,7 +379,287 @@ Rectangle {
                 } else if (action === "rtl") {
                     root.mavlinkObject.returnToLaunch()
                     root.statusMessageRequested("Return to launch requested")
+                } else if (action === "payload") {
+                    root.openTacticalPayloadPanel()
+                } else if (action === "vps") {
+                    root.openVpsPanel()
                 }
+            }
+        }
+    }
+
+    Popup {
+        id: vpsPanel
+        parent: Overlay.overlay
+        width: 230
+        padding: 10
+        height: 26 + 22 + 6 * 36 + 7 * 6 + topPadding + bottomPadding
+        x: Math.max(root.tacticalPayloadSpacing,
+                    parent.width - root.payloadPanelRightInset - width - root.tacticalPayloadSpacing)
+        y: Math.max(root.tacticalPayloadSpacing, root.y - height - root.tacticalPayloadSpacing)
+        modal: false
+        focus: true
+        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+
+        background: Rectangle {
+            color: root.darkTheme ? "#f2070d15" : "#ffffff"
+            border.color: root.darkTheme ? "#31435e" : "#b8c9dc"
+            border.width: 1
+            radius: 4
+        }
+
+        contentItem: Column {
+            spacing: 6
+
+            RowLayout {
+                width: parent.width
+                height: 26
+                Text {
+                    Layout.fillWidth: true
+                    text: "VPS NAVIGATION"
+                    color: root.textColor
+                    font.pixelSize: 12
+                    font.bold: true
+                }
+                Button {
+                    id: vpsCloseButton
+                    Layout.preferredWidth: 22
+                    Layout.preferredHeight: 22
+                    flat: true
+                    padding: 0
+                    text: "\u00d7"
+                    onClicked: vpsPanel.close()
+                    contentItem: Text {
+                        text: vpsCloseButton.text
+                        color: root.textColor
+                        font.pixelSize: 22
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
+                }
+            }
+
+            Text {
+                width: parent.width
+                height: 22
+                text: root.vpsConnected ? "VPS connected" : "Waiting for VPS status"
+                color: root.vpsConnected ? "#3bd278" : root.mutedColor
+                font.pixelSize: 11
+                verticalAlignment: Text.AlignVCenter
+            }
+
+            Repeater {
+                model: [
+                    { label: "Sensors", key: "sensors" },
+                    { label: "VIO", key: "vio" },
+                    { label: "VPR", key: "vpr" },
+                    { label: "C_LOG", key: "logging" },
+                    { label: "AIDING", key: "" },
+                    { label: "AUTO_AID", key: "autoAid" }
+                ]
+
+                delegate: Button {
+                    id: vpsActionButton
+                    required property int index
+                    required property var modelData
+                    width: parent.width
+                    height: 36
+                    flat: true
+                    padding: 0
+                    hoverEnabled: true
+                    enabled: root.vpsConnected
+                    onClicked: root.requestVpsStart(index, modelData.label)
+
+                    contentItem: RowLayout {
+                        spacing: 8
+                        Text {
+                            Layout.fillWidth: true
+                            Layout.leftMargin: 10
+                            text: modelData.label
+                            color: vpsActionButton.enabled ? root.textColor : root.disabledColor
+                            font.pixelSize: 12
+                            font.bold: true
+                        }
+                        Text {
+                            Layout.rightMargin: 10
+                            text: root.vpsConnected && modelData.key.length > 0
+                                  ? (root.mavlinkObject.vpsStatus[modelData.key] || "Unknown") : ""
+                            color: root.mutedColor
+                            font.pixelSize: 10
+                        }
+                    }
+
+                    background: Rectangle {
+                        color: vpsActionButton.down ? root.downColor
+                              : vpsActionButton.hovered ? root.hoverColor : root.panelColor
+                        border.color: vpsActionButton.enabled ? "#00aeca" : root.borderColor
+                        border.width: 1
+                        radius: 3
+                    }
+                }
+            }
+        }
+    }
+
+    Popup {
+        id: tacticalPayloadPanel
+        // The command bar is only 72 px high.  Put this popup in the window
+        // overlay so its content can extend above that bar without being
+        // clipped by the command-panel bounds.
+        parent: Overlay.overlay
+        width: 208
+        height: root.tacticalPayloadHeaderHeight
+                + 1
+                + root.tacticalPayloadActionCount * root.tacticalPayloadActionHeight
+                + (root.tacticalPayloadActionCount - 1) * root.tacticalPayloadActionSpacing
+                + 2 * root.tacticalPayloadContentSpacing
+                + 2 * root.tacticalPayloadPadding
+        padding: root.tacticalPayloadPadding
+        modal: false
+        focus: true
+        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+
+        // Keep the panel in the open map area. These bindings follow both
+        // command-bar movement and telemetry-panel resizing.
+        x: Math.max(root.tacticalPayloadSpacing,
+                    parent.width - root.payloadPanelRightInset - width - root.tacticalPayloadSpacing)
+        y: Math.max(root.tacticalPayloadSpacing,
+                    root.y - height - root.tacticalPayloadSpacing)
+
+        enter: Transition {
+            ParallelAnimation {
+                NumberAnimation { property: "opacity"; from: 0; to: 1; duration: 150 }
+                NumberAnimation { property: "scale"; from: 0.94; to: 1; duration: 170; easing.type: Easing.OutCubic }
+            }
+        }
+        exit: Transition {
+            ParallelAnimation {
+                NumberAnimation { property: "opacity"; from: 1; to: 0; duration: 100 }
+                NumberAnimation { property: "scale"; from: 1; to: 0.96; duration: 100 }
+            }
+        }
+
+        background: Rectangle {
+            color: root.darkTheme ? "#e9070d15" : "#ffffff"
+            border.color: root.darkTheme ? "#31435e" : "#b8c9dc"
+            border.width: 1
+            radius: 4
+        }
+
+        contentItem: Column {
+            id: tacticalPayloadContent
+            width: tacticalPayloadPanel.width - tacticalPayloadPanel.leftPadding - tacticalPayloadPanel.rightPadding
+            spacing: root.tacticalPayloadContentSpacing
+
+            RowLayout {
+                id: payloadPanelHeader
+                width: parent.width
+                height: root.tacticalPayloadHeaderHeight
+                Layout.fillWidth: true
+
+                Text {
+                    Layout.fillWidth: true
+                    text: "TACTICAL PAYLOAD"
+                    color: root.textColor
+                    font.pixelSize: 12
+                    font.bold: true
+                }
+
+                Button {
+                    Layout.preferredWidth: 22
+                    Layout.preferredHeight: 22
+                    flat: true
+                    padding: 0
+                    text: "×"
+                    onClicked: tacticalPayloadPanel.close()
+                    contentItem: Text {
+                        text: parent.text
+                        color: root.textColor
+                        font.pixelSize: 22
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
+                }
+            }
+
+            Rectangle {
+                id: payloadPanelDivider
+                width: parent.width
+                height: 1
+                color: root.borderColor
+            }
+
+            Column {
+                id: payloadActions
+                width: parent.width
+                spacing: root.tacticalPayloadActionSpacing
+                height: root.tacticalPayloadActionCount * root.tacticalPayloadActionHeight
+                        + (root.tacticalPayloadActionCount - 1) * spacing
+
+                Repeater {
+                model: [
+                    { label: "Activate", icon: "⏻", accent: "#3bd278" },
+                    { label: "Arm 1", icon: "⌁", accent: "#f4a62a" },
+                    { label: "Arm 2", icon: "⌁", accent: "#f4a62a" },
+                    { label: "Arm 3", icon: "⌁", accent: "#f4a62a" },
+                    { label: "Wait", icon: "◷", accent: "#36aeea" },
+                    { label: "Deactivate", icon: "⏻", accent: "#fa4a59" },
+                    { label: "Watchdog timer set...", icon: "⚙", accent: "#bd54e7" }
+                ]
+
+                delegate: Button {
+                    id: payloadStepButton
+                    readonly property int step: index
+                    readonly property int commandId: [ 0x02, 0x03, 0x04, 0x05, 0x06, 0x08, 0x0B ][index]
+                    readonly property int watchdogMinutes: step === 6 ? 5 : 0
+                    readonly property bool completed: root.tacticalPayloadStep > step
+                    enabled: root.tacticalPayloadStep >= step
+                    width: parent.width
+                    height: root.tacticalPayloadActionHeight
+                    flat: true
+                    padding: 0
+                    hoverEnabled: true
+                    onClicked: root.sendTacticalPayloadCommand(
+                                   step, modelData.label, commandId, watchdogMinutes)
+
+                    contentItem: RowLayout {
+                        spacing: 8
+                        Text {
+                            Layout.preferredWidth: 25
+                            text: modelData.icon
+                            color: payloadStepButton.enabled ? modelData.accent : root.disabledColor
+                            font.pixelSize: 20
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+                        Text {
+                            Layout.fillWidth: true
+                            text: modelData.label
+                            color: payloadStepButton.enabled ? root.textColor : root.disabledColor
+                            font.pixelSize: 12
+                            font.bold: true
+                            verticalAlignment: Text.AlignVCenter
+                        }
+                        Text {
+                            visible: payloadStepButton.completed
+                            text: "✓"
+                            color: modelData.accent
+                            font.pixelSize: 14
+                            font.bold: true
+                        }
+                    }
+
+                    background: Rectangle {
+                        color: !payloadStepButton.enabled ? (root.darkTheme ? "#0b1018" : "#f3f6fb")
+                              : payloadStepButton.down ? Qt.darker(modelData.accent, 2.8)
+                              : payloadStepButton.hovered ? (root.darkTheme ? Qt.darker(modelData.accent, 2.1) : "#f2f7fb")
+                              : root.panelColor
+                        border.color: payloadStepButton.enabled ? modelData.accent : root.borderColor
+                        border.width: 1
+                        radius: 3
+                    }
+                }
+            }
             }
         }
     }
@@ -1098,6 +1438,7 @@ Rectangle {
         property int buttonWidth: 72
         property int buttonSpacing: 26
         property var buttons: []
+        property Item payloadButton: null
         signal actionRequested(string action)
 
         Layout.fillWidth: true
@@ -1118,6 +1459,7 @@ Rectangle {
             Repeater {
                 model: group.buttons
                 delegate: Button {
+                    id: controlButton
                     Layout.preferredWidth: group.buttonWidth
                     Layout.preferredHeight: 48
                     text: modelData.label
@@ -1143,6 +1485,15 @@ Rectangle {
                     }
 
                     onClicked: group.actionRequested(modelData.action)
+
+                    Component.onCompleted: {
+                        if (modelData.action === "payload")
+                            group.payloadButton = controlButton
+                    }
+                    Component.onDestruction: {
+                        if (group.payloadButton === controlButton)
+                            group.payloadButton = null
+                    }
                 }
             }
         }

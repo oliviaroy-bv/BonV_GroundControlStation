@@ -23,7 +23,8 @@ Module {
             "QtQuick.Layouts/ColumnLayout 6.0",
             "QtQuick.Layouts/ColumnLayout 6.3",
             "QtQuick.Layouts/ColumnLayout 6.6",
-            "QtQuick.Layouts/ColumnLayout 6.7"
+            "QtQuick.Layouts/ColumnLayout 6.7",
+            "QtQuick.Layouts/ColumnLayout 6.12"
         ]
         exportMetaObjectRevisions: [
             256,
@@ -36,7 +37,8 @@ Module {
             1536,
             1539,
             1542,
-            1543
+            1543,
+            1548
         ]
     }
     Component {
@@ -45,8 +47,11 @@ Module {
         name: "QQuickFlexboxLayout"
         accessSemantics: "reference"
         prototype: "QQuickLayout"
-        exports: ["QtQuick.Layouts/FlexboxLayout 6.10"]
-        exportMetaObjectRevisions: [1546]
+        exports: [
+            "QtQuick.Layouts/FlexboxLayout 6.10",
+            "QtQuick.Layouts/FlexboxLayout 6.12"
+        ]
+        exportMetaObjectRevisions: [1546, 1548]
         attachedType: "QQuickFlexboxLayoutAttached"
         Enum {
             name: "FlexboxDirection"
@@ -230,7 +235,8 @@ Module {
             "QtQuick.Layouts/GridLayout 6.0",
             "QtQuick.Layouts/GridLayout 6.3",
             "QtQuick.Layouts/GridLayout 6.6",
-            "QtQuick.Layouts/GridLayout 6.7"
+            "QtQuick.Layouts/GridLayout 6.7",
+            "QtQuick.Layouts/GridLayout 6.12"
         ]
         exportMetaObjectRevisions: [
             256,
@@ -243,7 +249,8 @@ Module {
             1536,
             1539,
             1542,
-            1543
+            1543,
+            1548
         ]
         Enum {
             name: "Flow"
@@ -360,7 +367,8 @@ Module {
             "QtQuick.Layouts/Layout 2.11",
             "QtQuick.Layouts/Layout 6.0",
             "QtQuick.Layouts/Layout 6.3",
-            "QtQuick.Layouts/Layout 6.7"
+            "QtQuick.Layouts/Layout 6.7",
+            "QtQuick.Layouts/Layout 6.12"
         ]
         isCreatable: false
         exportMetaObjectRevisions: [
@@ -372,7 +380,8 @@ Module {
             523,
             1536,
             1539,
-            1543
+            1543,
+            1548
         ]
         attachedType: "QQuickLayoutAttached"
         Enum {
@@ -627,7 +636,7 @@ Module {
     }
     Component {
         file: "private/qquicklayoutitemproxy_p.h"
-        lineNumber: 25
+        lineNumber: 26
         name: "QQuickLayoutItemProxy"
         accessSemantics: "reference"
         defaultProperty: "data"
@@ -635,9 +644,10 @@ Module {
         prototype: "QQuickItem"
         exports: [
             "QtQuick.Layouts/LayoutItemProxy 6.6",
-            "QtQuick.Layouts/LayoutItemProxy 6.7"
+            "QtQuick.Layouts/LayoutItemProxy 6.7",
+            "QtQuick.Layouts/LayoutItemProxy 6.12"
         ]
-        exportMetaObjectRevisions: [1542, 1543]
+        exportMetaObjectRevisions: [1542, 1543, 1548]
         Property {
             name: "target"
             type: "QQuickItem"
@@ -646,53 +656,53 @@ Module {
             write: "setTarget"
             notify: "targetChanged"
             index: 0
-            lineNumber: 29
+            lineNumber: 30
         }
-        Signal { name: "targetChanged"; lineNumber: 75 }
-        Method { name: "updatePos"; lineNumber: 47 }
-        Method { name: "targetMinimumWidthChanged"; lineNumber: 56 }
-        Method { name: "proxyMinimumWidthChanged"; lineNumber: 56 }
-        Method { name: "targetMinimumHeightChanged"; lineNumber: 57 }
-        Method { name: "proxyMinimumHeightChanged"; lineNumber: 57 }
-        Method { name: "targetPreferredWidthChanged"; lineNumber: 58 }
-        Method { name: "proxyPreferredWidthChanged"; lineNumber: 58 }
-        Method { name: "targetPreferredHeightChanged"; lineNumber: 59 }
-        Method { name: "proxyPreferredHeightChanged"; lineNumber: 59 }
-        Method { name: "targetMaximumWidthChanged"; lineNumber: 60 }
-        Method { name: "proxyMaximumWidthChanged"; lineNumber: 60 }
-        Method { name: "targetMaximumHeightChanged"; lineNumber: 61 }
-        Method { name: "proxyMaximumHeightChanged"; lineNumber: 61 }
-        Method { name: "targetFillWidthChanged"; lineNumber: 62 }
-        Method { name: "proxyFillWidthChanged"; lineNumber: 62 }
-        Method { name: "targetFillHeightChanged"; lineNumber: 63 }
-        Method { name: "proxyFillHeightChanged"; lineNumber: 63 }
-        Method { name: "targetAlignmentChanged"; lineNumber: 64 }
-        Method { name: "proxyAlignmentChanged"; lineNumber: 64 }
-        Method { name: "targetHorizontalStretchFactorChanged"; lineNumber: 65 }
-        Method { name: "proxyHorizontalStretchFactorChanged"; lineNumber: 65 }
-        Method { name: "targetVerticalStretchFactorChanged"; lineNumber: 66 }
-        Method { name: "proxyVerticalStretchFactorChanged"; lineNumber: 66 }
-        Method { name: "targetMarginsChanged"; lineNumber: 67 }
-        Method { name: "proxyMarginsChanged"; lineNumber: 67 }
-        Method { name: "targetLeftMarginChanged"; lineNumber: 68 }
-        Method { name: "proxyLeftMarginChanged"; lineNumber: 68 }
-        Method { name: "targetTopMarginChanged"; lineNumber: 69 }
-        Method { name: "proxyTopMarginChanged"; lineNumber: 69 }
-        Method { name: "targetRightMarginChanged"; lineNumber: 70 }
-        Method { name: "proxyRightMarginChanged"; lineNumber: 70 }
-        Method { name: "targetBottomMarginChanged"; lineNumber: 71 }
-        Method { name: "proxyBottomMarginChanged"; lineNumber: 71 }
+        Signal { name: "targetChanged"; lineNumber: 76 }
+        Method { name: "updatePos"; lineNumber: 48 }
+        Method { name: "targetMinimumWidthChanged"; lineNumber: 57 }
+        Method { name: "proxyMinimumWidthChanged"; lineNumber: 57 }
+        Method { name: "targetMinimumHeightChanged"; lineNumber: 58 }
+        Method { name: "proxyMinimumHeightChanged"; lineNumber: 58 }
+        Method { name: "targetPreferredWidthChanged"; lineNumber: 59 }
+        Method { name: "proxyPreferredWidthChanged"; lineNumber: 59 }
+        Method { name: "targetPreferredHeightChanged"; lineNumber: 60 }
+        Method { name: "proxyPreferredHeightChanged"; lineNumber: 60 }
+        Method { name: "targetMaximumWidthChanged"; lineNumber: 61 }
+        Method { name: "proxyMaximumWidthChanged"; lineNumber: 61 }
+        Method { name: "targetMaximumHeightChanged"; lineNumber: 62 }
+        Method { name: "proxyMaximumHeightChanged"; lineNumber: 62 }
+        Method { name: "targetFillWidthChanged"; lineNumber: 63 }
+        Method { name: "proxyFillWidthChanged"; lineNumber: 63 }
+        Method { name: "targetFillHeightChanged"; lineNumber: 64 }
+        Method { name: "proxyFillHeightChanged"; lineNumber: 64 }
+        Method { name: "targetAlignmentChanged"; lineNumber: 65 }
+        Method { name: "proxyAlignmentChanged"; lineNumber: 65 }
+        Method { name: "targetHorizontalStretchFactorChanged"; lineNumber: 66 }
+        Method { name: "proxyHorizontalStretchFactorChanged"; lineNumber: 66 }
+        Method { name: "targetVerticalStretchFactorChanged"; lineNumber: 67 }
+        Method { name: "proxyVerticalStretchFactorChanged"; lineNumber: 67 }
+        Method { name: "targetMarginsChanged"; lineNumber: 68 }
+        Method { name: "proxyMarginsChanged"; lineNumber: 68 }
+        Method { name: "targetLeftMarginChanged"; lineNumber: 69 }
+        Method { name: "proxyLeftMarginChanged"; lineNumber: 69 }
+        Method { name: "targetTopMarginChanged"; lineNumber: 70 }
+        Method { name: "proxyTopMarginChanged"; lineNumber: 70 }
+        Method { name: "targetRightMarginChanged"; lineNumber: 71 }
+        Method { name: "proxyRightMarginChanged"; lineNumber: 71 }
+        Method { name: "targetBottomMarginChanged"; lineNumber: 72 }
+        Method { name: "proxyBottomMarginChanged"; lineNumber: 72 }
         Method {
             name: "effectiveTarget"
             type: "QQuickItem"
             isPointer: true
             isMethodConstant: true
-            lineNumber: 42
+            lineNumber: 43
         }
     }
     Component {
         file: "private/qquicklayoutitemproxy_p.h"
-        lineNumber: 116
+        lineNumber: 117
         name: "QQuickLayoutItemProxyAttachedData"
         accessSemantics: "reference"
         prototype: "QObject"
@@ -702,7 +712,7 @@ Module {
             read: "proxyHasControl"
             notify: "controllingProxyChanged"
             index: 0
-            lineNumber: 121
+            lineNumber: 122
             isReadonly: true
         }
         Property {
@@ -712,7 +722,7 @@ Module {
             read: "getControllingProxy"
             notify: "controllingProxyChanged"
             index: 1
-            lineNumber: 122
+            lineNumber: 123
             isReadonly: true
         }
         Property {
@@ -722,13 +732,13 @@ Module {
             read: "getProxies"
             notify: "proxiesChanged"
             index: 2
-            lineNumber: 123
+            lineNumber: 124
             isReadonly: true
         }
-        Signal { name: "controlTaken"; lineNumber: 137 }
-        Signal { name: "controlReleased"; lineNumber: 138 }
-        Signal { name: "controllingProxyChanged"; lineNumber: 139 }
-        Signal { name: "proxiesChanged"; lineNumber: 140 }
+        Signal { name: "controlTaken"; lineNumber: 138 }
+        Signal { name: "controlReleased"; lineNumber: 139 }
+        Signal { name: "controllingProxyChanged"; lineNumber: 140 }
+        Signal { name: "proxiesChanged"; lineNumber: 141 }
     }
     Component {
         file: "private/qquicklinearlayout_p.h"
@@ -776,7 +786,8 @@ Module {
             "QtQuick.Layouts/RowLayout 6.0",
             "QtQuick.Layouts/RowLayout 6.3",
             "QtQuick.Layouts/RowLayout 6.6",
-            "QtQuick.Layouts/RowLayout 6.7"
+            "QtQuick.Layouts/RowLayout 6.7",
+            "QtQuick.Layouts/RowLayout 6.12"
         ]
         exportMetaObjectRevisions: [
             256,
@@ -789,7 +800,8 @@ Module {
             1536,
             1539,
             1542,
-            1543
+            1543,
+            1548
         ]
     }
     Component {
@@ -807,7 +819,8 @@ Module {
             "QtQuick.Layouts/StackLayout 2.11",
             "QtQuick.Layouts/StackLayout 6.0",
             "QtQuick.Layouts/StackLayout 6.3",
-            "QtQuick.Layouts/StackLayout 6.7"
+            "QtQuick.Layouts/StackLayout 6.7",
+            "QtQuick.Layouts/StackLayout 6.12"
         ]
         exportMetaObjectRevisions: [
             259,
@@ -818,7 +831,8 @@ Module {
             523,
             1536,
             1539,
-            1543
+            1543,
+            1548
         ]
         attachedType: "QQuickStackLayoutAttached"
         Property {

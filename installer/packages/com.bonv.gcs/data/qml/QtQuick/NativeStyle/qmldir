@@ -1,9 +1,9 @@
 module QtQuick.NativeStyle
-linktarget Qt6::qtquickcontrols2nativestyleplugin
-plugin qtquickcontrols2nativestyleplugin
+linktarget Qt6::qtquicknativestyleplugin
+plugin qtquicknativestyleplugin
 classname QtQuickControls2NativeStylePlugin
 typeinfo plugins.qmltypes
-depends QtQuick.Controls auto
+depends QtQuick.Templates auto
 depends QtQuick.Layouts auto
 depends QtQuick auto
 prefer :/qt-project.org/imports/QtQuick/NativeStyle/
@@ -15,6 +15,8 @@ DefaultComboBox 6.0 controls/DefaultComboBox.qml
 DefaultComboBox 2.0 controls/DefaultComboBox.qml
 DefaultDial 6.0 controls/DefaultDial.qml
 DefaultDial 2.0 controls/DefaultDial.qml
+DefaultDoubleSpinBox 6.0 controls/DefaultDoubleSpinBox.qml
+DefaultDoubleSpinBox 2.0 controls/DefaultDoubleSpinBox.qml
 DefaultFrame 6.0 controls/DefaultFrame.qml
 DefaultFrame 2.0 controls/DefaultFrame.qml
 DefaultGroupBox 6.0 controls/DefaultGroupBox.qml

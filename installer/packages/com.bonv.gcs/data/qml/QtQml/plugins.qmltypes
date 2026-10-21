@@ -153,6 +153,8 @@ Module {
     Component {
         file: "private/qqmllocaleenums_p.h"
         lineNumber: 38
+        resolvedFile: "private/qqmllocaleenums_p.h"
+        lineNumberInResolvedFile: 31
         name: "QQmlLocaleEnums"
         accessSemantics: "none"
         prototype: "QQmlLocale"

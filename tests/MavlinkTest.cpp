@@ -143,6 +143,7 @@ class MavlinkTest : public QObject
 
 private slots:
     void defaultStateIsDisconnected();
+    void vpsStatusAndCommandsUseConnectedLink();
     void disconnectWhileDisconnectedDoesNotEmit();
     void connectToVehicleUpdatesConnectionState();
     void receivedMavlinkBytesEmitMessage();
@@ -160,6 +161,121 @@ private slots:
     void uploadedAbsoluteMissionTerrainProfileUsesMissionAltitudes();
     void uploadedRelativeMissionTerrainProfileConvertsPlanToAmsl();
 };
+
+void MavlinkTest::vpsStatusAndCommandsUseConnectedLink()
+{
+    QTcpServer server;
+    QVERIFY(server.listen(QHostAddress::LocalHost, 0));
+    Mavlink mavlink;
+    mavlink.setTelemetryLoggingEnabled(false);
+    mavlink.setFlightControllerLoggingEnabled(false);
+    QVERIFY(!mavlink.startVpsAction(0));
+    QVERIFY(mavlink.connectToVehicle(QStringLiteral("127.0.0.1"), server.serverPort()));
+    QTRY_VERIFY(server.hasPendingConnections());
+    QTcpSocket *peer = server.nextPendingConnection();
+    QVERIFY(peer);
+
+    mavlink_message_t heartbeat = {};
+    mavlink_msg_heartbeat_pack(1, 1, &heartbeat, MAV_TYPE_QUADROTOR,
+                               MAV_AUTOPILOT_ARDUPILOTMEGA, 0, 0, MAV_STATE_ACTIVE);
+    writeMavlinkMessage(peer, heartbeat);
+    QTRY_VERIFY(mavlink.connected());
+    QVERIFY(!mavlink.vpsConnected());
+    QVERIFY(!mavlink.startVpsAction(0));
+
+    uint8_t payload[128] = {};
+    payload[89] = 2;
+    payload[90] = 1;
+    payload[91] = 3;
+    payload[92] = 0;
+    payload[104] = 1;
+    mavlink_message_t status = {};
+    QSignalSpy received(&mavlink, &Mavlink::messageReceived);
+    mavlink_msg_tunnel_pack(1, 1, &status, 255, MAV_COMP_ID_MISSIONPLANNER,
+                            100, 105, payload);
+    writeMavlinkMessage(peer, status);
+    QTRY_COMPARE(received.count(), 1);
+    QVERIFY(!mavlink.vpsConnected());
+    mavlink_msg_tunnel_pack(200, 14, &status, 255, MAV_COMP_ID_MISSIONPLANNER,
+                            100, 104, payload);
+    writeMavlinkMessage(peer, status);
+    QTRY_COMPARE(received.count(), 2);
+    QVERIFY(!mavlink.vpsConnected());
+    mavlink_msg_tunnel_pack(200, 14, &status, 255, MAV_COMP_ID_MISSIONPLANNER,
+                            100, 105, payload);
+    writeMavlinkMessage(peer, status);
+    QTRY_VERIFY(mavlink.vpsConnected());
+    QCOMPARE(mavlink.vpsStatus().value("sensors").toString(), QStringLiteral("Running"));
+    QCOMPARE(mavlink.vpsStatus().value("vio").toString(), QStringLiteral("Starting"));
+    QCOMPARE(mavlink.vpsStatus().value("autoAid").toString(), QStringLiteral("On"));
+    QVERIFY(!mavlink.startVpsAction(6));
+
+    uint8_t configPayload[128] = {};
+    configPayload[5] = 1;
+    configPayload[22] = 3;
+    configPayload[23] = 12;
+    configPayload[61] = 1;
+    mavlink_message_t config = {};
+    mavlink_msg_tunnel_pack(200, 14, &config, 255, MAV_COMP_ID_MISSIONPLANNER, 102, 62, configPayload);
+    writeMavlinkMessage(peer, config);
+    QTRY_COMPARE(mavlink.vpsConfig().value("satCount").toInt(), 12);
+    QCOMPARE(mavlink.vpsConfig().value("logging").toBool(), true);
+    QCOMPARE(mavlink.vpsConfig().value("sensorSpeed").toInt(), 1);
+
+    peer->readAll();
+    for (int action = 0; action < 6; ++action)
+        QVERIFY(mavlink.startVpsAction(action));
+    QVERIFY(mavlink.refreshVpsConfig());
+    QVERIFY(mavlink.setVpsHome(12.5, 77.5));
+    QVERIFY(!mavlink.setVpsHome(91, 0));
+    QVERIFY(mavlink.setVpsLogging(true));
+    QVERIFY(mavlink.setVpsSensorSpeed(1));
+    QVERIFY(!mavlink.setVpsSensorSpeed(2));
+    QVERIFY(mavlink.setVpsGpsCheck({{"fixType", 3}, {"satCount", 12}, {"hdop", 2}, {"hAcc", 500}, {"vAcc", 400}, {"healthy", 1}, {"unhealthy", 0.5}}));
+    QVERIFY(mavlink.setVpsGpsJamming({{"enabled", true}, {"time", 1}, {"hAcc", 500}, {"vAcc", 400}, {"unhealthy", 0.2}}));
+
+    QVector<mavlink_tunnel_t> sent;
+    mavlink_status_t parseStatus = {};
+    QElapsedTimer timer;
+    timer.start();
+    while (sent.size() < 12 && timer.elapsed() < 2000) {
+        QCoreApplication::processEvents(QEventLoop::AllEvents, 20);
+        if (!peer->bytesAvailable())
+            peer->waitForReadyRead(20);
+        const QByteArray bytes = peer->readAll();
+        for (const char byte : bytes) {
+            mavlink_message_t message = {};
+            if (mavlink_parse_char(MAVLINK_COMM_3, static_cast<uint8_t>(byte), &message, &parseStatus)
+                    && message.msgid == MAVLINK_MSG_ID_TUNNEL) {
+                mavlink_tunnel_t tunnel = {};
+                mavlink_msg_tunnel_decode(&message, &tunnel);
+                sent.append(tunnel);
+            }
+        }
+    }
+    QCOMPARE(sent.size(), 12);
+    for (int action = 0; action < 6; ++action) {
+        QCOMPARE(sent[action].target_system, uint8_t(200));
+        QCOMPARE(sent[action].target_component, uint8_t(14));
+        QCOMPARE(sent[action].payload_type, uint16_t(action < 4 ? 0 : action == 4 ? 6 : 14));
+        QCOMPARE(sent[action].payload_length, uint8_t(action < 4 ? 2 : 1));
+        QCOMPARE(sent[action].payload[0], uint8_t(action < 4 ? action : 1));
+        if (action < 4)
+            QCOMPARE(sent[action].payload[1], uint8_t(1));
+    }
+    const uint16_t configTypes[] = {10, 1, 8, 19, 15, 16};
+    for (int i = 0; i < 6; ++i)
+        QCOMPARE(sent[i + 6].payload_type, configTypes[i]);
+
+    QTRY_VERIFY_WITH_TIMEOUT(!mavlink.vpsConnected(), 6500);
+    QVERIFY(mavlink.vpsConfig().isEmpty());
+    QVERIFY(!mavlink.startVpsAction(0));
+    writeMavlinkMessage(peer, status);
+    QTRY_VERIFY(mavlink.vpsConnected());
+    mavlink.disconnectFromVehicle();
+    QVERIFY(!mavlink.vpsConnected());
+    QVERIFY(!mavlink.startVpsAction(0));
+}
 
 void MavlinkTest::defaultStateIsDisconnected()
 {

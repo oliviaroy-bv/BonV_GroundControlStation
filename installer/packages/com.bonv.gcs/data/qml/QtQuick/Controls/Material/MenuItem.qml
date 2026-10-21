@@ -23,7 +23,6 @@ T.MenuItem {
 
     icon.width: 24
     icon.height: 24
-    icon.color: enabled ? Material.foreground : Material.hintTextColor
 
     indicator: CheckIndicator {
         x: control.text ? (control.mirrored ? control.width - width - control.rightPadding : control.leftPadding) : control.leftPadding + (control.availableWidth - width) / 2
@@ -43,7 +42,7 @@ T.MenuItem {
         source: "qrc:/qt-project.org/imports/QtQuick/Controls/Material/images/arrow-indicator.png"
     }
 
-    contentItem: IconLabel {
+    contentItem: MenuItemIconLabel {
         readonly property real arrowPadding: control.subMenu && control.arrow ? control.arrow.width + control.spacing : 0
         readonly property real indicatorPadding: control.checkable && control.indicator ? control.indicator.width + control.spacing : 0
         leftPadding: !control.mirrored ? indicatorPadding : arrowPadding
@@ -55,9 +54,11 @@ T.MenuItem {
         alignment: Qt.AlignLeft
 
         icon: control.icon
+        defaultIconColor: control.enabled ? control.Material.foreground : control.Material.hintTextColor
         text: control.text
         font: control.font
-        color: control.enabled ? control.Material.foreground : control.Material.hintTextColor
+        color: defaultIconColor
+        menuItem: control
     }
 
     background: Rectangle {

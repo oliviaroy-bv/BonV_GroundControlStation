@@ -193,7 +193,6 @@ Item {
         anchors.fill: parent
         imageryTileProvider: imageryTileProvider
         vehicle: terrainVehicle
-        missionWaypoints: root.missionWaypoints
         onErrorOccurred: message => statusText.text = message
     }
 

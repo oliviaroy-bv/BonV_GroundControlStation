@@ -133,6 +133,7 @@ set(CORE_SOURCES
     integrations/Offline-3DMaps/src/srtmdownloader.cpp
     integrations/Offline-3DMaps/src/terrainmanager.cpp
     integrations/Offline-3DMaps/src/terraintilegeometry.cpp
+    integrations/VPS/VpsProtocol.cpp
     integrations/SkyRouteX_New/src/path_planner.cpp
     integrations/SkyRouteX_New/src/waypoint_writer.cpp
 )
@@ -170,6 +171,7 @@ set(CORE_HEADERS
     integrations/Offline-3DMaps/src/srtmdownloader.h
     integrations/Offline-3DMaps/src/terrainmanager.h
     integrations/Offline-3DMaps/src/terraintilegeometry.h
+    integrations/VPS/VpsProtocol.h
     integrations/SkyRouteX_New/include/drone_models.h
     integrations/SkyRouteX_New/include/path_planner.h
     integrations/SkyRouteX_New/include/waypoint_writer.h
@@ -358,6 +360,14 @@ if(WIN32)
     target_link_libraries(BonVGroundStation PRIVATE winmm)
 endif()
 
+# The deployment may have been moved or removed since configuration.
+# Create it before any of the post-build runtime copy commands.
+add_custom_command(TARGET BonVGroundStation POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${BONV_DEPLOY_DIR}"
+    COMMENT "Creating runtime deployment directory"
+    VERBATIM
+)
+
 if(MSVC)
     add_custom_command(TARGET BonVGroundStation POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
@@ -478,8 +488,14 @@ if(WIN32)
 
     # FindOpenSSL exposes .lib import libraries through TARGET_FILE on Windows.
     # Qt's OpenSSL TLS backend must instead receive the runtime DLLs.
-    get_filename_component(OPENSSL_LIBRARY_DIR "${SSL_EAY_RELEASE}" DIRECTORY)
-    get_filename_component(OPENSSL_INSTALL_DIR "${OPENSSL_LIBRARY_DIR}" DIRECTORY)
+    # get_filename_component(OPENSSL_LIBRARY_DIR "${SSL_EAY_RELEASE}" DIRECTORY)
+    # get_filename_component(OPENSSL_INSTALL_DIR "${OPENSSL_LIBRARY_DIR}" DIRECTORY)
+    # file(GLOB OPENSSL_RUNTIME_DLLS
+    #     "${OPENSSL_INSTALL_DIR}/bin/libssl-*.dll"
+    #     "${OPENSSL_INSTALL_DIR}/bin/libcrypto-*.dll"
+    # )
+    set(OPENSSL_INSTALL_DIR "C:/Program Files/OpenSSL-Win64")
+
     file(GLOB OPENSSL_RUNTIME_DLLS
         "${OPENSSL_INSTALL_DIR}/bin/libssl-*.dll"
         "${OPENSSL_INSTALL_DIR}/bin/libcrypto-*.dll"

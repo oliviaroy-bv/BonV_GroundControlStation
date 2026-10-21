@@ -21,6 +21,11 @@ Rectangle {
     property string currentCameraName: ""
     property bool darkTheme: true
     property bool armed: false
+    property bool vpsModuleEnabled: false
+    property bool vpsVioMarker: false
+    property bool vpsVprMarker: false
+    property bool vpsFusedMarker: false
+    signal vpsMarkerChanged(string marker, bool enabled)
     property bool oemSettingsOpen: false
     property var commLinks: []
     property var cameraLinks: []
@@ -956,6 +961,12 @@ Rectangle {
         id: settingsWindow
         transientParent: root.Window.window
         mavlinkObject: root.mavlinkObject
+        vpsModuleEnabled: root.vpsModuleEnabled
+        vehicleArmed: root.armed
+        vpsVioMarker: root.vpsVioMarker
+        vpsVprMarker: root.vpsVprMarker
+        vpsFusedMarker: root.vpsFusedMarker
+        onVpsMarkerChanged: function(marker, enabled) { root.vpsMarkerChanged(marker, enabled) }
         videoObject: root.videoObject
         darkTheme: root.darkTheme
         mapViewMode: root.mapViewMode

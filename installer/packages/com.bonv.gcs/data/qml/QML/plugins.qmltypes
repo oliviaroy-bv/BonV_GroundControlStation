@@ -15,28 +15,28 @@ Module {
     }
     Component {
         file: "private/qv4sequenceobject_p.h"
-        lineNumber: 179
+        lineNumber: 186
         name: "std::vector<bool>"
         accessSemantics: "sequence"
         valueType: "bool"
     }
     Component {
         file: "private/qv4sequenceobject_p.h"
-        lineNumber: 176
+        lineNumber: 183
         name: "std::vector<double>"
         accessSemantics: "sequence"
         valueType: "double"
     }
     Component {
         file: "private/qv4sequenceobject_p.h"
-        lineNumber: 177
+        lineNumber: 184
         name: "std::vector<float>"
         accessSemantics: "sequence"
         valueType: "float"
     }
     Component {
         file: "private/qv4sequenceobject_p.h"
-        lineNumber: 178
+        lineNumber: 185
         name: "std::vector<int>"
         accessSemantics: "sequence"
         valueType: "int"
@@ -51,7 +51,7 @@ Module {
     }
     Component {
         file: "private/qqmlglobal_p.h"
-        lineNumber: 266
+        lineNumber: 246
         name: "QQmlApplication"
         accessSemantics: "reference"
         prototype: "QObject"
@@ -60,7 +60,7 @@ Module {
             type: "QStringList"
             read: "args"
             index: 0
-            lineNumber: 270
+            lineNumber: 250
             isReadonly: true
             isPropertyConstant: true
         }
@@ -71,7 +71,7 @@ Module {
             write: "setName"
             notify: "nameChanged"
             index: 1
-            lineNumber: 271
+            lineNumber: 251
         }
         Property {
             name: "version"
@@ -80,7 +80,7 @@ Module {
             write: "setVersion"
             notify: "versionChanged"
             index: 2
-            lineNumber: 272
+            lineNumber: 252
         }
         Property {
             name: "organization"
@@ -89,7 +89,7 @@ Module {
             write: "setOrganization"
             notify: "organizationChanged"
             index: 3
-            lineNumber: 273
+            lineNumber: 253
         }
         Property {
             name: "domain"
@@ -98,31 +98,31 @@ Module {
             write: "setDomain"
             notify: "domainChanged"
             index: 4
-            lineNumber: 274
+            lineNumber: 254
         }
-        Signal { name: "aboutToQuit"; lineNumber: 293 }
-        Signal { name: "nameChanged"; lineNumber: 295 }
-        Signal { name: "versionChanged"; lineNumber: 296 }
-        Signal { name: "organizationChanged"; lineNumber: 297 }
-        Signal { name: "domainChanged"; lineNumber: 298 }
+        Signal { name: "aboutToQuit"; lineNumber: 273 }
+        Signal { name: "nameChanged"; lineNumber: 275 }
+        Signal { name: "versionChanged"; lineNumber: 276 }
+        Signal { name: "organizationChanged"; lineNumber: 277 }
+        Signal { name: "domainChanged"; lineNumber: 278 }
         Method {
             name: "setName"
-            lineNumber: 287
+            lineNumber: 267
             Parameter { name: "arg"; type: "QString" }
         }
         Method {
             name: "setVersion"
-            lineNumber: 288
+            lineNumber: 268
             Parameter { name: "arg"; type: "QString" }
         }
         Method {
             name: "setOrganization"
-            lineNumber: 289
+            lineNumber: 269
             Parameter { name: "arg"; type: "QString" }
         }
         Method {
             name: "setDomain"
-            lineNumber: 290
+            lineNumber: 270
             Parameter { name: "arg"; type: "QString" }
         }
     }
@@ -149,6 +149,8 @@ Module {
     Component {
         file: "private/qqmlbuiltins_p.h"
         lineNumber: 517
+        resolvedFile: "qqmlcomponent.h"
+        lineNumberInResolvedFile: 32
         name: "QQmlComponent"
         accessSemantics: "reference"
         prototype: "QObject"
@@ -230,7 +232,7 @@ Module {
         Method {
             name: "setData"
             lineNumber: 94
-            Parameter { type: "QByteArray" }
+            Parameter { name: "data"; type: "QByteArray" }
             Parameter { name: "baseUrl"; type: "QUrl" }
         }
         Method { name: "errorString"; type: "QString"; isMethodConstant: true; lineNumber: 69 }
@@ -278,15 +280,17 @@ Module {
     }
     Component {
         file: "private/qqmlvaluetype_p.h"
-        lineNumber: 323
-        name: "QQmlEasingEnums"
-        accessSemantics: "none"
+        lineNumber: 324
+        name: "QQmlEasing"
+        accessSemantics: "reference"
+        prototype: "QObject"
         exports: ["QML/Easing 1.0"]
         isCreatable: false
+        isSingleton: true
         exportMetaObjectRevisions: [256]
         Enum {
             name: "Type"
-            lineNumber: 328
+            lineNumber: 331
             values: [
                 "Linear",
                 "InQuad",
@@ -337,13 +341,27 @@ Module {
                 "Bezier"
             ]
         }
+        Method {
+            name: "valueForProgress"
+            type: "double"
+            isMethodConstant: true
+            lineNumber: 361
+            Parameter { name: "type"; type: "QQmlEasing::Type" }
+            Parameter { name: "progress"; type: "double" }
+        }
     }
     Component {
         file: "private/qqmlvaluetype_p.h"
-        lineNumber: 359
+        lineNumber: 364
+        resolvedFile: "qeasingcurve.h"
+        lineNumberInResolvedFile: 20
         name: "QEasingCurve"
         accessSemantics: "value"
         extension: "QQmlEasingValueType"
+        isSelfExtension: true
+        exports: ["QML/easingCurve 1.0"]
+        isStructured: true
+        exportMetaObjectRevisions: [256]
         Enum {
             name: "Type"
             lineNumber: 24
@@ -402,16 +420,16 @@ Module {
     }
     Component {
         file: "private/qqmlvaluetype_p.h"
-        lineNumber: 359
+        lineNumber: 364
         name: "QQmlEasingValueType"
         accessSemantics: "value"
         Property {
             name: "type"
-            type: "QQmlEasingEnums::Type"
+            type: "QQmlEasing::Type"
             read: "type"
             write: "setType"
             index: 0
-            lineNumber: 367
+            lineNumber: 372
             isFinal: true
         }
         Property {
@@ -420,7 +438,7 @@ Module {
             read: "amplitude"
             write: "setAmplitude"
             index: 1
-            lineNumber: 368
+            lineNumber: 373
             isFinal: true
         }
         Property {
@@ -429,7 +447,7 @@ Module {
             read: "overshoot"
             write: "setOvershoot"
             index: 2
-            lineNumber: 369
+            lineNumber: 374
             isFinal: true
         }
         Property {
@@ -438,7 +456,7 @@ Module {
             read: "period"
             write: "setPeriod"
             index: 3
-            lineNumber: 370
+            lineNumber: 375
             isFinal: true
         }
         Property {
@@ -448,14 +466,26 @@ Module {
             read: "bezierCurve"
             write: "setBezierCurve"
             index: 4
-            lineNumber: 371
+            lineNumber: 376
             isFinal: true
         }
-        Method { name: "QQmlEasingValueType"; isConstructor: true; lineNumber: 374 }
+        Method {
+            name: "valueForProgress"
+            type: "double"
+            lineNumber: 383
+            Parameter { name: "progress"; type: "double" }
+        }
+        Method { name: "QQmlEasingValueType"; isConstructor: true; lineNumber: 379 }
         Method {
             name: "QQmlEasingValueType"
             isConstructor: true
-            lineNumber: 375
+            lineNumber: 380
+            Parameter { name: "type"; type: "QQmlEasing::Type" }
+        }
+        Method {
+            name: "QQmlEasingValueType"
+            isConstructor: true
+            lineNumber: 381
             Parameter { name: "easing"; type: "QEasingCurve" }
         }
     }
@@ -501,9 +531,12 @@ Module {
     Component {
         file: "private/qqmllocale_p.h"
         lineNumber: 94
+        resolvedFile: "qlocale.h"
+        lineNumberInResolvedFile: 29
         name: "QLocale"
         accessSemantics: "value"
         extension: "QQmlLocaleValueType"
+        isSelfExtension: true
         Enum {
             name: "Language"
             type: "ushort"
@@ -856,6 +889,8 @@ Module {
                 "Kuvi",
                 "KaraKalpak",
                 "SwampyCree",
+                "Ladin",
+                "Shan",
                 "Afan",
                 "Bengali",
                 "Bhutani",
@@ -881,7 +916,7 @@ Module {
         Enum {
             name: "Script"
             type: "ushort"
-            lineNumber: 416
+            lineNumber: 418
             values: [
                 "AnyScript",
                 "AdlamScript",
@@ -1037,7 +1072,7 @@ Module {
         Enum {
             name: "Country"
             type: "ushort"
-            lineNumber: 571
+            lineNumber: 573
             values: [
                 "AnyTerritory",
                 "Afghanistan",
@@ -1331,7 +1366,7 @@ Module {
         }
         Enum {
             name: "MeasurementSystem"
-            lineNumber: 871
+            lineNumber: 873
             values: [
                 "MetricSystem",
                 "ImperialUSSystem",
@@ -1341,14 +1376,14 @@ Module {
         }
         Enum {
             name: "FormatType"
-            lineNumber: 879
+            lineNumber: 881
             values: ["LongFormat", "ShortFormat", "NarrowFormat"]
         }
         Enum {
             name: "NumberOptions"
             alias: "NumberOption"
             isFlag: true
-            lineNumber: 881
+            lineNumber: 883
             values: [
                 "DefaultNumberOptions",
                 "OmitGroupSeparator",
@@ -1363,12 +1398,12 @@ Module {
             name: "TagSeparator"
             isScoped: true
             type: "qint8"
-            lineNumber: 897
+            lineNumber: 899
             values: ["Dash", "Underscore"]
         }
         Enum {
             name: "CurrencySymbolFormat"
-            lineNumber: 900
+            lineNumber: 902
             values: [
                 "CurrencyIsoCode",
                 "CurrencySymbol",
@@ -1379,7 +1414,7 @@ Module {
             name: "DataSizeFormats"
             alias: "DataSizeFormat"
             isFlag: true
-            lineNumber: 907
+            lineNumber: 909
             values: [
                 "DataSizeBase1000",
                 "DataSizeSIQuantifiers",
@@ -1392,7 +1427,7 @@ Module {
             name: "LanguageCodeTypes"
             alias: "LanguageCodeType"
             isFlag: true
-            lineNumber: 1121
+            lineNumber: 1123
             values: [
                 "ISO639Part1",
                 "ISO639Part2B",
@@ -1408,7 +1443,7 @@ Module {
         }
         Enum {
             name: "QuotationStyle"
-            lineNumber: 1178
+            lineNumber: 1180
             values: ["StandardQuotation", "AlternateQuotation"]
         }
     }
@@ -1825,6 +1860,7 @@ Module {
         name: "QMarginsF"
         accessSemantics: "value"
         extension: "QQmlMarginsFValueType"
+        isSelfExtension: true
     }
     Component {
         file: "private/qqmlvaluetype_p.h"
@@ -1887,6 +1923,7 @@ Module {
         name: "QMargins"
         accessSemantics: "value"
         extension: "QQmlMarginsValueType"
+        isSelfExtension: true
     }
     Component {
         file: "private/qqmlvaluetype_p.h"
@@ -1949,6 +1986,7 @@ Module {
         name: "std::nullptr_t"
         accessSemantics: "value"
         extension: "QQmlNullForeign"
+        isSelfExtension: true
     }
     Component {
         file: "private/qqmlbuiltins_p.h"
@@ -1987,6 +2025,7 @@ Module {
         name: "QPointF"
         accessSemantics: "value"
         extension: "QQmlPointFValueType"
+        isSelfExtension: true
         exports: ["QML/point 1.0"]
         isStructured: true
         exportMetaObjectRevisions: [256]
@@ -2035,6 +2074,7 @@ Module {
         name: "QPoint"
         accessSemantics: "value"
         extension: "QQmlPointValueType"
+        isSelfExtension: true
     }
     Component {
         file: "private/qqmlvaluetype_p.h"
@@ -2062,6 +2102,9 @@ Module {
         lineNumber: 23
         name: "QQmlProperty"
         accessSemantics: "value"
+        exports: ["QML/qmlProperty 1.0"]
+        isCreatable: false
+        exportMetaObjectRevisions: [256]
         Property {
             name: "object"
             type: "QObject"
@@ -2086,17 +2129,17 @@ Module {
     }
     Component {
         file: "qqmlpropertymap.h"
-        lineNumber: 20
+        lineNumber: 21
         name: "QQmlPropertyMap"
         accessSemantics: "reference"
         prototype: "QObject"
         Signal {
             name: "valueChanged"
-            lineNumber: 45
+            lineNumber: 52
             Parameter { name: "key"; type: "QString" }
             Parameter { name: "value"; type: "QVariant" }
         }
-        Method { name: "keys"; type: "QStringList"; isMethodConstant: true; lineNumber: 34 }
+        Method { name: "keys"; type: "QStringList"; isMethodConstant: true; lineNumber: 41 }
     }
     Component {
         file: "private/qqmlbuiltins_p.h"
@@ -2135,6 +2178,7 @@ Module {
         name: "QJSValue"
         accessSemantics: "value"
         extension: "QQmlQJSValueForeign"
+        isSelfExtension: true
     }
     Component {
         file: "private/qqmlbuiltins_p.h"
@@ -2163,6 +2207,7 @@ Module {
         name: "QJsonValue"
         accessSemantics: "value"
         extension: "QQmlQJsonValueForeign"
+        isSelfExtension: true
     }
     Component {
         file: "private/qqmlbuiltins_p.h"
@@ -2235,6 +2280,8 @@ Module {
     Component {
         file: "private/qqmlbuiltins_p.h"
         lineNumber: 109
+        resolvedFile: "qobject.h"
+        lineNumberInResolvedFile: 105
         name: "QObject"
         accessSemantics: "reference"
         extension: "Object"
@@ -2249,11 +2296,11 @@ Module {
             write: "setObjectName"
             notify: "objectNameChanged"
             index: 0
-            lineNumber: 108
+            lineNumber: 109
         }
         Signal {
             name: "objectNameChanged"
-            lineNumber: 345
+            lineNumber: 353
             Parameter { name: "objectName"; type: "QString" }
         }
         Method { name: "toString"; type: "QString"; isMethodConstant: true }
@@ -2265,10 +2312,10 @@ Module {
         Method {
             name: "QObject"
             isConstructor: true
-            lineNumber: 113
+            lineNumber: 114
             Parameter { name: "parent"; type: "QObject"; isPointer: true }
         }
-        Method { name: "QObject"; isCloned: true; isConstructor: true; lineNumber: 113 }
+        Method { name: "QObject"; isCloned: true; isConstructor: true; lineNumber: 114 }
     }
     Component {
         file: "private/qqmlbuiltins_p.h"
@@ -2292,6 +2339,7 @@ Module {
         name: "QRectF"
         accessSemantics: "value"
         extension: "QQmlRectFValueType"
+        isSelfExtension: true
         exports: ["QML/rect 1.0"]
         isStructured: true
         exportMetaObjectRevisions: [256]
@@ -2394,6 +2442,7 @@ Module {
         name: "QRect"
         accessSemantics: "value"
         extension: "QQmlRectValueType"
+        isSelfExtension: true
     }
     Component {
         file: "private/qqmlvaluetype_p.h"
@@ -2484,6 +2533,8 @@ Module {
     Component {
         file: "private/qqmlbuiltins_p.h"
         lineNumber: 525
+        resolvedFile: "qqmlscriptstring.h"
+        lineNumberInResolvedFile: 24
         name: "QQmlScriptString"
         accessSemantics: "value"
     }
@@ -2501,6 +2552,7 @@ Module {
         name: "QSizeF"
         accessSemantics: "value"
         extension: "QQmlSizeFValueType"
+        isSelfExtension: true
         exports: ["QML/size 1.0"]
         isStructured: true
         exportMetaObjectRevisions: [256]
@@ -2549,6 +2601,7 @@ Module {
         name: "QSize"
         accessSemantics: "value"
         extension: "QQmlSizeValueType"
+        isSelfExtension: true
     }
     Component {
         file: "private/qqmlvaluetype_p.h"
@@ -2600,7 +2653,7 @@ Module {
     }
     Component {
         file: "qqml.h"
-        lineNumber: 137
+        lineNumber: 140
         name: "QQmlTypeNotAvailable"
         accessSemantics: "reference"
         prototype: "QObject"
@@ -2637,14 +2690,15 @@ Module {
     }
     Component {
         file: "private/qqmlvaluetype_p.h"
-        lineNumber: 390
+        lineNumber: 398
         name: "QQmlV4ExecutionEnginePtr"
         accessSemantics: "value"
         extension: "QQmlV4ExecutionEnginePtrForeign"
+        isSelfExtension: true
     }
     Component {
         file: "private/qqmlvaluetype_p.h"
-        lineNumber: 390
+        lineNumber: 398
         name: "QQmlV4ExecutionEnginePtrForeign"
         accessSemantics: "value"
     }
@@ -2654,6 +2708,7 @@ Module {
         name: "QQmlV4FunctionPtr"
         accessSemantics: "value"
         extension: "QQmlV4FunctionPtrForeign"
+        isSelfExtension: true
     }
     Component {
         file: "private/qqmlbuiltins_p.h"
@@ -2667,6 +2722,7 @@ Module {
         name: "QVariant"
         accessSemantics: "value"
         extension: "QQmlVarForeign"
+        isSelfExtension: true
         exports: ["QML/var 1.0", "QML/variant 1.0"]
         isCreatable: false
         exportMetaObjectRevisions: [256]
@@ -2690,40 +2746,40 @@ Module {
     }
     Component {
         file: "private/qv4sequenceobject_p.h"
-        lineNumber: 173
+        lineNumber: 180
         name: "QList<qreal>"
         accessSemantics: "sequence"
         valueType: "double"
     }
     Component {
         file: "private/qv4sequenceobject_p.h"
-        lineNumber: 172
+        lineNumber: 179
         name: "std::vector<qreal>"
         accessSemantics: "sequence"
         valueType: "double"
     }
     Component {
         file: "private/qv4sequenceobject_p.h"
-        lineNumber: 180
+        lineNumber: 187
         name: "std::vector<QString>"
         accessSemantics: "sequence"
         valueType: "QString"
     }
     Component {
         file: "private/qv4sequenceobject_p.h"
-        lineNumber: 181
+        lineNumber: 188
         name: "std::vector<QUrl>"
         accessSemantics: "sequence"
         valueType: "QUrl"
     }
     Component {
         file: "qnamespace.h"
-        lineNumber: 25
+        lineNumber: 26
         name: "Qt"
         accessSemantics: "none"
         Enum {
             name: "GlobalColor"
-            lineNumber: 28
+            lineNumber: 29
             values: [
                 "color0",
                 "color1",
@@ -2750,20 +2806,26 @@ Module {
         Enum {
             name: "ColorScheme"
             isScoped: true
-            lineNumber: 51
+            lineNumber: 52
             values: ["Unknown", "Light", "Dark"]
         }
         Enum {
             name: "ContrastPreference"
             isScoped: true
-            lineNumber: 57
+            lineNumber: 58
             values: ["NoPreference", "HighContrast"]
+        }
+        Enum {
+            name: "MotionPreference"
+            isScoped: true
+            lineNumber: 63
+            values: ["NoPreference", "ReducedMotion"]
         }
         Enum {
             name: "MouseButtons"
             alias: "MouseButton"
             isFlag: true
-            lineNumber: 62
+            lineNumber: 68
             values: [
                 "NoButton",
                 "LeftButton",
@@ -2805,19 +2867,19 @@ Module {
         }
         Enum {
             name: "Orientation"
-            lineNumber: 104
+            lineNumber: 110
             values: ["Horizontal", "Vertical"]
         }
         Enum {
             name: "Orientations"
             alias: "Orientation"
             isFlag: true
-            lineNumber: 104
+            lineNumber: 110
             values: ["Horizontal", "Vertical"]
         }
         Enum {
             name: "FocusPolicy"
-            lineNumber: 112
+            lineNumber: 118
             values: [
                 "NoFocus",
                 "TabFocus",
@@ -2828,7 +2890,7 @@ Module {
         }
         Enum {
             name: "TabFocusBehavior"
-            lineNumber: 120
+            lineNumber: 126
             values: [
                 "NoTabFocus",
                 "TabFocusTextControls",
@@ -2838,21 +2900,21 @@ Module {
         }
         Enum {
             name: "SortOrder"
-            lineNumber: 127
+            lineNumber: 133
             values: ["AscendingOrder", "DescendingOrder"]
         }
         Enum {
             name: "SplitBehavior"
             alias: "SplitBehaviorFlags"
             isFlag: true
-            lineNumber: 132
+            lineNumber: 138
             values: ["KeepEmptyParts", "SkipEmptyParts"]
         }
         Enum {
             name: "Alignment"
             alias: "AlignmentFlag"
             isFlag: true
-            lineNumber: 149
+            lineNumber: 155
             values: [
                 "AlignLeft",
                 "AlignLeading",
@@ -2872,7 +2934,7 @@ Module {
         }
         Enum {
             name: "TextFlag"
-            lineNumber: 175
+            lineNumber: 181
             values: [
                 "TextSingleLine",
                 "TextDontClip",
@@ -2891,12 +2953,12 @@ Module {
         }
         Enum {
             name: "TextElideMode"
-            lineNumber: 194
+            lineNumber: 200
             values: ["ElideLeft", "ElideRight", "ElideMiddle", "ElideNone"]
         }
         Enum {
             name: "WindowType"
-            lineNumber: 211
+            lineNumber: 217
             values: [
                 "Widget",
                 "Window",
@@ -2944,7 +3006,7 @@ Module {
             name: "WindowFlags"
             alias: "WindowType"
             isFlag: true
-            lineNumber: 211
+            lineNumber: 217
             values: [
                 "Widget",
                 "Window",
@@ -2990,7 +3052,7 @@ Module {
         }
         Enum {
             name: "WindowState"
-            lineNumber: 265
+            lineNumber: 274
             values: [
                 "WindowNoState",
                 "WindowMinimized",
@@ -3003,7 +3065,7 @@ Module {
             name: "WindowStates"
             alias: "WindowState"
             isFlag: true
-            lineNumber: 265
+            lineNumber: 274
             values: [
                 "WindowNoState",
                 "WindowMinimized",
@@ -3014,7 +3076,7 @@ Module {
         }
         Enum {
             name: "ApplicationState"
-            lineNumber: 276
+            lineNumber: 285
             values: [
                 "ApplicationSuspended",
                 "ApplicationHidden",
@@ -3024,7 +3086,7 @@ Module {
         }
         Enum {
             name: "ScreenOrientation"
-            lineNumber: 285
+            lineNumber: 294
             values: [
                 "PrimaryOrientation",
                 "PortraitOrientation",
@@ -3037,7 +3099,7 @@ Module {
             name: "ScreenOrientations"
             alias: "ScreenOrientation"
             isFlag: true
-            lineNumber: 285
+            lineNumber: 294
             values: [
                 "PrimaryOrientation",
                 "PortraitOrientation",
@@ -3048,7 +3110,7 @@ Module {
         }
         Enum {
             name: "WidgetAttribute"
-            lineNumber: 296
+            lineNumber: 305
             values: [
                 "WA_Disabled",
                 "WA_UnderMouse",
@@ -3157,7 +3219,7 @@ Module {
         }
         Enum {
             name: "ApplicationAttribute"
-            lineNumber: 437
+            lineNumber: 446
             values: [
                 "AA_QtQuickUseDefaultSizePolicy",
                 "AA_DontShowIconsInMenus",
@@ -3196,7 +3258,7 @@ Module {
             name: "ImageConversionFlags"
             alias: "ImageConversionFlag"
             isFlag: true
-            lineNumber: 490
+            lineNumber: 499
             values: [
                 "ColorMode_Mask",
                 "AutoColor",
@@ -3221,12 +3283,12 @@ Module {
         }
         Enum {
             name: "BGMode"
-            lineNumber: 520
+            lineNumber: 529
             values: ["TransparentMode", "OpaqueMode"]
         }
         Enum {
             name: "Key"
-            lineNumber: 525
+            lineNumber: 534
             values: [
                 "Key_Space",
                 "Key_Any",
@@ -3703,7 +3765,7 @@ Module {
         }
         Enum {
             name: "KeyboardModifier"
-            lineNumber: 1068
+            lineNumber: 1077
             values: [
                 "NoModifier",
                 "ShiftModifier",
@@ -3719,7 +3781,7 @@ Module {
             name: "KeyboardModifiers"
             alias: "KeyboardModifier"
             isFlag: true
-            lineNumber: 1068
+            lineNumber: 1077
             values: [
                 "NoModifier",
                 "ShiftModifier",
@@ -3733,19 +3795,19 @@ Module {
         }
         Enum {
             name: "Modifier"
-            lineNumber: 1088
+            lineNumber: 1097
             values: ["META", "SHIFT", "CTRL", "ALT", "MODIFIER_MASK"]
         }
         Enum {
             name: "Modifiers"
             alias: "Modifier"
             isFlag: true
-            lineNumber: 1088
+            lineNumber: 1097
             values: ["META", "SHIFT", "CTRL", "ALT", "MODIFIER_MASK"]
         }
         Enum {
             name: "ArrowType"
-            lineNumber: 1098
+            lineNumber: 1107
             values: [
                 "NoArrow",
                 "UpArrow",
@@ -3756,7 +3818,7 @@ Module {
         }
         Enum {
             name: "PenStyle"
-            lineNumber: 1106
+            lineNumber: 1115
             values: [
                 "NoPen",
                 "SolidLine",
@@ -3769,12 +3831,12 @@ Module {
         }
         Enum {
             name: "PenCapStyle"
-            lineNumber: 1119
+            lineNumber: 1128
             values: ["FlatCap", "SquareCap", "RoundCap", "MPenCapStyle"]
         }
         Enum {
             name: "PenJoinStyle"
-            lineNumber: 1126
+            lineNumber: 1135
             values: [
                 "MiterJoin",
                 "BevelJoin",
@@ -3785,7 +3847,7 @@ Module {
         }
         Enum {
             name: "BrushStyle"
-            lineNumber: 1134
+            lineNumber: 1143
             values: [
                 "NoBrush",
                 "SolidPattern",
@@ -3810,12 +3872,12 @@ Module {
         }
         Enum {
             name: "SizeMode"
-            lineNumber: 1156
+            lineNumber: 1165
             values: ["AbsoluteSize", "RelativeSize"]
         }
         Enum {
             name: "CursorShape"
-            lineNumber: 1171
+            lineNumber: 1180
             values: [
                 "ArrowCursor",
                 "UpArrowCursor",
@@ -3846,12 +3908,12 @@ Module {
         }
         Enum {
             name: "TextFormat"
-            lineNumber: 1204
+            lineNumber: 1213
             values: ["PlainText", "RichText", "AutoText", "MarkdownText"]
         }
         Enum {
             name: "AspectRatioMode"
-            lineNumber: 1211
+            lineNumber: 1220
             values: [
                 "IgnoreAspectRatio",
                 "KeepAspectRatio",
@@ -3860,7 +3922,7 @@ Module {
         }
         Enum {
             name: "DockWidgetArea"
-            lineNumber: 1217
+            lineNumber: 1226
             values: [
                 "LeftDockWidgetArea",
                 "RightDockWidgetArea",
@@ -3875,7 +3937,7 @@ Module {
             name: "DockWidgetAreas"
             alias: "DockWidgetArea"
             isFlag: true
-            lineNumber: 1217
+            lineNumber: 1226
             values: [
                 "LeftDockWidgetArea",
                 "RightDockWidgetArea",
@@ -3888,7 +3950,7 @@ Module {
         }
         Enum {
             name: "ToolBarArea"
-            lineNumber: 1234
+            lineNumber: 1243
             values: [
                 "LeftToolBarArea",
                 "RightToolBarArea",
@@ -3903,7 +3965,7 @@ Module {
             name: "ToolBarAreas"
             alias: "ToolBarArea"
             isFlag: true
-            lineNumber: 1234
+            lineNumber: 1243
             values: [
                 "LeftToolBarArea",
                 "RightToolBarArea",
@@ -3916,17 +3978,17 @@ Module {
         }
         Enum {
             name: "DateFormat"
-            lineNumber: 1252
+            lineNumber: 1261
             values: ["TextDate", "ISODate", "RFC2822Date", "ISODateWithMs"]
         }
         Enum {
             name: "TimeSpec"
-            lineNumber: 1259
+            lineNumber: 1268
             values: ["LocalTime", "UTC", "OffsetFromUTC", "TimeZone"]
         }
         Enum {
             name: "DayOfWeek"
-            lineNumber: 1266
+            lineNumber: 1275
             values: [
                 "Monday",
                 "Tuesday",
@@ -3939,7 +4001,7 @@ Module {
         }
         Enum {
             name: "ScrollBarPolicy"
-            lineNumber: 1276
+            lineNumber: 1285
             values: [
                 "ScrollBarAsNeeded",
                 "ScrollBarAlwaysOff",
@@ -3948,12 +4010,12 @@ Module {
         }
         Enum {
             name: "CaseSensitivity"
-            lineNumber: 1282
+            lineNumber: 1291
             values: ["CaseInsensitive", "CaseSensitive"]
         }
         Enum {
             name: "Corner"
-            lineNumber: 1287
+            lineNumber: 1296
             values: [
                 "TopLeftCorner",
                 "TopRightCorner",
@@ -3963,19 +4025,19 @@ Module {
         }
         Enum {
             name: "Edge"
-            lineNumber: 1294
+            lineNumber: 1303
             values: ["TopEdge", "LeftEdge", "RightEdge", "BottomEdge"]
         }
         Enum {
             name: "Edges"
             alias: "Edge"
             isFlag: true
-            lineNumber: 1294
+            lineNumber: 1303
             values: ["TopEdge", "LeftEdge", "RightEdge", "BottomEdge"]
         }
         Enum {
             name: "ConnectionType"
-            lineNumber: 1304
+            lineNumber: 1313
             values: [
                 "AutoConnection",
                 "DirectConnection",
@@ -3987,7 +4049,7 @@ Module {
         }
         Enum {
             name: "ShortcutContext"
-            lineNumber: 1313
+            lineNumber: 1322
             values: [
                 "WidgetShortcut",
                 "WindowShortcut",
@@ -3997,22 +4059,22 @@ Module {
         }
         Enum {
             name: "FillRule"
-            lineNumber: 1320
+            lineNumber: 1329
             values: ["OddEvenFill", "WindingFill"]
         }
         Enum {
             name: "MaskMode"
-            lineNumber: 1325
+            lineNumber: 1334
             values: ["MaskInColor", "MaskOutColor"]
         }
         Enum {
             name: "ClipOperation"
-            lineNumber: 1330
+            lineNumber: 1339
             values: ["NoClip", "ReplaceClip", "IntersectClip"]
         }
         Enum {
             name: "ItemSelectionMode"
-            lineNumber: 1337
+            lineNumber: 1346
             values: [
                 "ContainsItemShape",
                 "IntersectsItemShape",
@@ -4022,22 +4084,22 @@ Module {
         }
         Enum {
             name: "ItemSelectionOperation"
-            lineNumber: 1344
+            lineNumber: 1353
             values: ["ReplaceSelection", "AddToSelection"]
         }
         Enum {
             name: "TransformationMode"
-            lineNumber: 1349
+            lineNumber: 1358
             values: ["FastTransformation", "SmoothTransformation"]
         }
         Enum {
             name: "Axis"
-            lineNumber: 1354
+            lineNumber: 1363
             values: ["XAxis", "YAxis", "ZAxis"]
         }
         Enum {
             name: "FocusReason"
-            lineNumber: 1360
+            lineNumber: 1369
             values: [
                 "MouseFocusReason",
                 "TabFocusReason",
@@ -4052,7 +4114,7 @@ Module {
         }
         Enum {
             name: "ContextMenuPolicy"
-            lineNumber: 1372
+            lineNumber: 1381
             values: [
                 "NoContextMenu",
                 "DefaultContextMenu",
@@ -4064,12 +4126,12 @@ Module {
         Enum {
             name: "ContextMenuTrigger"
             isScoped: true
-            lineNumber: 1380
+            lineNumber: 1389
             values: ["Press", "Release"]
         }
         Enum {
             name: "InputMethodQuery"
-            lineNumber: 1385
+            lineNumber: 1394
             values: [
                 "ImEnabled",
                 "ImCursorRectangle",
@@ -4097,7 +4159,7 @@ Module {
             name: "InputMethodQueries"
             alias: "InputMethodQuery"
             isFlag: true
-            lineNumber: 1385
+            lineNumber: 1394
             values: [
                 "ImEnabled",
                 "ImCursorRectangle",
@@ -4123,7 +4185,7 @@ Module {
         }
         Enum {
             name: "InputMethodHint"
-            lineNumber: 1413
+            lineNumber: 1422
             values: [
                 "ImhNone",
                 "ImhHiddenText",
@@ -4139,6 +4201,7 @@ Module {
                 "ImhMultiLine",
                 "ImhNoEditMenu",
                 "ImhNoTextHandles",
+                "ImhNoFullscreen",
                 "ImhDigitsOnly",
                 "ImhFormattedNumbersOnly",
                 "ImhUppercaseOnly",
@@ -4147,6 +4210,7 @@ Module {
                 "ImhEmailCharactersOnly",
                 "ImhUrlCharactersOnly",
                 "ImhLatinOnly",
+                "ImhDecimalNumbersOnly",
                 "ImhExclusiveInputMask"
             ]
         }
@@ -4154,7 +4218,7 @@ Module {
             name: "InputMethodHints"
             alias: "InputMethodHint"
             isFlag: true
-            lineNumber: 1413
+            lineNumber: 1422
             values: [
                 "ImhNone",
                 "ImhHiddenText",
@@ -4170,6 +4234,7 @@ Module {
                 "ImhMultiLine",
                 "ImhNoEditMenu",
                 "ImhNoTextHandles",
+                "ImhNoFullscreen",
                 "ImhDigitsOnly",
                 "ImhFormattedNumbersOnly",
                 "ImhUppercaseOnly",
@@ -4178,12 +4243,13 @@ Module {
                 "ImhEmailCharactersOnly",
                 "ImhUrlCharactersOnly",
                 "ImhLatinOnly",
+                "ImhDecimalNumbersOnly",
                 "ImhExclusiveInputMask"
             ]
         }
         Enum {
             name: "EnterKeyType"
-            lineNumber: 1448
+            lineNumber: 1459
             values: [
                 "EnterKeyDefault",
                 "EnterKeyReturn",
@@ -4197,7 +4263,7 @@ Module {
         }
         Enum {
             name: "ToolButtonStyle"
-            lineNumber: 1459
+            lineNumber: 1470
             values: [
                 "ToolButtonIconOnly",
                 "ToolButtonTextOnly",
@@ -4208,12 +4274,12 @@ Module {
         }
         Enum {
             name: "LayoutDirection"
-            lineNumber: 1467
+            lineNumber: 1478
             values: ["LeftToRight", "RightToLeft", "LayoutDirectionAuto"]
         }
         Enum {
             name: "DropAction"
-            lineNumber: 1489
+            lineNumber: 1500
             values: [
                 "CopyAction",
                 "MoveAction",
@@ -4227,7 +4293,7 @@ Module {
             name: "DropActions"
             alias: "DropAction"
             isFlag: true
-            lineNumber: 1489
+            lineNumber: 1500
             values: [
                 "CopyAction",
                 "MoveAction",
@@ -4239,12 +4305,12 @@ Module {
         }
         Enum {
             name: "CheckState"
-            lineNumber: 1500
+            lineNumber: 1511
             values: ["Unchecked", "PartiallyChecked", "Checked"]
         }
         Enum {
             name: "ItemDataRole"
-            lineNumber: 1506
+            lineNumber: 1517
             values: [
                 "DisplayRole",
                 "DecorationRole",
@@ -4267,6 +4333,7 @@ Module {
                 "StatusTipPropertyRole",
                 "WhatsThisPropertyRole",
                 "RangeModelDataRole",
+                "RangeModelAdapterRole",
                 "UserRole",
                 "StandardItemFlagsRole",
                 "FileInfoRole",
@@ -4277,7 +4344,7 @@ Module {
             name: "ItemFlags"
             alias: "ItemFlag"
             isFlag: true
-            lineNumber: 1543
+            lineNumber: 1556
             values: [
                 "NoItemFlags",
                 "ItemIsSelectable",
@@ -4295,7 +4362,7 @@ Module {
             name: "MatchFlags"
             alias: "MatchFlag"
             isFlag: true
-            lineNumber: 1558
+            lineNumber: 1571
             values: [
                 "MatchExactly",
                 "MatchContains",
@@ -4312,12 +4379,12 @@ Module {
         }
         Enum {
             name: "WindowModality"
-            lineNumber: 1576
+            lineNumber: 1589
             values: ["NonModal", "WindowModal", "ApplicationModal"]
         }
         Enum {
             name: "TextInteractionFlag"
-            lineNumber: 1582
+            lineNumber: 1595
             values: [
                 "NoTextInteraction",
                 "TextSelectableByMouse",
@@ -4333,7 +4400,7 @@ Module {
             name: "TextInteractionFlags"
             alias: "TextInteractionFlag"
             isFlag: true
-            lineNumber: 1582
+            lineNumber: 1595
             values: [
                 "NoTextInteraction",
                 "TextSelectableByMouse",
@@ -4347,7 +4414,7 @@ Module {
         }
         Enum {
             name: "SizeHint"
-            lineNumber: 1602
+            lineNumber: 1615
             values: [
                 "MinimumSize",
                 "PreferredSize",
@@ -4360,7 +4427,7 @@ Module {
             name: "TouchPointStates"
             alias: "TouchPointState"
             isFlag: true
-            lineNumber: 1635
+            lineNumber: 1648
             values: [
                 "TouchPointUnknownState",
                 "TouchPointPressed",
@@ -4371,7 +4438,7 @@ Module {
         }
         Enum {
             name: "GestureState"
-            lineNumber: 1646
+            lineNumber: 1659
             values: [
                 "NoGesture",
                 "GestureStarted",
@@ -4382,7 +4449,7 @@ Module {
         }
         Enum {
             name: "GestureType"
-            lineNumber: 1655
+            lineNumber: 1668
             values: [
                 "TapGesture",
                 "TapAndHoldGesture",
@@ -4395,7 +4462,7 @@ Module {
         }
         Enum {
             name: "NativeGestureType"
-            lineNumber: 1677
+            lineNumber: 1690
             values: [
                 "BeginNativeGesture",
                 "EndNativeGesture",
@@ -4408,23 +4475,23 @@ Module {
         }
         Enum {
             name: "CursorMoveStyle"
-            lineNumber: 1699
+            lineNumber: 1714
             values: ["LogicalMoveStyle", "VisualMoveStyle"]
         }
         Enum {
             name: "TimerType"
-            lineNumber: 1704
+            lineNumber: 1719
             values: ["PreciseTimer", "CoarseTimer", "VeryCoarseTimer"]
         }
         Enum {
             name: "TimerId"
             isScoped: true
-            lineNumber: 1710
+            lineNumber: 1725
             values: ["Invalid"]
         }
         Enum {
             name: "ScrollPhase"
-            lineNumber: 1714
+            lineNumber: 1729
             values: [
                 "NoScrollPhase",
                 "ScrollBegin",
@@ -4435,7 +4502,7 @@ Module {
         }
         Enum {
             name: "MouseEventSource"
-            lineNumber: 1722
+            lineNumber: 1737
             values: [
                 "MouseEventNotSynthesized",
                 "MouseEventSynthesizedBySystem",
@@ -4447,7 +4514,7 @@ Module {
             name: "MouseEventFlags"
             alias: "MouseEventFlag"
             isFlag: true
-            lineNumber: 1729
+            lineNumber: 1744
             values: [
                 "NoMouseEventFlag",
                 "MouseEventCreatedDoubleClick",
@@ -4456,13 +4523,13 @@ Module {
         }
         Enum {
             name: "ChecksumType"
-            lineNumber: 1737
+            lineNumber: 1752
             values: ["ChecksumIso3309", "ChecksumItuV41"]
         }
         Enum {
             name: "HighDpiScaleFactorRoundingPolicy"
             isScoped: true
-            lineNumber: 1742
+            lineNumber: 1757
             values: [
                 "Unset",
                 "Round",
@@ -4475,7 +4542,7 @@ Module {
         Enum {
             name: "PermissionStatus"
             isScoped: true
-            lineNumber: 1751
+            lineNumber: 1766
             values: ["Undetermined", "Granted", "Denied"]
         }
     }
@@ -4546,7 +4613,7 @@ Module {
             index: 4
             lineNumber: 53
         }
-        Signal { name: "uiLanguageChanged"; lineNumber: 176 }
+        Signal { name: "uiLanguageChanged"; lineNumber: 183 }
         Method {
             name: "include"
             type: "QJSValue"
@@ -5188,11 +5255,46 @@ Module {
             lineNumber: 147
             Parameter { name: "data"; type: "QString" }
         }
-        Method { name: "quit"; isMethodConstant: true; lineNumber: 149 }
+        Method {
+            name: "escapeHtml"
+            type: "QString"
+            isMethodConstant: true
+            lineNumber: 148
+            Parameter { name: "data"; type: "QString" }
+        }
+        Method {
+            name: "btoa"
+            type: "QByteArray"
+            isMethodConstant: true
+            lineNumber: 150
+            Parameter { name: "data"; type: "QByteArray" }
+        }
+        Method {
+            name: "atob"
+            type: "QByteArray"
+            isMethodConstant: true
+            lineNumber: 151
+            Parameter { name: "data"; type: "QByteArray" }
+        }
+        Method {
+            name: "btoa"
+            type: "QByteArray"
+            isMethodConstant: true
+            lineNumber: 153
+            Parameter { name: "data"; type: "QVariantList" }
+        }
+        Method {
+            name: "atob"
+            type: "QByteArray"
+            isMethodConstant: true
+            lineNumber: 154
+            Parameter { name: "data"; type: "QVariantList" }
+        }
+        Method { name: "quit"; isMethodConstant: true; lineNumber: 156 }
         Method {
             name: "exit"
             isMethodConstant: true
-            lineNumber: 150
+            lineNumber: 157
             Parameter { name: "retCode"; type: "int" }
         }
         Method {
@@ -5200,7 +5302,7 @@ Module {
             type: "QObject"
             isPointer: true
             isMethodConstant: true
-            lineNumber: 152
+            lineNumber: 159
             Parameter { name: "qml"; type: "QString" }
             Parameter { name: "parent"; type: "QObject"; isPointer: true }
             Parameter { name: "url"; type: "QUrl" }
@@ -5211,7 +5313,7 @@ Module {
             isPointer: true
             isCloned: true
             isMethodConstant: true
-            lineNumber: 152
+            lineNumber: 159
             Parameter { name: "qml"; type: "QString" }
             Parameter { name: "parent"; type: "QObject"; isPointer: true }
         }
@@ -5220,7 +5322,7 @@ Module {
             type: "QQmlComponent"
             isPointer: true
             isMethodConstant: true
-            lineNumber: 154
+            lineNumber: 161
             Parameter { name: "url"; type: "QUrl" }
             Parameter { name: "parent"; type: "QObject"; isPointer: true }
         }
@@ -5229,7 +5331,7 @@ Module {
             type: "QQmlComponent"
             isPointer: true
             isMethodConstant: true
-            lineNumber: 155
+            lineNumber: 162
             Parameter { name: "url"; type: "QUrl" }
             Parameter { name: "mode"; type: "QQmlComponent::CompilationMode" }
             Parameter { name: "parent"; type: "QObject"; isPointer: true }
@@ -5240,7 +5342,7 @@ Module {
             isPointer: true
             isCloned: true
             isMethodConstant: true
-            lineNumber: 155
+            lineNumber: 162
             Parameter { name: "url"; type: "QUrl" }
             Parameter { name: "mode"; type: "QQmlComponent::CompilationMode" }
         }
@@ -5250,7 +5352,7 @@ Module {
             isPointer: true
             isCloned: true
             isMethodConstant: true
-            lineNumber: 155
+            lineNumber: 162
             Parameter { name: "url"; type: "QUrl" }
         }
         Method {
@@ -5258,7 +5360,7 @@ Module {
             type: "QQmlComponent"
             isPointer: true
             isMethodConstant: true
-            lineNumber: 159
+            lineNumber: 166
             Parameter { name: "moduleUri"; type: "QString" }
             Parameter { name: "typeName"; type: "QString" }
             Parameter { name: "parent"; type: "QObject"; isPointer: true }
@@ -5268,7 +5370,7 @@ Module {
             type: "QQmlComponent"
             isPointer: true
             isMethodConstant: true
-            lineNumber: 161
+            lineNumber: 168
             Parameter { name: "moduleUri"; type: "QString" }
             Parameter { name: "typeName"; type: "QString" }
             Parameter { name: "mode"; type: "QQmlComponent::CompilationMode" }
@@ -5280,7 +5382,7 @@ Module {
             isPointer: true
             isCloned: true
             isMethodConstant: true
-            lineNumber: 161
+            lineNumber: 168
             Parameter { name: "moduleUri"; type: "QString" }
             Parameter { name: "typeName"; type: "QString" }
             Parameter { name: "mode"; type: "QQmlComponent::CompilationMode" }
@@ -5291,7 +5393,7 @@ Module {
             isPointer: true
             isCloned: true
             isMethodConstant: true
-            lineNumber: 161
+            lineNumber: 168
             Parameter { name: "moduleUri"; type: "QString" }
             Parameter { name: "typeName"; type: "QString" }
         }
@@ -5299,30 +5401,31 @@ Module {
             name: "binding"
             type: "QJSValue"
             isMethodConstant: true
-            lineNumber: 165
+            lineNumber: 172
             Parameter { name: "function"; type: "QJSValue" }
         }
-        Method { name: "callLater"; isJavaScriptFunction: true; lineNumber: 166 }
+        Method { name: "callLater"; isJavaScriptFunction: true; lineNumber: 173 }
         Method {
             name: "enumStringToValue"
             type: "double"
-            lineNumber: 168
+            lineNumber: 175
             Parameter { name: "enumType"; type: "QJSManagedValue" }
             Parameter { name: "string"; type: "QString" }
         }
         Method {
             name: "enumValueToString"
             type: "QString"
-            lineNumber: 169
+            lineNumber: 176
             Parameter { name: "enumType"; type: "QJSManagedValue" }
             Parameter { name: "value"; type: "double" }
         }
         Method {
             name: "enumValueToStrings"
             type: "QStringList"
-            lineNumber: 170
+            lineNumber: 177
             Parameter { name: "enumType"; type: "QJSManagedValue" }
             Parameter { name: "value"; type: "double" }
         }
     }
+    Component { isTypeOpaque: true; name: "QJSManagedValue"; accessSemantics: "value" }
 }

@@ -26,6 +26,9 @@ class Mavlink : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(bool connected READ connected NOTIFY connectionStatusChanged)
+    Q_PROPERTY(bool vpsConnected READ vpsConnected NOTIFY vpsStatusChanged)
+    Q_PROPERTY(QVariantMap vpsStatus READ vpsStatus NOTIFY vpsStatusChanged)
+    Q_PROPERTY(QVariantMap vpsConfig READ vpsConfig NOTIFY vpsConfigChanged)
     Q_PROPERTY(int linkLatencyMs READ linkLatencyMs NOTIFY linkQualityChanged)
     Q_PROPERTY(int mavlinkQuality READ mavlinkQuality NOTIFY linkQualityChanged)
     Q_PROPERTY(QVariantList missionWaypoints READ missionWaypoints NOTIFY missionWaypointsChanged)
@@ -57,6 +60,9 @@ public:
     ~Mavlink() override;
 
     bool connected() const;
+    bool vpsConnected() const;
+    QVariantMap vpsStatus() const;
+    QVariantMap vpsConfig() const;
     int linkLatencyMs() const;
     int mavlinkQuality() const;
     QVariantList missionWaypoints() const;
@@ -100,6 +106,14 @@ public:
     Q_INVOKABLE void runSequentialMotorTest(int throttlePercent = 10, int durationSeconds = 2, int motorCount = 4);
     Q_INVOKABLE void stopAllMotorTests(int motorCount = 4);
     Q_INVOKABLE bool servo(int servoNumber = 9, int pwm = 1500);
+    Q_INVOKABLE bool sendPayloadCommand(int commandId, int watchdogMinutes = 0);
+    Q_INVOKABLE bool startVpsAction(int action);
+    Q_INVOKABLE bool refreshVpsConfig();
+    Q_INVOKABLE bool setVpsHome(double latitude, double longitude);
+    Q_INVOKABLE bool setVpsLogging(bool enabled);
+    Q_INVOKABLE bool setVpsSensorSpeed(int speed);
+    Q_INVOKABLE bool setVpsGpsCheck(const QVariantMap &values);
+    Q_INVOKABLE bool setVpsGpsJamming(const QVariantMap &values);
     Q_INVOKABLE void refreshTelemetry();
     Q_INVOKABLE bool uploadMissionFile(const QUrl &fileUrl);
     Q_INVOKABLE bool writeLoadedMissionToVehicle();
@@ -127,6 +141,8 @@ public:
 
 signals:
     void connectionStatusChanged(bool connected);
+    void vpsStatusChanged();
+    void vpsConfigChanged();
     void linkQualityChanged();
     void messageReceived(const mavlink_message_t &msg);
     void frameObserved(const MavlinkFrame &frame);
@@ -159,6 +175,15 @@ private slots:
     void readData();
 
 private:
+    void handleVpsMessage(const mavlink_message_t &message);
+    void clearVpsStatus();
+    bool writeVpsMessage(uint16_t type, const QByteArray &payload);
+    QTimer *vpsTimeoutTimer = nullptr;
+    bool vpsConnectedState = false;
+    uint8_t vpsSystemId = 0;
+    uint8_t vpsComponentId = 0;
+    QVariantMap vpsStatusValues;
+    QVariantMap vpsConfigValues;
     struct MissionItem { uint16_t seq = 0; uint8_t current = 0; uint8_t frame = 0; uint16_t command = 0; float param1 = 0; float param2 = 0; float param3 = 0; float param4 = 0; double x = 0; double y = 0; float z = 0; uint8_t autocontinue = 1; };
     struct VehicleParameter { QString name; float value = 0.0f; uint8_t type = MAV_PARAM_TYPE_REAL32; int index = -1; };
     struct PendingTerrainBlock { mavlink_terrain_request_t request = {}; uint8_t gridbit = 0; };

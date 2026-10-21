@@ -9,6 +9,8 @@ Module {
     Component {
         file: "private/qtquickcontrols2basicforeign_p.h"
         lineNumber: 51
+        resolvedFile: "private/qquickcontextmenu_p.h"
+        lineNumberInResolvedFile: 28
         name: "QQuickContextMenu"
         accessSemantics: "reference"
         prototype: "QObject"
@@ -38,6 +40,8 @@ Module {
     Component {
         file: "private/qtquickcontrols2basicforeign_p.h"
         lineNumber: 31
+        resolvedFile: "private/qquickoverlay_p.h"
+        lineNumberInResolvedFile: 29
         name: "QQuickOverlay"
         accessSemantics: "reference"
         defaultProperty: "data"
@@ -50,10 +54,20 @@ Module {
             "QtQuick.Controls.Basic/Overlay 2.11",
             "QtQuick.Controls.Basic/Overlay 6.0",
             "QtQuick.Controls.Basic/Overlay 6.3",
-            "QtQuick.Controls.Basic/Overlay 6.7"
+            "QtQuick.Controls.Basic/Overlay 6.7",
+            "QtQuick.Controls.Basic/Overlay 6.12"
         ]
         isCreatable: false
-        exportMetaObjectRevisions: [515, 516, 519, 523, 1536, 1539, 1543]
+        exportMetaObjectRevisions: [
+            515,
+            516,
+            519,
+            523,
+            1536,
+            1539,
+            1543,
+            1548
+        ]
         attachedType: "QQuickOverlayAttached"
         Property {
             name: "modal"
@@ -85,6 +99,8 @@ Module {
     Component {
         file: "private/qtquickcontrols2basicforeign_p.h"
         lineNumber: 41
+        resolvedFile: "private/qquicksplitview_p.h"
+        lineNumberInResolvedFile: 163
         name: "QQuickSplitHandleAttached"
         accessSemantics: "reference"
         prototype: "QObject"

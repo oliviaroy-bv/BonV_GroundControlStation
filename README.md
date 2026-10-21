@@ -159,6 +159,28 @@ cmake --build build --config Release
 
 The CMake build copies bundled GStreamer runtime files automatically when GStreamer is available.
 
+If `installer/package.bat` reports a debug Qt runtime, check for
+`build/deploy/Qt6Cored.dll`. Debug and Release builds share the deployment
+directory, and deploying Release does not remove DLLs from an earlier Debug
+build. Keep the Release-only check enabled: deleting arbitrary `*d.dll` files
+can also remove required Release libraries.
+
+From the project root, preserve the old deployment and rebuild a fresh Release
+deployment before packaging:
+
+```powershell
+Rename-Item -LiteralPath .\build\deploy -NewName ("deploy-backup-" + (Get-Date -Format 'yyyyMMdd-HHmmss'))
+cmake -E make_directory build/deploy
+cmake --build build --config Release --clean-first
+if ($LASTEXITCODE -eq 0) { .\installer\package.bat }
+```
+
+The clean rebuild ensures the post-build deployment runs even when the Release
+executable was already up to date. For a custom deployment directory, use that
+path instead and ensure `BONV_DEPLOY_DIR` in CMake and the `DEPLOY` environment
+variable used by `package.bat` refer to the same directory. Package before
+building Debug into that directory again.
+
 <a id="run-the-app"></a>
 ## 7. Run The App
 

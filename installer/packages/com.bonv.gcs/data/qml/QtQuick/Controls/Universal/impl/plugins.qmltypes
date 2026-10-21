@@ -22,9 +22,20 @@ Module {
             "QtQuick.Controls.Universal.impl/BusyIndicatorImpl 2.11",
             "QtQuick.Controls.Universal.impl/BusyIndicatorImpl 6.0",
             "QtQuick.Controls.Universal.impl/BusyIndicatorImpl 6.3",
-            "QtQuick.Controls.Universal.impl/BusyIndicatorImpl 6.7"
+            "QtQuick.Controls.Universal.impl/BusyIndicatorImpl 6.7",
+            "QtQuick.Controls.Universal.impl/BusyIndicatorImpl 6.12"
         ]
-        exportMetaObjectRevisions: [512, 513, 516, 519, 523, 1536, 1539, 1543]
+        exportMetaObjectRevisions: [
+            512,
+            513,
+            516,
+            519,
+            523,
+            1536,
+            1539,
+            1543,
+            1548
+        ]
         Property {
             name: "count"
             type: "int"
@@ -58,9 +69,20 @@ Module {
             "QtQuick.Controls.Universal.impl/FocusRectangle 2.11",
             "QtQuick.Controls.Universal.impl/FocusRectangle 6.0",
             "QtQuick.Controls.Universal.impl/FocusRectangle 6.3",
-            "QtQuick.Controls.Universal.impl/FocusRectangle 6.7"
+            "QtQuick.Controls.Universal.impl/FocusRectangle 6.7",
+            "QtQuick.Controls.Universal.impl/FocusRectangle 6.12"
         ]
-        exportMetaObjectRevisions: [512, 513, 516, 519, 523, 1536, 1539, 1543]
+        exportMetaObjectRevisions: [
+            512,
+            513,
+            516,
+            519,
+            523,
+            1536,
+            1539,
+            1543,
+            1548
+        ]
     }
     Component {
         file: "private/qquickuniversalprogressbar_p.h"
@@ -78,9 +100,20 @@ Module {
             "QtQuick.Controls.Universal.impl/ProgressBarImpl 2.11",
             "QtQuick.Controls.Universal.impl/ProgressBarImpl 6.0",
             "QtQuick.Controls.Universal.impl/ProgressBarImpl 6.3",
-            "QtQuick.Controls.Universal.impl/ProgressBarImpl 6.7"
+            "QtQuick.Controls.Universal.impl/ProgressBarImpl 6.7",
+            "QtQuick.Controls.Universal.impl/ProgressBarImpl 6.12"
         ]
-        exportMetaObjectRevisions: [512, 513, 516, 519, 523, 1536, 1539, 1543]
+        exportMetaObjectRevisions: [
+            512,
+            513,
+            516,
+            519,
+            523,
+            1536,
+            1539,
+            1543,
+            1548
+        ]
         Property {
             name: "color"
             type: "QColor"

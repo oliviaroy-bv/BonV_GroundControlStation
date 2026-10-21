@@ -34,6 +34,10 @@ T.TextArea {
     verticalAlignment: Qt.AlignVCenter
     placeholderTextColor: control.palette.placeholderText
 
+    ContextMenu.menu: TextEditingContextMenu {
+        editor: control
+    }
+
     PlaceholderText {
         id: placeholder
         x: control.leftPadding
@@ -46,6 +50,7 @@ T.TextArea {
         color: control.placeholderTextColor
         verticalAlignment: control.verticalAlignment
         visible: !control.length && !control.preeditText && (!control.activeFocus || control.horizontalAlignment !== Qt.AlignHCenter)
+        wrapMode: control.wrapMode
         elide: Text.ElideRight
         renderType: control.renderType
     }

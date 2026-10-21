@@ -1,5 +1,5 @@
 @echo off
-setlocal EnableDelayedExpansion
+setlocal EnableExtensions DisableDelayedExpansion
 
 echo ======================================
 echo Building BonV Ground Station Installer
@@ -15,7 +15,15 @@ if not defined DEPLOY set "DEPLOY=%PROJECT%\build\deploy"
 set "PACKAGE=%ROOT%\packages\com.bonv.gcs\data"
 set "INSTALLER_CONFIG=%ROOT%\config\config.xml"
 set "PACKAGE_METADATA=%ROOT%\packages\com.bonv.gcs\meta\package.xml"
-set "GSTREAMER_ROOT=%PROJECT%\integrations\gstreamer\1.0\msvc_x86_64"
+:: Prefer an explicit override, otherwise use the SDK configured for the build.
+:: CMAKE_CACHE may be overridden when packaging a different build directory.
+if not defined CMAKE_CACHE set "CMAKE_CACHE=%PROJECT%\build\CMakeCache.txt"
+if not defined GSTREAMER_ROOT (
+    for /f "usebackq delims=" %%v in (`powershell -NoProfile -Command "$ErrorActionPreference = 'Stop'; $root = Join-Path $env:PROJECT 'integrations/gstreamer'; if (Test-Path -LiteralPath $env:CMAKE_CACHE) { $entry = Get-Content -LiteralPath $env:CMAKE_CACHE | Select-String '^BONV_BUNDLED_GSTREAMER_ROOT:PATH=(.*)$' | Select-Object -First 1; if ($entry) { $root = $entry.Matches[0].Groups[1].Value } }; $candidates = @($root, (Join-Path $root '1.0/msvc_x86_64'), (Join-Path $root 'gstreamer/msvc_x86_64'), (Join-Path $root 'msvc_x86_64')); foreach ($candidate in $candidates) { if ((Test-Path (Join-Path $candidate 'bin')) -and (Test-Path (Join-Path $candidate 'lib/pkgconfig'))) { $candidate; break } }"`) do set "GSTREAMER_ROOT=%%v"
+)
+set "INSTALLER_VERSION="
+set "PACKAGE_VERSION="
+set "INSTALLER_SUFFIX="
 
 for /f "usebackq delims=" %%v in (`powershell -NoProfile -Command "$config = [xml](Get-Content -LiteralPath $env:INSTALLER_CONFIG); $config.Installer.Version"`) do (
     set "INSTALLER_VERSION=%%v"
@@ -59,40 +67,14 @@ set "INSTALLER_NAME=BonVGroundStation_%INSTALLER_SUFFIX%.exe"
 :: Locate binarycreator.exe dynamically
 :: -------------------------------------------------
 
-@REM set BINARYCREATOR=
-
-@REM if defined QTIFWDIR (
-@REM     if exist "%QTIFWDIR%\bin\binarycreator.exe" (
-@REM         set "BINARYCREATOR=%QTIFWDIR%\bin\binarycreator.exe"
-@REM         goto FoundBinaryCreator
-@REM     )
-@REM )
-
-@REM for /f "delims=" %%i in ('where binarycreator.exe 2^>nul') do (
-@REM     set "BINARYCREATOR=%%i"
-@REM     goto FoundBinaryCreator
-@REM )
-
-@REM if defined QTIFWDIR (
-@REM     for /f "delims=" %%i in ('dir /b /ad /o-n "%QTIFWDIR%" 2^>nul') do (
-@REM         if exist "%QTIFWDIR%\%%i\bin\binarycreator.exe" (
-@REM             set "BINARYCREATOR=%QTIFWDIR%\%%i\bin\binarycreator.exe"
-@REM             goto FoundBinaryCreator
-@REM         )
-@REM     )
-@REM )
-
-@REM if defined QTDIR (
-@REM     for /f "delims=" %%i in ('dir /b /ad /o-n "%QTDIR%\Tools\QtInstallerFramework" 2^>nul') do (
-@REM         if exist "%QTDIR%\Tools\QtInstallerFramework\%%i\bin\binarycreator.exe" (
-@REM             set "BINARYCREATOR=%QTDIR%\Tools\QtInstallerFramework\%%i\bin\binarycreator.exe"
-@REM             goto FoundBinaryCreator
-@REM         )
-@REM     )
-@REM )
-
-set "QTIFW_ROOT=C:\Qt\Tools\QtInstallerFramework"
 set "BINARYCREATOR="
+if defined QTIFWDIR if exist "%QTIFWDIR%\bin\binarycreator.exe" (
+    set "BINARYCREATOR=%QTIFWDIR%\bin\binarycreator.exe"
+    goto FoundBinaryCreator
+)
+
+if not defined QTIFW_ROOT if defined QTDIR if exist "%QTDIR%\Tools\QtInstallerFramework" set "QTIFW_ROOT=%QTDIR%\Tools\QtInstallerFramework"
+if not defined QTIFW_ROOT set "QTIFW_ROOT=C:\Qt\Tools\QtInstallerFramework"
 
 :: Look for the newest installed Qt Installer Framework version
 for /f "delims=" %%i in ('dir /b /ad /o-n "%QTIFW_ROOT%" 2^>nul') do (
@@ -124,20 +106,8 @@ echo %BINARYCREATOR%
 echo.
 
 :: -------------------------------------------------
-:: Clean package directory
+:: Check inputs before cleaning the previous package
 :: -------------------------------------------------
-
-echo Cleaning package directory...
-
-if exist "%PACKAGE%" rd /s /q "%PACKAGE%"
-
-mkdir "%PACKAGE%"
-
-:: -------------------------------------------------
-:: Copy deployment
-:: -------------------------------------------------
-
-echo Copying deployment files...
 
 if not exist "%DEPLOY%\BonVGroundStation.exe" (
     echo ERROR: Deployment is missing BonVGroundStation.exe: "%DEPLOY%"
@@ -145,12 +115,46 @@ if not exist "%DEPLOY%\BonVGroundStation.exe" (
     exit /b 1
 )
 
-if not exist "%GSTREAMER_ROOT%\bin" (
-    echo ERROR: Bundled MSVC x64 GStreamer runtime was not found: "%GSTREAMER_ROOT%"
+:: Check before modifying the previous package. windeployqt does not remove
+:: Debug DLLs left in a shared deployment folder by an earlier Debug build.
+if exist "%DEPLOY%\Qt6Cored.dll" (
+    echo ERROR: Debug Qt runtime found: "%DEPLOY%\Qt6Cored.dll"
+    if exist "%DEPLOY%\Qt6Core.dll" echo Both Release and Debug Qt runtimes are present; the deployment is mixed.
+    echo Rename the deployment folder as a backup, then rebuild Release into a fresh folder.
+    echo Recreate it before rebuilding: cmake -E make_directory "%DEPLOY%"
+    echo From the project root, run: cmake --build build --config Release --clean-first
+    echo A normal incremental build may skip the post-build deployment step.
+    echo For a custom DEPLOY path, ensure BONV_DEPLOY_DIR in CMake points to the same folder.
     exit /b 1
 )
 
+if not defined GSTREAMER_ROOT (
+    echo ERROR: Could not resolve the GStreamer SDK from "%CMAKE_CACHE%".
+    echo Set GSTREAMER_ROOT to the MSVC x64 SDK used to build the deployment.
+    exit /b 1
+)
+if not exist "%GSTREAMER_ROOT%\lib\gstreamer-1.0\*.dll" (
+    echo ERROR: No source GStreamer plugin DLLs found in "%GSTREAMER_ROOT%\lib\gstreamer-1.0".
+    echo Set GSTREAMER_ROOT to the MSVC x64 SDK used to build the deployment.
+    exit /b 1
+)
+echo Validating against GStreamer SDK: "%GSTREAMER_ROOT%"
+
+echo Cleaning package directory...
+if exist "%PACKAGE%" rd /s /q "%PACKAGE%"
+if exist "%PACKAGE%" (
+    echo ERROR: Could not clean package directory: "%PACKAGE%"
+    exit /b 1
+)
+mkdir "%PACKAGE%"
+if errorlevel 1 exit /b 1
+
+echo Copying deployment files...
 xcopy "%DEPLOY%\*" "%PACKAGE%\" /E /I /Y >nul
+if errorlevel 1 (
+    echo ERROR: Could not copy the complete deployment payload.
+    exit /b 1
+)
 
 echo Removing debug files...
 
@@ -167,10 +171,10 @@ if exist "%PACKAGE%\Qt6Cored.dll" (
 
 echo Validating standalone runtime payload...
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-  "$package = $env:PACKAGE; $gstreamer = $env:GSTREAMER_ROOT; " ^
+  "$ErrorActionPreference = 'Stop'; $package = $env:PACKAGE; $gstreamer = $env:GSTREAMER_ROOT; " ^
   "$required = @('BonVGroundStation.exe', 'Qt6Core.dll', 'Qt6Gui.dll', 'Qt6Qml.dll', 'Qt6Quick.dll', 'Qt6WebEngineCore.dll', 'QtWebEngineProcess.exe', 'vcruntime140.dll', 'msvcp140.dll', 'platforms/qwindows.dll', 'tls/qopensslbackend.dll', 'libexec/gstreamer-1.0/gst-plugin-scanner.exe'); " ^
   "$missing = $required | Where-Object { -not (Test-Path (Join-Path $package $_)) }; " ^
-  "$sourcePlugins = Get-ChildItem (Join-Path $gstreamer 'lib/gstreamer-1.0') -Filter '*.dll' -File | Select-Object -ExpandProperty Name; " ^
+  "$sourcePlugins = @(Get-ChildItem (Join-Path $gstreamer 'lib/gstreamer-1.0') -Filter '*.dll' -File | Select-Object -ExpandProperty Name); if ($sourcePlugins.Count -eq 0) { throw 'No source GStreamer plugins were found.' }; " ^
   "$packagedPlugins = Get-ChildItem (Join-Path $package 'lib/gstreamer-1.0') -Filter '*.dll' -File -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name; " ^
   "$missingPlugins = $sourcePlugins | Where-Object { $_ -notin $packagedPlugins }; " ^
   "if ($missing -or $missingPlugins) { Write-Host 'ERROR: Deployment payload is incomplete.'; if ($missing) { Write-Host ('Missing required runtime files: ' + ($missing -join ', ')) }; if ($missingPlugins) { Write-Host ('Missing GStreamer plugins: ' + ($missingPlugins -join ', ')) }; exit 1 }; " ^

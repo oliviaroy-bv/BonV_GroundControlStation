@@ -31,9 +31,8 @@ T.MenuItem {
 
     icon.width: 24
     icon.height: 24
-    icon.color: control.palette.windowText
 
-    contentItem: IconLabel {
+    contentItem: MenuItemIconLabel {
         readonly property real arrowPadding: control.subMenu && control.arrow ? control.arrow.width + control.spacing : 0
         readonly property real indicatorPadding: control.checkable && control.indicator ? control.indicator.width + control.spacing : 0
         leftPadding: !control.mirrored ? indicatorPadding : arrowPadding
@@ -45,9 +44,11 @@ T.MenuItem {
         alignment: Qt.AlignLeft
 
         icon: control.icon
+        defaultIconColor: control.palette.windowText
         text: control.text
         font: control.font
-        color: control.palette.windowText
+        color: defaultIconColor
+        menuItem: control
     }
 
     arrow: Image {

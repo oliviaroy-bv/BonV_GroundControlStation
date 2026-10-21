@@ -12,8 +12,11 @@ Module {
         name: "QQuickFluentWinUI3FocusStroke"
         accessSemantics: "reference"
         prototype: "QQuickPaintedItem"
-        exports: ["QtQuick.Controls.FluentWinUI3.impl/FocusStroke 6.8"]
-        exportMetaObjectRevisions: [1544]
+        exports: [
+            "QtQuick.Controls.FluentWinUI3.impl/FocusStroke 6.8",
+            "QtQuick.Controls.FluentWinUI3.impl/FocusStroke 6.12"
+        ]
+        exportMetaObjectRevisions: [1544, 1548]
         Property {
             name: "color"
             type: "QColor"

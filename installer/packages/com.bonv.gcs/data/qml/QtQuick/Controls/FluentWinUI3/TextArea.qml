@@ -39,6 +39,10 @@ T.TextArea {
     ].filter(Boolean).join("_") || "normal"
     readonly property var __config: Config.controls.textarea[__currentState] || {}
 
+    ContextMenu.menu: Impl.TextEditingContextMenu {
+        editor: control
+    }
+
     PlaceholderText {
         id: placeholder
         x: control.leftPadding
@@ -52,6 +56,7 @@ T.TextArea {
         verticalAlignment: control.verticalAlignment
         horizontalAlignment: control.horizontalAlignment
         visible: !control.length && !control.preeditText && (!control.activeFocus || control.horizontalAlignment !== Qt.AlignHCenter)
+        wrapMode: control.wrapMode
         elide: Text.ElideRight
         renderType: control.renderType
     }

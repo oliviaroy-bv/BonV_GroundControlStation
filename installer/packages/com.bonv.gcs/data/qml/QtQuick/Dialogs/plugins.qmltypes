@@ -319,6 +319,8 @@ Module {
     Component {
         file: "private/qtquickdialogs2foreign_p.h"
         lineNumber: 25
+        resolvedFile: "private/qquickfilenamefilter_p.h"
+        lineNumberInResolvedFile: 28
         name: "QQuickFileNameFilter"
         accessSemantics: "reference"
         prototype: "QObject"

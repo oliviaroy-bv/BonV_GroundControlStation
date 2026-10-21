@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Package>
     <DisplayName>BonVGroundStation</DisplayName>
-    <Description>Install BonVGroundStation STAGED_1.0 application</Description>
-    <Version>STAGED_1.1</Version>
+    <Description>Install BonVGroundStation STAGED_1.2 application</Description>
+    <Version>STAGED_1.2</Version>
     <ReleaseDate>2026-07-28</ReleaseDate>
     <Default>true</Default>
     <Script>installscript.qs</Script>

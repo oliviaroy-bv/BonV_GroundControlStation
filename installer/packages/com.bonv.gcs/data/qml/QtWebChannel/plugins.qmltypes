@@ -136,4 +136,23 @@ Module {
             Parameter { name: "object"; type: "QObject"; isPointer: true }
         }
     }
+    Component {
+        isTypeOpaque: true
+        file: "qwebchannelabstracttransport.h"
+        lineNumber: 14
+        name: "QWebChannelAbstractTransport"
+        accessSemantics: "reference"
+        prototype: "QObject"
+        Signal {
+            name: "messageReceived"
+            lineNumber: 25
+            Parameter { name: "message"; type: "QJsonObject" }
+            Parameter { name: "transport"; type: "QWebChannelAbstractTransport"; isPointer: true }
+        }
+        Method {
+            name: "sendMessage"
+            lineNumber: 22
+            Parameter { name: "message"; type: "QJsonObject" }
+        }
+    }
 }

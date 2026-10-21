@@ -7,6 +7,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls.impl
 import QtQuick.Templates as T
+import QtQuick.Controls.Basic.impl
 
 T.SearchField {
     id: control
@@ -18,17 +19,31 @@ T.SearchField {
                              searchIndicator.implicitIndicatorHeight + topPadding + bottomPadding,
                              clearIndicator.implicitIndicatorHeight + topPadding + bottomPadding)
 
-    leftPadding: padding + (control.mirrored || !searchIndicator.indicator || !searchIndicator.indicator.visible ? 0 : searchIndicator.indicator.width + spacing)
-    rightPadding: padding + (control.mirrored || !clearIndicator.indicator || !clearIndicator.indicator.visible ? 0 : clearIndicator.indicator.width + spacing)
+    readonly property bool __searchIndicatorVisible: control.searchIndicator.indicator && control.searchIndicator.indicator.visible
+    readonly property bool __clearIndicatorVisible: control.clearIndicator.indicator && control.clearIndicator.indicator.visible
+
+    leftPadding: padding + (control.mirrored
+                            ? (control.__clearIndicatorVisible ? control.clearIndicator.indicator.width + spacing : 0)
+                            : (control.__searchIndicatorVisible ? control.searchIndicator.indicator.width + spacing : 0))
+
+    rightPadding: padding + (control.mirrored
+                             ? (control.__searchIndicatorVisible ? control.searchIndicator.indicator.width + spacing : 0)
+                             : (control.__clearIndicatorVisible ? control.clearIndicator.indicator.width + spacing : 0))
 
     delegate: ItemDelegate {
+        id: delegate
+
         width: ListView.view.width
-        text: model[control.textRole]
-        palette.text: control.palette.text
-        palette.highlightedText: control.palette.highlightedText
-        font.weight: control.currentIndex === index ? Font.DemiBold : Font.Normal
         highlighted: control.highlightedIndex === index
         hoverEnabled: control.hoverEnabled
+
+        contentItem: Text {
+            text: delegate.model[control.textRole]
+            font.weight: control.currentIndex === index ? Font.DemiBold : Font.Normal
+            color: delegate.highlighted ? palette.highlightedText : palette.windowText
+            elide: Text.ElideRight
+            verticalAlignment: Text.AlignVCenter
+        }
 
         required property var model
         required property int index
@@ -37,9 +52,10 @@ T.SearchField {
     searchIndicator.indicator: Rectangle {
         implicitWidth: 28
         implicitHeight: 28
+        height: control.height - (background.border.width * 2)
 
         x: !control.mirrored ? 3 : control.width - width - 3
-        y: control.topPadding + (control.availableHeight - height) / 2
+        y: background.border.width
         color: control.palette.button
 
         ColorImage {
@@ -55,9 +71,10 @@ T.SearchField {
     clearIndicator.indicator: Rectangle {
         implicitWidth: 28
         implicitHeight: 28
+        height: control.height - (background.border.width * 2)
 
         x: control.mirrored ? 3 : control.width - width - 3
-        y: control.topPadding + (control.availableHeight - height) / 2
+        y: background.border.width
         visible: control.text.length > 0
         color: control.palette.button
 
@@ -72,17 +89,44 @@ T.SearchField {
     }
 
     contentItem: T.TextField {
-        leftPadding: control.searchIndicator.indicator && !control.mirrored ? 6 : 0
-        rightPadding: control.clearIndicator.indicator && !control.mirrored ? 6 : 0
+        implicitHeight: Math.max(contentHeight + topPadding + bottomPadding,
+                                 placeholder.implicitHeight + topPadding + bottomPadding)
+        leftPadding: control.mirrored ? (control.__clearIndicatorVisible ? 6 : 3)
+                                      : (control.__searchIndicatorVisible ? 6 : 3)
+        rightPadding: control.mirrored ? (control.__searchIndicatorVisible ? 6 : 3)
+                                       : (control.__clearIndicatorVisible ? 6 : 3)
         topPadding: 6 - control.padding
         bottomPadding: 6 - control.padding
 
         text: control.text
+        placeholderText: control.placeholderText
+
+        PlaceholderText {
+            id: placeholder
+            x: parent.leftPadding
+            y: parent.topPadding
+            width: parent.width - parent.leftPadding - parent.rightPadding
+            height: parent.height - parent.topPadding - parent.bottomPadding
+
+            text: control.placeholderText
+            font: parent.font
+            color: control.palette.placeholderText
+            visible: !parent.length && !parent.preeditText && (!parent.activeFocus || parent.horizontalAlignment !== Qt.AlignHCenter)
+            verticalAlignment: parent.verticalAlignment
+            elide: Text.ElideRight
+            renderType: parent.renderType
+        }
+
+        selectByMouse: control.selectTextByMouse
 
         color: control.palette.text
         selectionColor: control.palette.highlight
         selectedTextColor: control.palette.highlightedText
         verticalAlignment: TextInput.AlignVCenter
+
+        ContextMenu.menu: TextEditingContextMenu {
+            editor: parent
+        }
     }
 
     background: Rectangle {

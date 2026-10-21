@@ -4,7 +4,8 @@ optional plugin qtquickcontrols2imaginestyleimplplugin
 classname QtQuickControls2ImagineStyleImplPlugin
 typeinfo QuickControls2ImagineStyleImpl.qmltypes
 import QtQuick.Controls.impl auto
+depends QtQuick auto
 prefer :/qt-project.org/imports/QtQuick/Controls/Imagine/impl/
 OpacityMask 6.0 OpacityMask.qml
-depends QtQuick
+TextEditingContextMenu 6.11 TextEditingContextMenu.qml
 

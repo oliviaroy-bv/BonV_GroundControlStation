@@ -19,9 +19,19 @@ Module {
             "QtQuick.Controls.Fusion.impl/BusyIndicatorImpl 2.11",
             "QtQuick.Controls.Fusion.impl/BusyIndicatorImpl 6.0",
             "QtQuick.Controls.Fusion.impl/BusyIndicatorImpl 6.3",
-            "QtQuick.Controls.Fusion.impl/BusyIndicatorImpl 6.7"
+            "QtQuick.Controls.Fusion.impl/BusyIndicatorImpl 6.7",
+            "QtQuick.Controls.Fusion.impl/BusyIndicatorImpl 6.12"
         ]
-        exportMetaObjectRevisions: [515, 516, 519, 523, 1536, 1539, 1543]
+        exportMetaObjectRevisions: [
+            515,
+            516,
+            519,
+            523,
+            1536,
+            1539,
+            1543,
+            1548
+        ]
         Property {
             name: "color"
             type: "QColor"
@@ -53,9 +63,19 @@ Module {
             "QtQuick.Controls.Fusion.impl/DialImpl 2.11",
             "QtQuick.Controls.Fusion.impl/DialImpl 6.0",
             "QtQuick.Controls.Fusion.impl/DialImpl 6.3",
-            "QtQuick.Controls.Fusion.impl/DialImpl 6.7"
+            "QtQuick.Controls.Fusion.impl/DialImpl 6.7",
+            "QtQuick.Controls.Fusion.impl/DialImpl 6.12"
         ]
-        exportMetaObjectRevisions: [515, 516, 519, 523, 1536, 1539, 1543]
+        exportMetaObjectRevisions: [
+            515,
+            516,
+            519,
+            523,
+            1536,
+            1539,
+            1543,
+            1548
+        ]
         Property {
             name: "highlight"
             type: "bool"
@@ -79,8 +99,18 @@ Module {
             "QtQuick.Controls.Fusion.impl/KnobImpl 2.11",
             "QtQuick.Controls.Fusion.impl/KnobImpl 6.0",
             "QtQuick.Controls.Fusion.impl/KnobImpl 6.3",
-            "QtQuick.Controls.Fusion.impl/KnobImpl 6.7"
+            "QtQuick.Controls.Fusion.impl/KnobImpl 6.7",
+            "QtQuick.Controls.Fusion.impl/KnobImpl 6.12"
         ]
-        exportMetaObjectRevisions: [515, 516, 519, 523, 1536, 1539, 1543]
+        exportMetaObjectRevisions: [
+            515,
+            516,
+            519,
+            523,
+            1536,
+            1539,
+            1543,
+            1548
+        ]
     }
 }

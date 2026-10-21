@@ -22,9 +22,20 @@ Module {
             "QtQuick.Controls.Basic.impl/BusyIndicatorImpl 2.11",
             "QtQuick.Controls.Basic.impl/BusyIndicatorImpl 6.0",
             "QtQuick.Controls.Basic.impl/BusyIndicatorImpl 6.3",
-            "QtQuick.Controls.Basic.impl/BusyIndicatorImpl 6.7"
+            "QtQuick.Controls.Basic.impl/BusyIndicatorImpl 6.7",
+            "QtQuick.Controls.Basic.impl/BusyIndicatorImpl 6.12"
         ]
-        exportMetaObjectRevisions: [512, 513, 516, 519, 523, 1536, 1539, 1543]
+        exportMetaObjectRevisions: [
+            512,
+            513,
+            516,
+            519,
+            523,
+            1536,
+            1539,
+            1543,
+            1548
+        ]
         Property {
             name: "pen"
             type: "QColor"
@@ -66,9 +77,20 @@ Module {
             "QtQuick.Controls.Basic.impl/DialImpl 2.11",
             "QtQuick.Controls.Basic.impl/DialImpl 6.0",
             "QtQuick.Controls.Basic.impl/DialImpl 6.3",
-            "QtQuick.Controls.Basic.impl/DialImpl 6.7"
+            "QtQuick.Controls.Basic.impl/DialImpl 6.7",
+            "QtQuick.Controls.Basic.impl/DialImpl 6.12"
         ]
-        exportMetaObjectRevisions: [512, 513, 516, 519, 523, 1536, 1539, 1543]
+        exportMetaObjectRevisions: [
+            512,
+            513,
+            516,
+            519,
+            523,
+            1536,
+            1539,
+            1543,
+            1548
+        ]
         Property {
             name: "progress"
             type: "double"
@@ -122,9 +144,20 @@ Module {
             "QtQuick.Controls.Basic.impl/ProgressBarImpl 2.11",
             "QtQuick.Controls.Basic.impl/ProgressBarImpl 6.0",
             "QtQuick.Controls.Basic.impl/ProgressBarImpl 6.3",
-            "QtQuick.Controls.Basic.impl/ProgressBarImpl 6.7"
+            "QtQuick.Controls.Basic.impl/ProgressBarImpl 6.7",
+            "QtQuick.Controls.Basic.impl/ProgressBarImpl 6.12"
         ]
-        exportMetaObjectRevisions: [512, 513, 516, 519, 523, 1536, 1539, 1543]
+        exportMetaObjectRevisions: [
+            512,
+            513,
+            516,
+            519,
+            523,
+            1536,
+            1539,
+            1543,
+            1548
+        ]
         Property {
             name: "indeterminate"
             type: "bool"

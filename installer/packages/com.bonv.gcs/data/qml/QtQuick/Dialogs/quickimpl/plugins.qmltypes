@@ -9,6 +9,8 @@ Module {
     Component {
         file: "private/qtquickdialogs2quickimplforeign_p.h"
         lineNumber: 48
+        resolvedFile: "private/qquickabstractbutton_p.h"
+        lineNumberInResolvedFile: 27
         name: "QQuickAbstractButton"
         accessSemantics: "reference"
         prototype: "QQuickControl"
@@ -233,6 +235,7 @@ Module {
         Method { name: "click"; revision: 1544; lineNumber: 123 }
         Method { name: "animateClick"; revision: 1544; lineNumber: 124 }
         Method { name: "accessiblePressAction"; lineNumber: 184 }
+        Method { name: "accessibleToggleAction"; revision: 1547; lineNumber: 185 }
     }
     Component {
         file: "private/qquickabstractcolorpicker_p.h"
@@ -243,10 +246,11 @@ Module {
         deferredNames: ["background", "contentItem", "handle"]
         exports: [
             "QtQuick.Dialogs.quickimpl/AbstractColorPicker 6.4",
-            "QtQuick.Dialogs.quickimpl/AbstractColorPicker 6.7"
+            "QtQuick.Dialogs.quickimpl/AbstractColorPicker 6.7",
+            "QtQuick.Dialogs.quickimpl/AbstractColorPicker 6.12"
         ]
         isCreatable: false
-        exportMetaObjectRevisions: [1540, 1543]
+        exportMetaObjectRevisions: [1540, 1543, 1548]
         Property {
             name: "color"
             type: "QColor"
@@ -475,7 +479,7 @@ Module {
     }
     Component {
         file: "private/qquickcolordialogimpl_p.h"
-        lineNumber: 100
+        lineNumber: 102
         name: "QQuickColorDialogImplAttached"
         accessSemantics: "reference"
         prototype: "QObject"
@@ -487,7 +491,7 @@ Module {
             write: "setButtonBox"
             notify: "buttonBoxChanged"
             index: 0
-            lineNumber: 103
+            lineNumber: 105
             isFinal: true
         }
         Property {
@@ -498,7 +502,7 @@ Module {
             write: "setEyeDropperButton"
             notify: "eyeDropperButtonChanged"
             index: 1
-            lineNumber: 104
+            lineNumber: 106
             isFinal: true
         }
         Property {
@@ -509,7 +513,7 @@ Module {
             write: "setColorPicker"
             notify: "colorPickerChanged"
             index: 2
-            lineNumber: 105
+            lineNumber: 107
             isFinal: true
         }
         Property {
@@ -520,7 +524,7 @@ Module {
             write: "setColorInputs"
             notify: "colorInputsChanged"
             index: 3
-            lineNumber: 107
+            lineNumber: 109
             isFinal: true
         }
         Property {
@@ -531,14 +535,14 @@ Module {
             write: "setAlphaSlider"
             notify: "alphaSliderChanged"
             index: 4
-            lineNumber: 109
+            lineNumber: 111
             isFinal: true
         }
-        Signal { name: "buttonBoxChanged"; lineNumber: 136 }
-        Signal { name: "eyeDropperButtonChanged"; lineNumber: 137 }
-        Signal { name: "colorPickerChanged"; lineNumber: 138 }
-        Signal { name: "colorInputsChanged"; lineNumber: 139 }
-        Signal { name: "alphaSliderChanged"; lineNumber: 140 }
+        Signal { name: "buttonBoxChanged"; lineNumber: 138 }
+        Signal { name: "eyeDropperButtonChanged"; lineNumber: 139 }
+        Signal { name: "colorPickerChanged"; lineNumber: 140 }
+        Signal { name: "colorInputsChanged"; lineNumber: 141 }
+        Signal { name: "alphaSliderChanged"; lineNumber: 142 }
     }
     Component {
         file: "private/qquickcolorinputs_p.h"
@@ -547,8 +551,11 @@ Module {
         accessSemantics: "reference"
         defaultProperty: "contentData"
         prototype: "QQuickContainer"
-        exports: ["QtQuick.Dialogs.quickimpl/ColorInputsImpl 6.9"]
-        exportMetaObjectRevisions: [1545]
+        exports: [
+            "QtQuick.Dialogs.quickimpl/ColorInputsImpl 6.9",
+            "QtQuick.Dialogs.quickimpl/ColorInputsImpl 6.12"
+        ]
+        exportMetaObjectRevisions: [1545, 1548]
         Enum {
             name: "Mode"
             lineNumber: 57
@@ -707,6 +714,8 @@ Module {
     Component {
         file: "private/qtquickdialogs2quickimplforeign_p.h"
         lineNumber: 40
+        resolvedFile: "private/qquickcontrol_p.h"
+        lineNumberInResolvedFile: 32
         name: "QQuickControl"
         accessSemantics: "reference"
         defaultProperty: "data"
@@ -1073,6 +1082,8 @@ Module {
     Component {
         file: "private/qtquickdialogs2quickimplforeign_p.h"
         lineNumber: 73
+        resolvedFile: "private/qquickdialog_p.h"
+        lineNumberInResolvedFile: 29
         name: "QQuickDialog"
         accessSemantics: "reference"
         defaultProperty: "contentData"
@@ -1223,9 +1234,11 @@ Module {
             "QtQuick.Dialogs.quickimpl/FileDialogDelegate 6.2",
             "QtQuick.Dialogs.quickimpl/FileDialogDelegate 6.3",
             "QtQuick.Dialogs.quickimpl/FileDialogDelegate 6.7",
-            "QtQuick.Dialogs.quickimpl/FileDialogDelegate 6.8"
+            "QtQuick.Dialogs.quickimpl/FileDialogDelegate 6.8",
+            "QtQuick.Dialogs.quickimpl/FileDialogDelegate 6.11",
+            "QtQuick.Dialogs.quickimpl/FileDialogDelegate 6.12"
         ]
-        exportMetaObjectRevisions: [1538, 1539, 1543, 1544]
+        exportMetaObjectRevisions: [1538, 1539, 1543, 1544, 1547, 1548]
         Property {
             name: "dialog"
             type: "QQuickDialog"
@@ -1466,6 +1479,8 @@ Module {
     Component {
         file: "private/qtquickdialogs2quickimplforeign_p.h"
         lineNumber: 29
+        resolvedFile: "private/qquickfilenamefilter_p.h"
+        lineNumberInResolvedFile: 28
         name: "QQuickFileNameFilter"
         accessSemantics: "reference"
         prototype: "QObject"
@@ -1540,9 +1555,10 @@ Module {
         exports: [
             "QtQuick.Dialogs.quickimpl/FolderBreadcrumbBar 6.2",
             "QtQuick.Dialogs.quickimpl/FolderBreadcrumbBar 6.3",
-            "QtQuick.Dialogs.quickimpl/FolderBreadcrumbBar 6.7"
+            "QtQuick.Dialogs.quickimpl/FolderBreadcrumbBar 6.7",
+            "QtQuick.Dialogs.quickimpl/FolderBreadcrumbBar 6.12"
         ]
-        exportMetaObjectRevisions: [1538, 1539, 1543]
+        exportMetaObjectRevisions: [1538, 1539, 1543, 1548]
         Property {
             name: "dialog"
             type: "QQuickDialog"
@@ -1713,7 +1729,7 @@ Module {
     }
     Component {
         file: "private/qquickfontdialogimpl_p.h"
-        lineNumber: 69
+        lineNumber: 70
         name: "QQuickFontDialogImplAttached"
         accessSemantics: "reference"
         prototype: "QObject"
@@ -1725,7 +1741,7 @@ Module {
             write: "setFamilyListView"
             notify: "familyListViewChanged"
             index: 0
-            lineNumber: 72
+            lineNumber: 73
         }
         Property {
             name: "styleListView"
@@ -1735,7 +1751,7 @@ Module {
             write: "setStyleListView"
             notify: "styleListViewChanged"
             index: 1
-            lineNumber: 74
+            lineNumber: 75
         }
         Property {
             name: "sizeListView"
@@ -1745,7 +1761,7 @@ Module {
             write: "setSizeListView"
             notify: "sizeListViewChanged"
             index: 2
-            lineNumber: 76
+            lineNumber: 77
         }
         Property {
             name: "sampleEdit"
@@ -1755,7 +1771,7 @@ Module {
             write: "setSampleEdit"
             notify: "sampleEditChanged"
             index: 3
-            lineNumber: 78
+            lineNumber: 79
         }
         Property {
             name: "buttonBox"
@@ -1765,7 +1781,7 @@ Module {
             write: "setButtonBox"
             notify: "buttonBoxChanged"
             index: 4
-            lineNumber: 80
+            lineNumber: 81
         }
         Property {
             name: "writingSystemComboBox"
@@ -1775,7 +1791,7 @@ Module {
             write: "setWritingSystemComboBox"
             notify: "writingSystemComboBoxChanged"
             index: 5
-            lineNumber: 82
+            lineNumber: 83
         }
         Property {
             name: "underlineCheckBox"
@@ -1785,7 +1801,7 @@ Module {
             write: "setUnderlineCheckBox"
             notify: "underlineCheckBoxChanged"
             index: 6
-            lineNumber: 84
+            lineNumber: 85
         }
         Property {
             name: "strikeoutCheckBox"
@@ -1795,7 +1811,7 @@ Module {
             write: "setStrikeoutCheckBox"
             notify: "strikeoutCheckBoxChanged"
             index: 7
-            lineNumber: 86
+            lineNumber: 87
         }
         Property {
             name: "familyEdit"
@@ -1805,7 +1821,7 @@ Module {
             write: "setFamilyEdit"
             notify: "familyEditChanged"
             index: 8
-            lineNumber: 89
+            lineNumber: 90
         }
         Property {
             name: "styleEdit"
@@ -1815,7 +1831,7 @@ Module {
             write: "setStyleEdit"
             notify: "styleEditChanged"
             index: 9
-            lineNumber: 91
+            lineNumber: 92
         }
         Property {
             name: "sizeEdit"
@@ -1825,23 +1841,25 @@ Module {
             write: "setSizeEdit"
             notify: "sizeEditChanged"
             index: 10
-            lineNumber: 92
+            lineNumber: 93
         }
-        Signal { name: "buttonBoxChanged"; lineNumber: 133 }
-        Signal { name: "familyListViewChanged"; lineNumber: 134 }
-        Signal { name: "styleListViewChanged"; lineNumber: 135 }
-        Signal { name: "sizeListViewChanged"; lineNumber: 136 }
-        Signal { name: "sampleEditChanged"; lineNumber: 137 }
-        Signal { name: "writingSystemComboBoxChanged"; lineNumber: 138 }
-        Signal { name: "underlineCheckBoxChanged"; lineNumber: 139 }
-        Signal { name: "strikeoutCheckBoxChanged"; lineNumber: 140 }
-        Signal { name: "familyEditChanged"; lineNumber: 141 }
-        Signal { name: "styleEditChanged"; lineNumber: 142 }
-        Signal { name: "sizeEditChanged"; lineNumber: 143 }
+        Signal { name: "buttonBoxChanged"; lineNumber: 134 }
+        Signal { name: "familyListViewChanged"; lineNumber: 135 }
+        Signal { name: "styleListViewChanged"; lineNumber: 136 }
+        Signal { name: "sizeListViewChanged"; lineNumber: 137 }
+        Signal { name: "sampleEditChanged"; lineNumber: 138 }
+        Signal { name: "writingSystemComboBoxChanged"; lineNumber: 139 }
+        Signal { name: "underlineCheckBoxChanged"; lineNumber: 140 }
+        Signal { name: "strikeoutCheckBoxChanged"; lineNumber: 141 }
+        Signal { name: "familyEditChanged"; lineNumber: 142 }
+        Signal { name: "styleEditChanged"; lineNumber: 143 }
+        Signal { name: "sizeEditChanged"; lineNumber: 144 }
     }
     Component {
         file: "private/qtquickdialogs2quickimplforeign_p.h"
         lineNumber: 56
+        resolvedFile: "private/qquickicon_p.h"
+        lineNumberInResolvedFile: 31
         name: "QQuickIcon"
         accessSemantics: "value"
         Property {
@@ -1965,7 +1983,7 @@ Module {
     }
     Component {
         file: "private/qquickmessagedialogimpl_p.h"
-        lineNumber: 70
+        lineNumber: 72
         name: "QQuickMessageDialogImplAttached"
         accessSemantics: "reference"
         prototype: "QObject"
@@ -1977,7 +1995,7 @@ Module {
             write: "setButtonBox"
             notify: "buttonBoxChanged"
             index: 0
-            lineNumber: 73
+            lineNumber: 75
         }
         Property {
             name: "detailedTextButton"
@@ -1987,36 +2005,43 @@ Module {
             write: "setDetailedTextButton"
             notify: "detailedTextButtonChanged"
             index: 1
-            lineNumber: 75
+            lineNumber: 77
         }
-        Signal { name: "buttonBoxChanged"; lineNumber: 87 }
-        Signal { name: "detailedTextButtonChanged"; lineNumber: 88 }
+        Signal { name: "buttonBoxChanged"; lineNumber: 89 }
+        Signal { name: "detailedTextButtonChanged"; lineNumber: 90 }
     }
     Component {
         file: "private/qtquickdialogs2quickimplforeign_p.h"
         lineNumber: 65
+        resolvedFile: "private/qquickpopup_p.h"
+        lineNumberInResolvedFile: 44
         name: "QQuickPopup"
         accessSemantics: "reference"
         defaultProperty: "contentData"
         prototype: "QObject"
-        interfaces: ["QQmlParserStatus", "QQuickSafeAreaAttachable"]
+        interfaces: [
+            "QQmlParserStatus",
+            "QQuickSafeAreaAttachable",
+            "QQuickAttachedPropertyPropagatorTarget"
+        ]
         Enum {
             name: "ClosePolicy"
             alias: "ClosePolicyFlag"
             isFlag: true
-            lineNumber: 238
+            lineNumber: 244
             values: [
                 "NoAutoClose",
                 "CloseOnPressOutside",
                 "CloseOnPressOutsideParent",
                 "CloseOnReleaseOutside",
                 "CloseOnReleaseOutsideParent",
-                "CloseOnEscape"
+                "CloseOnEscape",
+                "CloseMultiple"
             ]
         }
         Enum {
             name: "TransformOrigin"
-            lineNumber: 254
+            lineNumber: 261
             values: [
                 "TopLeft",
                 "Top",
@@ -2031,7 +2056,7 @@ Module {
         }
         Enum {
             name: "PopupType"
-            lineNumber: 320
+            lineNumber: 327
             values: ["Item", "Window", "Native"]
         }
         Property {
@@ -2041,7 +2066,7 @@ Module {
             write: "setX"
             notify: "xChanged"
             index: 0
-            lineNumber: 48
+            lineNumber: 54
             isFinal: true
         }
         Property {
@@ -2051,7 +2076,7 @@ Module {
             write: "setY"
             notify: "yChanged"
             index: 1
-            lineNumber: 49
+            lineNumber: 55
             isFinal: true
         }
         Property {
@@ -2062,7 +2087,7 @@ Module {
             reset: "resetZ"
             notify: "zChanged"
             index: 2
-            lineNumber: 50
+            lineNumber: 56
             isFinal: true
         }
         Property {
@@ -2073,7 +2098,7 @@ Module {
             reset: "resetWidth"
             notify: "widthChanged"
             index: 3
-            lineNumber: 51
+            lineNumber: 57
             isFinal: true
         }
         Property {
@@ -2084,7 +2109,7 @@ Module {
             reset: "resetHeight"
             notify: "heightChanged"
             index: 4
-            lineNumber: 52
+            lineNumber: 58
             isFinal: true
         }
         Property {
@@ -2094,7 +2119,7 @@ Module {
             write: "setImplicitWidth"
             notify: "implicitWidthChanged"
             index: 5
-            lineNumber: 53
+            lineNumber: 59
             isFinal: true
         }
         Property {
@@ -2104,7 +2129,7 @@ Module {
             write: "setImplicitHeight"
             notify: "implicitHeightChanged"
             index: 6
-            lineNumber: 54
+            lineNumber: 60
             isFinal: true
         }
         Property {
@@ -2114,7 +2139,7 @@ Module {
             write: "setContentWidth"
             notify: "contentWidthChanged"
             index: 7
-            lineNumber: 55
+            lineNumber: 61
             isFinal: true
         }
         Property {
@@ -2124,7 +2149,7 @@ Module {
             write: "setContentHeight"
             notify: "contentHeightChanged"
             index: 8
-            lineNumber: 56
+            lineNumber: 62
             isFinal: true
         }
         Property {
@@ -2133,7 +2158,7 @@ Module {
             read: "availableWidth"
             notify: "availableWidthChanged"
             index: 9
-            lineNumber: 57
+            lineNumber: 63
             isReadonly: true
             isFinal: true
         }
@@ -2143,7 +2168,7 @@ Module {
             read: "availableHeight"
             notify: "availableHeightChanged"
             index: 10
-            lineNumber: 58
+            lineNumber: 64
             isReadonly: true
             isFinal: true
         }
@@ -2155,7 +2180,7 @@ Module {
             reset: "resetMargins"
             notify: "marginsChanged"
             index: 11
-            lineNumber: 59
+            lineNumber: 65
             isFinal: true
         }
         Property {
@@ -2166,7 +2191,7 @@ Module {
             reset: "resetTopMargin"
             notify: "topMarginChanged"
             index: 12
-            lineNumber: 60
+            lineNumber: 66
             isFinal: true
         }
         Property {
@@ -2177,7 +2202,7 @@ Module {
             reset: "resetLeftMargin"
             notify: "leftMarginChanged"
             index: 13
-            lineNumber: 61
+            lineNumber: 67
             isFinal: true
         }
         Property {
@@ -2188,7 +2213,7 @@ Module {
             reset: "resetRightMargin"
             notify: "rightMarginChanged"
             index: 14
-            lineNumber: 62
+            lineNumber: 68
             isFinal: true
         }
         Property {
@@ -2199,7 +2224,7 @@ Module {
             reset: "resetBottomMargin"
             notify: "bottomMarginChanged"
             index: 15
-            lineNumber: 63
+            lineNumber: 69
             isFinal: true
         }
         Property {
@@ -2210,7 +2235,7 @@ Module {
             reset: "resetPadding"
             notify: "paddingChanged"
             index: 16
-            lineNumber: 64
+            lineNumber: 70
             isFinal: true
         }
         Property {
@@ -2221,7 +2246,7 @@ Module {
             reset: "resetTopPadding"
             notify: "topPaddingChanged"
             index: 17
-            lineNumber: 65
+            lineNumber: 71
             isFinal: true
         }
         Property {
@@ -2232,7 +2257,7 @@ Module {
             reset: "resetLeftPadding"
             notify: "leftPaddingChanged"
             index: 18
-            lineNumber: 66
+            lineNumber: 72
             isFinal: true
         }
         Property {
@@ -2243,7 +2268,7 @@ Module {
             reset: "resetRightPadding"
             notify: "rightPaddingChanged"
             index: 19
-            lineNumber: 67
+            lineNumber: 73
             isFinal: true
         }
         Property {
@@ -2254,7 +2279,7 @@ Module {
             reset: "resetBottomPadding"
             notify: "bottomPaddingChanged"
             index: 20
-            lineNumber: 68
+            lineNumber: 74
             isFinal: true
         }
         Property {
@@ -2265,7 +2290,7 @@ Module {
             reset: "resetLocale"
             notify: "localeChanged"
             index: 21
-            lineNumber: 69
+            lineNumber: 75
             isFinal: true
         }
         Property {
@@ -2276,7 +2301,7 @@ Module {
             reset: "resetFont"
             notify: "fontChanged"
             index: 22
-            lineNumber: 70
+            lineNumber: 76
             isFinal: true
         }
         Property {
@@ -2288,7 +2313,7 @@ Module {
             reset: "resetParentItem"
             notify: "parentChanged"
             index: 23
-            lineNumber: 71
+            lineNumber: 77
             isFinal: true
         }
         Property {
@@ -2299,7 +2324,7 @@ Module {
             write: "setBackground"
             notify: "backgroundChanged"
             index: 24
-            lineNumber: 72
+            lineNumber: 78
             isFinal: true
         }
         Property {
@@ -2310,7 +2335,7 @@ Module {
             write: "setContentItem"
             notify: "contentItemChanged"
             index: 25
-            lineNumber: 73
+            lineNumber: 79
             isFinal: true
         }
         Property {
@@ -2319,9 +2344,10 @@ Module {
             isList: true
             read: "contentData"
             index: 26
-            lineNumber: 74
+            lineNumber: 80
             privateClass: "QQuickPopupPrivate"
             isReadonly: true
+            isVirtual: true
         }
         Property {
             name: "contentChildren"
@@ -2330,7 +2356,7 @@ Module {
             read: "contentChildren"
             notify: "contentChildrenChanged"
             index: 27
-            lineNumber: 75
+            lineNumber: 81
             privateClass: "QQuickPopupPrivate"
             isReadonly: true
             isFinal: true
@@ -2342,7 +2368,7 @@ Module {
             write: "setClip"
             notify: "clipChanged"
             index: 28
-            lineNumber: 76
+            lineNumber: 82
             isFinal: true
         }
         Property {
@@ -2352,7 +2378,7 @@ Module {
             write: "setFocus"
             notify: "focusChanged"
             index: 29
-            lineNumber: 77
+            lineNumber: 83
             isFinal: true
         }
         Property {
@@ -2361,7 +2387,7 @@ Module {
             read: "hasActiveFocus"
             notify: "activeFocusChanged"
             index: 30
-            lineNumber: 78
+            lineNumber: 84
             isReadonly: true
             isFinal: true
         }
@@ -2372,7 +2398,7 @@ Module {
             write: "setModal"
             notify: "modalChanged"
             index: 31
-            lineNumber: 79
+            lineNumber: 85
             isFinal: true
         }
         Property {
@@ -2383,7 +2409,7 @@ Module {
             reset: "resetDim"
             notify: "dimChanged"
             index: 32
-            lineNumber: 80
+            lineNumber: 86
             isFinal: true
         }
         Property {
@@ -2393,7 +2419,7 @@ Module {
             write: "setVisible"
             notify: "visibleChanged"
             index: 33
-            lineNumber: 81
+            lineNumber: 87
             isFinal: true
         }
         Property {
@@ -2403,7 +2429,7 @@ Module {
             write: "setOpacity"
             notify: "opacityChanged"
             index: 34
-            lineNumber: 82
+            lineNumber: 88
             isFinal: true
         }
         Property {
@@ -2413,7 +2439,7 @@ Module {
             write: "setScale"
             notify: "scaleChanged"
             index: 35
-            lineNumber: 83
+            lineNumber: 89
             isFinal: true
         }
         Property {
@@ -2424,7 +2450,7 @@ Module {
             reset: "resetClosePolicy"
             notify: "closePolicyChanged"
             index: 36
-            lineNumber: 84
+            lineNumber: 90
             isFinal: true
         }
         Property {
@@ -2433,7 +2459,7 @@ Module {
             read: "transformOrigin"
             write: "setTransformOrigin"
             index: 37
-            lineNumber: 85
+            lineNumber: 91
             isFinal: true
         }
         Property {
@@ -2444,7 +2470,7 @@ Module {
             write: "setEnter"
             notify: "enterChanged"
             index: 38
-            lineNumber: 86
+            lineNumber: 92
             isFinal: true
         }
         Property {
@@ -2455,7 +2481,7 @@ Module {
             write: "setExit"
             notify: "exitChanged"
             index: 39
-            lineNumber: 87
+            lineNumber: 93
             isFinal: true
         }
         Property {
@@ -2467,7 +2493,7 @@ Module {
             reset: "resetSpacing"
             notify: "spacingChanged"
             index: 40
-            lineNumber: 89
+            lineNumber: 95
             isFinal: true
         }
         Property {
@@ -2477,7 +2503,7 @@ Module {
             read: "isOpened"
             notify: "openedChanged"
             index: 41
-            lineNumber: 91
+            lineNumber: 97
             isReadonly: true
             isFinal: true
         }
@@ -2488,7 +2514,7 @@ Module {
             read: "isMirrored"
             notify: "mirroredChanged"
             index: 42
-            lineNumber: 92
+            lineNumber: 98
             isReadonly: true
             isFinal: true
         }
@@ -2500,7 +2526,7 @@ Module {
             write: "setEnabled"
             notify: "enabledChanged"
             index: 43
-            lineNumber: 93
+            lineNumber: 99
             isFinal: true
         }
         Property {
@@ -2513,7 +2539,7 @@ Module {
             reset: "resetPalette"
             notify: "paletteChanged"
             index: 44
-            lineNumber: 94
+            lineNumber: 100
             privateClass: "QQuickPopupPrivate"
         }
         Property {
@@ -2524,7 +2550,7 @@ Module {
             reset: "resetHorizontalPadding"
             notify: "horizontalPaddingChanged"
             index: 45
-            lineNumber: 96
+            lineNumber: 102
             isFinal: true
         }
         Property {
@@ -2535,7 +2561,7 @@ Module {
             reset: "resetVerticalPadding"
             notify: "verticalPaddingChanged"
             index: 46
-            lineNumber: 97
+            lineNumber: 103
             isFinal: true
         }
         Property {
@@ -2545,7 +2571,7 @@ Module {
             isPointer: true
             read: "getAnchors"
             index: 47
-            lineNumber: 98
+            lineNumber: 104
             privateClass: "QQuickPopupPrivate"
             isReadonly: true
             isFinal: true
@@ -2558,7 +2584,7 @@ Module {
             read: "implicitContentWidth"
             notify: "implicitContentWidthChanged"
             index: 48
-            lineNumber: 99
+            lineNumber: 105
             isReadonly: true
             isFinal: true
         }
@@ -2569,7 +2595,7 @@ Module {
             read: "implicitContentHeight"
             notify: "implicitContentHeightChanged"
             index: 49
-            lineNumber: 100
+            lineNumber: 106
             isReadonly: true
             isFinal: true
         }
@@ -2580,7 +2606,7 @@ Module {
             read: "implicitBackgroundWidth"
             notify: "implicitBackgroundWidthChanged"
             index: 50
-            lineNumber: 101
+            lineNumber: 107
             isReadonly: true
             isFinal: true
         }
@@ -2591,7 +2617,7 @@ Module {
             read: "implicitBackgroundHeight"
             notify: "implicitBackgroundHeightChanged"
             index: 51
-            lineNumber: 102
+            lineNumber: 108
             isReadonly: true
             isFinal: true
         }
@@ -2604,7 +2630,7 @@ Module {
             reset: "resetTopInset"
             notify: "topInsetChanged"
             index: 52
-            lineNumber: 103
+            lineNumber: 109
             isFinal: true
         }
         Property {
@@ -2616,7 +2642,7 @@ Module {
             reset: "resetLeftInset"
             notify: "leftInsetChanged"
             index: 53
-            lineNumber: 104
+            lineNumber: 110
             isFinal: true
         }
         Property {
@@ -2628,7 +2654,7 @@ Module {
             reset: "resetRightInset"
             notify: "rightInsetChanged"
             index: 54
-            lineNumber: 105
+            lineNumber: 111
             isFinal: true
         }
         Property {
@@ -2640,7 +2666,7 @@ Module {
             reset: "resetBottomInset"
             notify: "bottomInsetChanged"
             index: 55
-            lineNumber: 106
+            lineNumber: 112
             isFinal: true
         }
         Property {
@@ -2651,81 +2677,81 @@ Module {
             write: "setPopupType"
             notify: "popupTypeChanged"
             index: 56
-            lineNumber: 107
+            lineNumber: 113
             isFinal: true
         }
-        Signal { name: "opened"; lineNumber: 335 }
-        Signal { name: "closed"; lineNumber: 336 }
-        Signal { name: "aboutToShow"; lineNumber: 337 }
-        Signal { name: "aboutToHide"; lineNumber: 338 }
-        Signal { name: "xChanged"; lineNumber: 339 }
-        Signal { name: "yChanged"; lineNumber: 340 }
-        Signal { name: "zChanged"; lineNumber: 341 }
-        Signal { name: "widthChanged"; lineNumber: 342 }
-        Signal { name: "heightChanged"; lineNumber: 343 }
-        Signal { name: "implicitWidthChanged"; lineNumber: 344 }
-        Signal { name: "implicitHeightChanged"; lineNumber: 345 }
-        Signal { name: "contentWidthChanged"; lineNumber: 346 }
-        Signal { name: "contentHeightChanged"; lineNumber: 347 }
-        Signal { name: "availableWidthChanged"; lineNumber: 348 }
-        Signal { name: "availableHeightChanged"; lineNumber: 349 }
-        Signal { name: "marginsChanged"; lineNumber: 350 }
-        Signal { name: "topMarginChanged"; lineNumber: 351 }
-        Signal { name: "leftMarginChanged"; lineNumber: 352 }
-        Signal { name: "rightMarginChanged"; lineNumber: 353 }
-        Signal { name: "bottomMarginChanged"; lineNumber: 354 }
-        Signal { name: "paddingChanged"; lineNumber: 355 }
-        Signal { name: "topPaddingChanged"; lineNumber: 356 }
-        Signal { name: "leftPaddingChanged"; lineNumber: 357 }
-        Signal { name: "rightPaddingChanged"; lineNumber: 358 }
-        Signal { name: "bottomPaddingChanged"; lineNumber: 359 }
-        Signal { name: "fontChanged"; lineNumber: 360 }
-        Signal { name: "localeChanged"; lineNumber: 361 }
-        Signal { name: "parentChanged"; lineNumber: 362 }
-        Signal { name: "backgroundChanged"; lineNumber: 363 }
-        Signal { name: "contentItemChanged"; lineNumber: 364 }
-        Signal { name: "contentChildrenChanged"; lineNumber: 365 }
-        Signal { name: "clipChanged"; lineNumber: 366 }
-        Signal { name: "focusChanged"; lineNumber: 367 }
-        Signal { name: "activeFocusChanged"; lineNumber: 368 }
-        Signal { name: "modalChanged"; lineNumber: 369 }
-        Signal { name: "dimChanged"; lineNumber: 370 }
-        Signal { name: "visibleChanged"; lineNumber: 371 }
-        Signal { name: "opacityChanged"; lineNumber: 372 }
-        Signal { name: "scaleChanged"; lineNumber: 373 }
-        Signal { name: "closePolicyChanged"; lineNumber: 374 }
-        Signal { name: "enterChanged"; lineNumber: 375 }
-        Signal { name: "exitChanged"; lineNumber: 376 }
+        Signal { name: "opened"; lineNumber: 342 }
+        Signal { name: "closed"; lineNumber: 343 }
+        Signal { name: "aboutToShow"; lineNumber: 344 }
+        Signal { name: "aboutToHide"; lineNumber: 345 }
+        Signal { name: "xChanged"; lineNumber: 346 }
+        Signal { name: "yChanged"; lineNumber: 347 }
+        Signal { name: "zChanged"; lineNumber: 348 }
+        Signal { name: "widthChanged"; lineNumber: 349 }
+        Signal { name: "heightChanged"; lineNumber: 350 }
+        Signal { name: "implicitWidthChanged"; lineNumber: 351 }
+        Signal { name: "implicitHeightChanged"; lineNumber: 352 }
+        Signal { name: "contentWidthChanged"; lineNumber: 353 }
+        Signal { name: "contentHeightChanged"; lineNumber: 354 }
+        Signal { name: "availableWidthChanged"; lineNumber: 355 }
+        Signal { name: "availableHeightChanged"; lineNumber: 356 }
+        Signal { name: "marginsChanged"; lineNumber: 357 }
+        Signal { name: "topMarginChanged"; lineNumber: 358 }
+        Signal { name: "leftMarginChanged"; lineNumber: 359 }
+        Signal { name: "rightMarginChanged"; lineNumber: 360 }
+        Signal { name: "bottomMarginChanged"; lineNumber: 361 }
+        Signal { name: "paddingChanged"; lineNumber: 362 }
+        Signal { name: "topPaddingChanged"; lineNumber: 363 }
+        Signal { name: "leftPaddingChanged"; lineNumber: 364 }
+        Signal { name: "rightPaddingChanged"; lineNumber: 365 }
+        Signal { name: "bottomPaddingChanged"; lineNumber: 366 }
+        Signal { name: "fontChanged"; lineNumber: 367 }
+        Signal { name: "localeChanged"; lineNumber: 368 }
+        Signal { name: "parentChanged"; lineNumber: 369 }
+        Signal { name: "backgroundChanged"; lineNumber: 370 }
+        Signal { name: "contentItemChanged"; lineNumber: 371 }
+        Signal { name: "contentChildrenChanged"; lineNumber: 372 }
+        Signal { name: "clipChanged"; lineNumber: 373 }
+        Signal { name: "focusChanged"; lineNumber: 374 }
+        Signal { name: "activeFocusChanged"; lineNumber: 375 }
+        Signal { name: "modalChanged"; lineNumber: 376 }
+        Signal { name: "dimChanged"; lineNumber: 377 }
+        Signal { name: "visibleChanged"; lineNumber: 378 }
+        Signal { name: "opacityChanged"; lineNumber: 379 }
+        Signal { name: "scaleChanged"; lineNumber: 380 }
+        Signal { name: "closePolicyChanged"; lineNumber: 381 }
+        Signal { name: "enterChanged"; lineNumber: 382 }
+        Signal { name: "exitChanged"; lineNumber: 383 }
         Signal {
             name: "windowChanged"
-            lineNumber: 377
+            lineNumber: 384
             Parameter { name: "window"; type: "QQuickWindow"; isPointer: true }
         }
-        Signal { name: "spacingChanged"; revision: 513; lineNumber: 379 }
-        Signal { name: "openedChanged"; revision: 515; lineNumber: 381 }
-        Signal { name: "mirroredChanged"; revision: 515; lineNumber: 382 }
-        Signal { name: "enabledChanged"; revision: 515; lineNumber: 383 }
-        Signal { name: "paletteChanged"; revision: 515; lineNumber: 384 }
-        Signal { name: "paletteCreated"; revision: 515; lineNumber: 385 }
-        Signal { name: "horizontalPaddingChanged"; revision: 517; lineNumber: 387 }
-        Signal { name: "verticalPaddingChanged"; revision: 517; lineNumber: 388 }
-        Signal { name: "implicitContentWidthChanged"; revision: 517; lineNumber: 389 }
-        Signal { name: "implicitContentHeightChanged"; revision: 517; lineNumber: 390 }
-        Signal { name: "implicitBackgroundWidthChanged"; revision: 517; lineNumber: 391 }
-        Signal { name: "implicitBackgroundHeightChanged"; revision: 517; lineNumber: 392 }
-        Signal { name: "topInsetChanged"; revision: 517; lineNumber: 393 }
-        Signal { name: "leftInsetChanged"; revision: 517; lineNumber: 394 }
-        Signal { name: "rightInsetChanged"; revision: 517; lineNumber: 395 }
-        Signal { name: "bottomInsetChanged"; revision: 517; lineNumber: 396 }
-        Signal { name: "popupTypeChanged"; revision: 1544; lineNumber: 397 }
-        Method { name: "open"; lineNumber: 331 }
-        Method { name: "close"; lineNumber: 332 }
+        Signal { name: "spacingChanged"; revision: 513; lineNumber: 386 }
+        Signal { name: "openedChanged"; revision: 515; lineNumber: 388 }
+        Signal { name: "mirroredChanged"; revision: 515; lineNumber: 389 }
+        Signal { name: "enabledChanged"; revision: 515; lineNumber: 390 }
+        Signal { name: "paletteChanged"; revision: 515; lineNumber: 391 }
+        Signal { name: "paletteCreated"; revision: 515; lineNumber: 392 }
+        Signal { name: "horizontalPaddingChanged"; revision: 517; lineNumber: 394 }
+        Signal { name: "verticalPaddingChanged"; revision: 517; lineNumber: 395 }
+        Signal { name: "implicitContentWidthChanged"; revision: 517; lineNumber: 396 }
+        Signal { name: "implicitContentHeightChanged"; revision: 517; lineNumber: 397 }
+        Signal { name: "implicitBackgroundWidthChanged"; revision: 517; lineNumber: 398 }
+        Signal { name: "implicitBackgroundHeightChanged"; revision: 517; lineNumber: 399 }
+        Signal { name: "topInsetChanged"; revision: 517; lineNumber: 400 }
+        Signal { name: "leftInsetChanged"; revision: 517; lineNumber: 401 }
+        Signal { name: "rightInsetChanged"; revision: 517; lineNumber: 402 }
+        Signal { name: "bottomInsetChanged"; revision: 517; lineNumber: 403 }
+        Signal { name: "popupTypeChanged"; revision: 1544; lineNumber: 404 }
+        Method { name: "open"; lineNumber: 338 }
+        Method { name: "close"; lineNumber: 339 }
         Method {
             name: "forceActiveFocus"
-            lineNumber: 273
+            lineNumber: 280
             Parameter { name: "reason"; type: "Qt::FocusReason" }
         }
-        Method { name: "forceActiveFocus"; isCloned: true; lineNumber: 273 }
+        Method { name: "forceActiveFocus"; isCloned: true; lineNumber: 280 }
     }
     Component {
         file: "private/qquicksaturationlightnesspicker_p.h"
@@ -2737,9 +2763,10 @@ Module {
             "QtQuick.Dialogs.quickimpl/SaturationLightnessPickerImpl 6.0",
             "QtQuick.Dialogs.quickimpl/SaturationLightnessPickerImpl 6.3",
             "QtQuick.Dialogs.quickimpl/SaturationLightnessPickerImpl 6.4",
-            "QtQuick.Dialogs.quickimpl/SaturationLightnessPickerImpl 6.7"
+            "QtQuick.Dialogs.quickimpl/SaturationLightnessPickerImpl 6.7",
+            "QtQuick.Dialogs.quickimpl/SaturationLightnessPickerImpl 6.12"
         ]
-        exportMetaObjectRevisions: [1536, 1539, 1540, 1543]
+        exportMetaObjectRevisions: [1536, 1539, 1540, 1543, 1548]
     }
     Component {
         file: "private/qquicksaturationlightnesspicker_p.h"
@@ -2752,9 +2779,10 @@ Module {
         exports: [
             "QtQuick.Dialogs.quickimpl/SaturationLightnessPickerCanvas 6.0",
             "QtQuick.Dialogs.quickimpl/SaturationLightnessPickerCanvas 6.3",
-            "QtQuick.Dialogs.quickimpl/SaturationLightnessPickerCanvas 6.7"
+            "QtQuick.Dialogs.quickimpl/SaturationLightnessPickerCanvas 6.7",
+            "QtQuick.Dialogs.quickimpl/SaturationLightnessPickerCanvas 6.12"
         ]
-        exportMetaObjectRevisions: [1536, 1539, 1543]
+        exportMetaObjectRevisions: [1536, 1539, 1543, 1548]
         Property {
             name: "hue"
             type: "double"
@@ -2774,8 +2802,11 @@ Module {
         accessSemantics: "reference"
         defaultProperty: "contentData"
         prototype: "QQuickContainer"
-        exports: ["QtQuick.Dialogs.quickimpl/SideBar 6.9"]
-        exportMetaObjectRevisions: [1545]
+        exports: [
+            "QtQuick.Dialogs.quickimpl/SideBar 6.9",
+            "QtQuick.Dialogs.quickimpl/SideBar 6.12"
+        ]
+        exportMetaObjectRevisions: [1545, 1548]
         Property {
             name: "dialog"
             type: "QQuickDialog"
@@ -2860,5 +2891,48 @@ Module {
         Signal { name: "buttonDelegateChanged"; lineNumber: 71 }
         Signal { name: "separatorDelegateChanged"; lineNumber: 72 }
         Signal { name: "addFavoriteDelegateChanged"; lineNumber: 73 }
+    }
+    Component {
+        isTypeOpaque: true
+        file: "qstandardpaths.h"
+        lineNumber: 16
+        name: "QStandardPaths"
+        accessSemantics: "value"
+        Enum {
+            name: "StandardLocation"
+            lineNumber: 21
+            values: [
+                "DesktopLocation",
+                "DocumentsLocation",
+                "FontsLocation",
+                "ApplicationsLocation",
+                "MusicLocation",
+                "MoviesLocation",
+                "PicturesLocation",
+                "TempLocation",
+                "HomeLocation",
+                "AppLocalDataLocation",
+                "CacheLocation",
+                "GenericDataLocation",
+                "RuntimeLocation",
+                "ConfigLocation",
+                "DownloadLocation",
+                "GenericCacheLocation",
+                "GenericConfigLocation",
+                "AppDataLocation",
+                "AppConfigLocation",
+                "PublicShareLocation",
+                "TemplatesLocation",
+                "StateLocation",
+                "GenericStateLocation"
+            ]
+        }
+        Enum {
+            name: "LocateOptions"
+            alias: "LocateOption"
+            isFlag: true
+            lineNumber: 51
+            values: ["LocateFile", "LocateDirectory"]
+        }
     }
 }

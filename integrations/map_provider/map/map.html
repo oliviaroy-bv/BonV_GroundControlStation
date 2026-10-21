@@ -713,6 +713,21 @@ window.setMapViewMode = setMapViewMode;
 window.centerMap = centerMap;
 window.initializeMap = initializeMap;
 window.updateDrone = updateDrone;
+const vpsMarkers = {};
+window.setVpsMarkers = function(points) {
+    const active = new Set(points.map(point => point.name));
+    for (const name of Object.keys(vpsMarkers)) {
+        if (!active.has(name)) { vpsMarkers[name].remove(); delete vpsMarkers[name]; }
+    }
+    for (const point of points) {
+        if (!vpsMarkers[point.name]) {
+            const element = document.createElement('div');
+            element.textContent = point.name === 'fused' ? 'VPS' : point.name.toUpperCase();
+            element.style.cssText = 'padding:3px 6px;border-radius:4px;color:white;font:bold 11px sans-serif;border:1px solid white;background:' + ({vio:'#008da2',vpr:'#8a42bd',fused:'#df7d18'}[point.name]);
+            vpsMarkers[point.name] = new maplibregl.Marker({element: element}).setLngLat([point.lon, point.lat]).addTo(map);
+        } else vpsMarkers[point.name].setLngLat([point.lon, point.lat]);
+    }
+};
 window.updateVehicleTrail = updateVehicleTrail;
 window.clearVehicleTrail = clearVehicleTrail;
 window.setMissionWaypoints = setMissionWaypoints;

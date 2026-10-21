@@ -10,6 +10,7 @@ import QtQuick.Controls
 import QtQuick.Controls.impl
 import QtQuick.Templates as T
 import QtQuick.NativeStyle as NativeStyle
+import QtQuick.Controls.Windows.impl
 
 T.ComboBox {
     id: control
@@ -47,6 +48,10 @@ T.ComboBox {
         verticalAlignment: Text.AlignVCenter
 
         readonly property bool __ignoreNotCustomizable: true
+
+        ContextMenu.menu: TextEditingContextMenu {
+            editor: parent
+        }
     }
 
     background: NativeStyle.ComboBox {
@@ -79,6 +84,7 @@ T.ComboBox {
         height: Math.min(contentItem.implicitHeight, control.Window.height - topMargin - bottomMargin)
         topMargin: 6
         bottomMargin: 6
+        font: control.font
 
         contentItem: ListView {
             clip: true

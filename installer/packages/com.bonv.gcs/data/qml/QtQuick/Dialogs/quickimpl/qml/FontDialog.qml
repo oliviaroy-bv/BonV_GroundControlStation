@@ -3,9 +3,8 @@
 // Qt-Security score:significant reason:default
 
 import QtQuick
+import QtQuick.Controls
 import QtQuick.Controls.impl
-import QtQuick.Controls.Basic
-import QtQuick.Controls.Basic.impl
 import QtQuick.Dialogs
 import QtQuick.Dialogs.quickimpl
 import QtQuick.Layouts
@@ -106,6 +105,7 @@ FontDialogImpl {
             DialogButtonBox {
                 id: buttonBox
                 standardButtons: control.standardButtons
+                defaultStandardButton: T.Dialog.Ok
                 palette.window: control.palette.light
                 spacing: 12
                 horizontalPadding: 0

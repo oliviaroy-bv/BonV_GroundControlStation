@@ -26,17 +26,18 @@ Module {
             "Qt.labs.folderlistmodel/FolderListModel 2.11",
             "Qt.labs.folderlistmodel/FolderListModel 2.12",
             "Qt.labs.folderlistmodel/FolderListModel 6.0",
-            "Qt.labs.folderlistmodel/FolderListModel 6.4"
+            "Qt.labs.folderlistmodel/FolderListModel 6.4",
+            "Qt.labs.folderlistmodel/FolderListModel 6.12"
         ]
-        exportMetaObjectRevisions: [256, 513, 514, 523, 524, 1536, 1540]
+        exportMetaObjectRevisions: [256, 513, 514, 523, 524, 1536, 1540, 1548]
         Enum {
             name: "SortField"
-            lineNumber: 99
+            lineNumber: 101
             values: ["Unsorted", "Name", "Time", "Size", "Type"]
         }
         Enum {
             name: "Status"
-            lineNumber: 122
+            lineNumber: 128
             values: ["Null", "Ready", "Loading"]
         }
         Property {
@@ -141,14 +142,34 @@ Module {
             isFinal: true
         }
         Property {
+            name: "showDot"
+            revision: 1548
+            type: "bool"
+            read: "showDot"
+            write: "setShowDot"
+            notify: "showDotChanged"
+            index: 10
+            lineNumber: 51
+        }
+        Property {
+            name: "showDotDot"
+            revision: 1548
+            type: "bool"
+            read: "showDotDot"
+            write: "setShowDotDot"
+            notify: "showDotDotChanged"
+            index: 11
+            lineNumber: 52
+        }
+        Property {
             name: "showHidden"
             revision: 513
             type: "bool"
             read: "showHidden"
             write: "setShowHidden"
             notify: "showHiddenChanged"
-            index: 10
-            lineNumber: 51
+            index: 12
+            lineNumber: 53
             isFinal: true
         }
         Property {
@@ -157,8 +178,8 @@ Module {
             read: "showOnlyReadable"
             write: "setShowOnlyReadable"
             notify: "showOnlyReadableChanged"
-            index: 11
-            lineNumber: 52
+            index: 13
+            lineNumber: 54
             isFinal: true
         }
         Property {
@@ -168,8 +189,8 @@ Module {
             read: "caseSensitive"
             write: "setCaseSensitive"
             notify: "caseSensitiveChanged"
-            index: 12
-            lineNumber: 53
+            index: 14
+            lineNumber: 55
             isFinal: true
         }
         Property {
@@ -177,8 +198,8 @@ Module {
             type: "int"
             read: "count"
             notify: "countChanged"
-            index: 13
-            lineNumber: 54
+            index: 15
+            lineNumber: 56
             isReadonly: true
             isFinal: true
         }
@@ -188,8 +209,8 @@ Module {
             type: "Status"
             read: "status"
             notify: "statusChanged"
-            index: 14
-            lineNumber: 55
+            index: 16
+            lineNumber: 57
             isReadonly: true
             isFinal: true
         }
@@ -200,35 +221,37 @@ Module {
             read: "sortCaseSensitive"
             write: "setSortCaseSensitive"
             notify: "sortCaseSensitiveChanged"
-            index: 15
-            lineNumber: 56
+            index: 17
+            lineNumber: 58
             isFinal: true
         }
-        Signal { name: "folderChanged"; lineNumber: 142 }
-        Signal { name: "rowCountChanged"; isMethodConstant: true; lineNumber: 143 }
-        Signal { name: "rootFolderChanged"; lineNumber: 144 }
-        Signal { name: "nameFilterChanged"; lineNumber: 145 }
-        Signal { name: "sortFieldChanged"; lineNumber: 146 }
-        Signal { name: "sortReversedChanged"; lineNumber: 147 }
-        Signal { name: "showFilesChanged"; lineNumber: 148 }
-        Signal { name: "showDirsChanged"; lineNumber: 149 }
-        Signal { name: "showDirsFirstChanged"; lineNumber: 150 }
-        Signal { name: "showDotAndDotDotChanged"; lineNumber: 151 }
-        Signal { name: "showHiddenChanged"; lineNumber: 152 }
-        Signal { name: "showOnlyReadableChanged"; lineNumber: 153 }
-        Signal { name: "caseSensitiveChanged"; lineNumber: 154 }
-        Signal { name: "sortCaseSensitiveChanged"; lineNumber: 155 }
-        Signal { name: "countChanged"; revision: 513; isMethodConstant: true; lineNumber: 157 }
-        Signal { name: "statusChanged"; revision: 523; lineNumber: 158 }
+        Signal { name: "folderChanged"; lineNumber: 148 }
+        Signal { name: "rowCountChanged"; isMethodConstant: true; lineNumber: 149 }
+        Signal { name: "rootFolderChanged"; lineNumber: 150 }
+        Signal { name: "nameFilterChanged"; lineNumber: 151 }
+        Signal { name: "sortFieldChanged"; lineNumber: 152 }
+        Signal { name: "sortReversedChanged"; lineNumber: 153 }
+        Signal { name: "showFilesChanged"; lineNumber: 154 }
+        Signal { name: "showDirsChanged"; lineNumber: 155 }
+        Signal { name: "showDirsFirstChanged"; lineNumber: 156 }
+        Signal { name: "showDotAndDotDotChanged"; lineNumber: 157 }
+        Signal { name: "showDotChanged"; revision: 1548; lineNumber: 158 }
+        Signal { name: "showDotDotChanged"; revision: 1548; lineNumber: 159 }
+        Signal { name: "showHiddenChanged"; lineNumber: 160 }
+        Signal { name: "showOnlyReadableChanged"; lineNumber: 161 }
+        Signal { name: "caseSensitiveChanged"; lineNumber: 162 }
+        Signal { name: "sortCaseSensitiveChanged"; lineNumber: 163 }
+        Signal { name: "countChanged"; revision: 513; isMethodConstant: true; lineNumber: 165 }
+        Signal { name: "statusChanged"; revision: 523; lineNumber: 166 }
         Method {
             name: "_q_directoryChanged"
-            lineNumber: 170
+            lineNumber: 178
             Parameter { name: "directory"; type: "QString" }
             Parameter { name: "list"; type: "FileProperty"; isList: true }
         }
         Method {
             name: "_q_directoryUpdated"
-            lineNumber: 171
+            lineNumber: 179
             Parameter { name: "directory"; type: "QString" }
             Parameter { name: "list"; type: "FileProperty"; isList: true }
             Parameter { name: "fromIndex"; type: "int" }
@@ -236,26 +259,26 @@ Module {
         }
         Method {
             name: "_q_sortFinished"
-            lineNumber: 172
+            lineNumber: 180
             Parameter { name: "list"; type: "FileProperty"; isList: true }
         }
         Method {
             name: "_q_statusChanged"
-            lineNumber: 173
+            lineNumber: 181
             Parameter { name: "s"; type: "QQuickFolderListModel::Status" }
         }
         Method {
             name: "isFolder"
             type: "bool"
             isMethodConstant: true
-            lineNumber: 129
+            lineNumber: 135
             Parameter { name: "index"; type: "int" }
         }
         Method {
             name: "get"
             type: "QVariant"
             isMethodConstant: true
-            lineNumber: 130
+            lineNumber: 136
             Parameter { name: "idx"; type: "int" }
             Parameter { name: "property"; type: "QString" }
         }
@@ -263,7 +286,7 @@ Module {
             name: "indexOf"
             type: "int"
             isMethodConstant: true
-            lineNumber: 131
+            lineNumber: 137
             Parameter { name: "file"; type: "QUrl" }
         }
     }

@@ -45,6 +45,7 @@ T.ComboBox {
     }
 
     contentItem: T.TextField {
+        implicitHeight: contentHeight + topPadding + bottomPadding
         leftPadding: Material.textFieldHorizontalPadding
         topPadding: Material.textFieldVerticalPadding
         bottomPadding: Material.textFieldVerticalPadding
@@ -64,6 +65,10 @@ T.ComboBox {
         verticalAlignment: Text.AlignVCenter
 
         cursorDelegate: CursorDelegate { }
+
+        ContextMenu.menu: TextEditingContextMenu {
+            editor: parent
+        }
     }
 
     background: MaterialTextContainer {
@@ -85,6 +90,7 @@ T.ComboBox {
         topMargin: 12
         bottomMargin: 12
         verticalPadding: 8
+        font: control.font
 
         Material.theme: control.Material.theme
         Material.accent: control.Material.accent

@@ -7,6 +7,8 @@
 #include "transport/tcp/TcpLink.h"
 #include "transport/udp/UdpLink.h"
 #include "storage/AppDataPaths.h"
+#include "../../integrations/VPS/VpsProtocol.h"
+#include <cmath>
 
 #include <QDateTime>
 #include <QDebug>
@@ -275,6 +277,10 @@ private:
 Mavlink::Mavlink(QObject *parent)
     : QObject(parent)
 {
+    vpsTimeoutTimer = new QTimer(this);
+    vpsTimeoutTimer->setSingleShot(true);
+    vpsTimeoutTimer->setInterval(5000);
+    connect(vpsTimeoutTimer, &QTimer::timeout, this, &Mavlink::clearVpsStatus);
     qRegisterMetaType<MavlinkFrame>("MavlinkFrame");
     inspectorController = new MavlinkInspectorController(this, this);
     forwarderObject = new MavlinkForwarder(this);
@@ -635,6 +641,199 @@ void Mavlink::setFlightMode(int customMode)
 void Mavlink::motor()
 {
     armVehicle(connectedState);
+}
+
+bool Mavlink::vpsConnected() const
+{
+    return vpsConnectedState;
+}
+
+QVariantMap Mavlink::vpsStatus() const
+{
+    return vpsStatusValues;
+}
+
+QVariantMap Mavlink::vpsConfig() const { return vpsConfigValues; }
+
+void Mavlink::clearVpsStatus()
+{
+    vpsTimeoutTimer->stop();
+    if (!vpsConnectedState && vpsStatusValues.isEmpty())
+        return;
+    vpsConnectedState = false;
+    vpsSystemId = 0;
+    vpsComponentId = 0;
+    vpsStatusValues.clear();
+    vpsConfigValues.clear();
+    emit vpsConfigChanged();
+    emit vpsStatusChanged();
+}
+
+void Mavlink::handleVpsMessage(const mavlink_message_t &message)
+{
+    // The supplied VPS integration identifies status packets from sys 200,
+    // component 14. Learn the reply target only from a valid status packet.
+    if (!connectedState || message.msgid != MAVLINK_MSG_ID_TUNNEL
+            || message.sysid != 200 || message.compid != 14)
+        return;
+
+    mavlink_tunnel_t tunnel = {};
+    mavlink_msg_tunnel_decode(&message, &tunnel);
+    if (tunnel.payload_length > sizeof(tunnel.payload))
+        return;
+
+    const QByteArray payload(reinterpret_cast<const char *>(tunnel.payload), tunnel.payload_length);
+    if (tunnel.payload_type == Vps::RX_CONFIG) {
+        Vps::Config config = {};
+        if (!vpsConnectedState || !Vps::parseConfig(payload, config)) return;
+        vpsConfigValues = {
+            {"latitude", config.initLat}, {"longitude", config.initLon},
+            {"logging", bool(config.logAutoStart)}, {"sensorSpeed", config.sensorSpeed},
+            {"fixType", config.gps.fixType}, {"satCount", config.gps.satCount},
+            {"hdop", config.gps.hdop}, {"hAcc", config.gps.hAccMm}, {"vAcc", config.gps.vAccMmS},
+            {"healthy", config.gps.healthySec}, {"unhealthy", config.gps.unhealthySec},
+            {"jamEnabled", config.jam.enable}, {"jamTime", config.jam.timeSampleSec},
+            {"jamHAcc", config.jam.deltaHAccMm}, {"jamVAcc", config.jam.deltaVAccMmS},
+            {"jamUnhealthy", config.jam.unhealthySec}
+        };
+        emit vpsConfigChanged();
+        return;
+    }
+    if (tunnel.payload_type != Vps::RX_STATUS) return;
+    Vps::Status status = {};
+    if (!Vps::parseStatus(payload, status))
+        return;
+
+    vpsSystemId = message.sysid;
+    vpsComponentId = message.compid;
+    vpsConnectedState = true;
+    vpsStatusValues = {
+        {QStringLiteral("sensors"), Vps::processStatusText(status.sensorStatus)},
+        {QStringLiteral("vio"), Vps::processStatusText(status.vioStatus)},
+        {QStringLiteral("vpr"), Vps::processStatusText(status.vprStatus)},
+        {QStringLiteral("logging"), Vps::processStatusText(status.logStatus)},
+        {QStringLiteral("autoAid"), status.aidFlag ? QStringLiteral("On") : QStringLiteral("Off")},
+        {"vioLat", status.vioLat}, {"vioLon", status.vioLon},
+        {"vprLat", status.vprLat}, {"vprLon", status.vprLon},
+        {"fusedLat", status.fusedLat}, {"fusedLon", status.fusedLon}
+    };
+    vpsTimeoutTimer->start();
+    emit vpsStatusChanged();
+}
+
+bool Mavlink::writeVpsMessage(uint16_t type, const QByteArray &payload)
+{
+    if (!connectedState || !vpsConnectedState || !link || !link->isConnected()
+            || payload.size() > 128)
+        return false;
+
+    uint8_t data[128] = {};
+    std::memcpy(data, payload.constData(), static_cast<size_t>(payload.size()));
+    mavlink_message_t message = {};
+    mavlink_msg_tunnel_pack(255, MAV_COMP_ID_MISSIONPLANNER, &message,
+                            vpsSystemId, vpsComponentId, type,
+                            static_cast<uint8_t>(payload.size()), data);
+    uint8_t buffer[MAVLINK_MAX_PACKET_LEN] = {};
+    const int length = mavlink_msg_to_send_buffer(buffer, &message);
+    const qint64 written = link->writeData(reinterpret_cast<const char *>(buffer), length);
+    if (written != length)
+        return false;
+    if (shouldLogTelemetryMessage(message))
+        writeTelemetryLogRecord(reinterpret_cast<const char *>(buffer), length);
+    link->flush();
+    return true;
+}
+
+bool Mavlink::startVpsAction(int action)
+{
+    if (action >= 0 && action <= 3)
+        return writeVpsMessage(Vps::TX_PROCESS, Vps::buildProcess(static_cast<Vps::Process>(action), true));
+    if (action == 4)
+        return writeVpsMessage(Vps::TX_AIDING, Vps::buildByte(1));
+    if (action == 5)
+        return writeVpsMessage(Vps::TX_AUTO_AIDING, Vps::buildByte(1));
+    return false;
+}
+
+bool Mavlink::refreshVpsConfig() { return writeVpsMessage(Vps::TX_REFRESH_CONFIG, Vps::buildByte(1)); }
+bool Mavlink::setVpsHome(double lat, double lon)
+{
+    return std::isfinite(lat) && std::isfinite(lon) && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180
+            && writeVpsMessage(Vps::TX_SET_HOME, Vps::buildHome(lat, lon));
+}
+bool Mavlink::setVpsLogging(bool enabled) { return writeVpsMessage(Vps::TX_LOG_AUTOSTART, Vps::buildByte(enabled)); }
+bool Mavlink::setVpsSensorSpeed(int speed)
+{
+    return speed >= 0 && speed <= 1 && writeVpsMessage(Vps::TX_SENSOR_SPEED, Vps::buildByte(speed));
+}
+bool Mavlink::setVpsGpsCheck(const QVariantMap &v)
+{
+    const auto valid = [&v](const char *key, double max) {
+        bool ok = false; const double n = v.value(QLatin1String(key)).toDouble(&ok);
+        return ok && std::isfinite(n) && n >= 0 && n <= max;
+    };
+    if (!valid("fixType", 6) || v.value("fixType").toInt() < 3 || !valid("satCount", 255)
+            || !valid("hdop", 100) || !valid("hAcc", 1000000) || !valid("vAcc", 1000000)
+            || !valid("healthy", 3600) || !valid("unhealthy", 3600)) return false;
+    Vps::GpsCheck g;
+    g.fixType = v.value("fixType").toInt(); g.satCount = v.value("satCount").toInt();
+    g.hdop = v.value("hdop").toFloat(); g.hAccMm = v.value("hAcc").toInt(); g.vAccMmS = v.value("vAcc").toInt();
+    g.healthySec = v.value("healthy").toFloat(); g.unhealthySec = v.value("unhealthy").toFloat();
+    return writeVpsMessage(Vps::TX_GPS_CHECK, Vps::buildGpsCheck(g));
+}
+bool Mavlink::setVpsGpsJamming(const QVariantMap &v)
+{
+    const auto valid = [&v](const char *key, double max) {
+        bool ok = false; const double n = v.value(QLatin1String(key)).toDouble(&ok);
+        return ok && std::isfinite(n) && n >= 0 && n <= max;
+    };
+    if (!v.contains("enabled") || !valid("time", 3600) || !valid("hAcc", 1000000)
+            || !valid("vAcc", 1000000) || !valid("unhealthy", 3600)) return false;
+    Vps::GpsJamming j;
+    j.enable = v.value("enabled").toBool(); j.timeSampleSec = v.value("time").toFloat();
+    j.deltaHAccMm = v.value("hAcc").toInt(); j.deltaVAccMmS = v.value("vAcc").toInt();
+    j.unhealthySec = v.value("unhealthy").toFloat();
+    return writeVpsMessage(Vps::TX_GPS_JAMMING, Vps::buildGpsJamming(j));
+}
+
+bool Mavlink::sendPayloadCommand(int commandId, int watchdogMinutes)
+{
+    if (!connectedState) {
+        qDebug() << "Cannot send payload command while disconnected:" << commandId;
+        return false;
+    }
+
+    if (commandId < 0 || commandId > 255 || watchdogMinutes < 0 || watchdogMinutes > 255) {
+        qDebug() << "Rejected invalid payload command:" << commandId << watchdogMinutes;
+        return false;
+    }
+
+    // Payload-control commands use MAV_CMD_USER_2 and are handled by the
+    // companion computer rather than the autopilot component.
+    mavlink_message_t msg;
+    mavlink_msg_command_long_pack(
+        255,
+        0,
+        &msg,
+        targetSystemId,
+        MAV_COMP_ID_ONBOARD_COMPUTER,
+        MAV_CMD_USER_2,
+        0,
+        static_cast<float>(commandId),
+        static_cast<float>(watchdogMinutes),
+        0,
+        0,
+        0,
+        0,
+        0
+    );
+
+    sendMavlinkMessage(msg);
+    qDebug() << "Sent payload command:" << commandId
+             << "watchdog minutes:" << watchdogMinutes
+             << "target system:" << targetSystemId
+             << "target component:" << MAV_COMP_ID_ONBOARD_COMPUTER;
+    return true;
 }
 
 void Mavlink::testMotor(int motor, int throttlePercent, int durationSeconds)
@@ -1526,6 +1725,7 @@ void Mavlink::readData()
             handleLinkPing(msg);
             handleParameterValue(msg);
             handleRcChannels(msg);
+            handleVpsMessage(msg);
             handleTerrainRequest(msg);
             handleMissionMessage(msg);
         }
@@ -1541,6 +1741,7 @@ void Mavlink::setConnected(bool connected)
 
     connectedState = connected;
     if (!connectedState) {
+        clearVpsStatus();
         pendingServoAcks.clear();
         linkPingTimer->stop();
         resetLinkQuality();

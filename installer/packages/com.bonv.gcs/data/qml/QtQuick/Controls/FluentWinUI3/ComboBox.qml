@@ -30,6 +30,8 @@ T.ComboBox {
     leftInset: -__config.leftInset || 0
     rightInset: -__config.rightInset || 0
 
+    highlightOnHover: false
+
     readonly property string __currentState: [
         !control.enabled && "disabled",
         control.enabled && !control.pressed && control.hovered && "hovered",
@@ -68,13 +70,16 @@ T.ComboBox {
     contentItem: T.TextField {
         text: control.editable ? control.editText : control.displayText
 
+        implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset,
+                                 contentHeight + topPadding + bottomPadding)
+
         topPadding: control.__config.label_contentItem.topPadding || 0
         leftPadding: control.__config.label_contentItem.leftPadding || 0
         rightPadding: control.__config.label_contentItem.rightPadding || 0
         bottomPadding: control.__config.label_contentItem.bottomPadding || 0
 
-        implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset,
-                                 contentHeight + topPadding + bottomPadding)
+        topInset: -control.__config.label_contentItem.topInset || 0
+        bottomInset: -control.__config.label_contentItem.bottomInset || 0
 
         enabled: control.editable
         autoScroll: control.editable
@@ -94,6 +99,10 @@ T.ComboBox {
         verticalAlignment: control.__config.label_text.textVAlignment
 
         readonly property Item __focusFrameControl: control
+
+        ContextMenu.menu: Impl.TextEditingContextMenu {
+            editor: parent
+        }
     }
 
     background: ItemGroup {
@@ -147,6 +156,7 @@ T.ComboBox {
         width: control.width
         topMargin: 8
         bottomMargin: 8
+        font: control.font
         palette: control.palette
 
         enter: Transition {

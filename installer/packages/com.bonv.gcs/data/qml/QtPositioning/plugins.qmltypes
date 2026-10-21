@@ -8,7 +8,7 @@ import QtQuick.tooling 1.2
 Module {
     Component {
         file: "private/locationsingleton_p.h"
-        lineNumber: 34
+        lineNumber: 35
         name: "LocationSingleton"
         accessSemantics: "reference"
         prototype: "QObject"
@@ -20,12 +20,12 @@ Module {
         isCreatable: false
         isSingleton: true
         exportMetaObjectRevisions: [1280, 1292, 1536]
-        Method { name: "coordinate"; type: "QGeoCoordinate"; isMethodConstant: true; lineNumber: 44 }
+        Method { name: "coordinate"; type: "QGeoCoordinate"; isMethodConstant: true; lineNumber: 45 }
         Method {
             name: "coordinate"
             type: "QGeoCoordinate"
             isMethodConstant: true
-            lineNumber: 45
+            lineNumber: 46
             Parameter { name: "latitude"; type: "double" }
             Parameter { name: "longitude"; type: "double" }
             Parameter { name: "altitude"; type: "double" }
@@ -35,17 +35,17 @@ Module {
             type: "QGeoCoordinate"
             isCloned: true
             isMethodConstant: true
-            lineNumber: 45
+            lineNumber: 46
             Parameter { name: "latitude"; type: "double" }
             Parameter { name: "longitude"; type: "double" }
         }
-        Method { name: "shape"; type: "QGeoShape"; isMethodConstant: true; lineNumber: 48 }
-        Method { name: "rectangle"; type: "QGeoRectangle"; isMethodConstant: true; lineNumber: 50 }
+        Method { name: "shape"; type: "QGeoShape"; isMethodConstant: true; lineNumber: 49 }
+        Method { name: "rectangle"; type: "QGeoRectangle"; isMethodConstant: true; lineNumber: 51 }
         Method {
             name: "rectangle"
             type: "QGeoRectangle"
             isMethodConstant: true
-            lineNumber: 51
+            lineNumber: 52
             Parameter { name: "center"; type: "QGeoCoordinate" }
             Parameter { name: "width"; type: "double" }
             Parameter { name: "height"; type: "double" }
@@ -54,7 +54,7 @@ Module {
             name: "rectangle"
             type: "QGeoRectangle"
             isMethodConstant: true
-            lineNumber: 53
+            lineNumber: 54
             Parameter { name: "topLeft"; type: "QGeoCoordinate" }
             Parameter { name: "bottomRight"; type: "QGeoCoordinate" }
         }
@@ -62,15 +62,15 @@ Module {
             name: "rectangle"
             type: "QGeoRectangle"
             isMethodConstant: true
-            lineNumber: 55
+            lineNumber: 56
             Parameter { name: "coordinates"; type: "QVariantList" }
         }
-        Method { name: "circle"; type: "QGeoCircle"; isMethodConstant: true; lineNumber: 57 }
+        Method { name: "circle"; type: "QGeoCircle"; isMethodConstant: true; lineNumber: 58 }
         Method {
             name: "circle"
             type: "QGeoCircle"
             isMethodConstant: true
-            lineNumber: 58
+            lineNumber: 59
             Parameter { name: "center"; type: "QGeoCoordinate" }
             Parameter { name: "radius"; type: "double" }
         }
@@ -79,15 +79,15 @@ Module {
             type: "QGeoCircle"
             isCloned: true
             isMethodConstant: true
-            lineNumber: 58
+            lineNumber: 59
             Parameter { name: "center"; type: "QGeoCoordinate" }
         }
-        Method { name: "path"; type: "QGeoPath"; isMethodConstant: true; lineNumber: 60 }
+        Method { name: "path"; type: "QGeoPath"; isMethodConstant: true; lineNumber: 61 }
         Method {
             name: "path"
             type: "QGeoPath"
             isMethodConstant: true
-            lineNumber: 61
+            lineNumber: 62
             Parameter { name: "value"; type: "QJSValue" }
             Parameter { name: "width"; type: "double" }
         }
@@ -96,22 +96,22 @@ Module {
             type: "QGeoPath"
             isCloned: true
             isMethodConstant: true
-            lineNumber: 61
+            lineNumber: 62
             Parameter { name: "value"; type: "QJSValue" }
         }
-        Method { name: "polygon"; type: "QGeoPolygon"; isMethodConstant: true; lineNumber: 63 }
+        Method { name: "polygon"; type: "QGeoPolygon"; isMethodConstant: true; lineNumber: 64 }
         Method {
             name: "polygon"
             type: "QGeoPolygon"
             isMethodConstant: true
-            lineNumber: 64
+            lineNumber: 65
             Parameter { name: "value"; type: "QVariantList" }
         }
         Method {
             name: "polygon"
             type: "QGeoPolygon"
             isMethodConstant: true
-            lineNumber: 65
+            lineNumber: 66
             Parameter { name: "perimeter"; type: "QVariantList" }
             Parameter { name: "holes"; type: "QVariantList" }
         }
@@ -119,28 +119,28 @@ Module {
             name: "shapeToCircle"
             type: "QGeoCircle"
             isMethodConstant: true
-            lineNumber: 67
+            lineNumber: 68
             Parameter { name: "shape"; type: "QGeoShape" }
         }
         Method {
             name: "shapeToRectangle"
             type: "QGeoRectangle"
             isMethodConstant: true
-            lineNumber: 68
+            lineNumber: 69
             Parameter { name: "shape"; type: "QGeoShape" }
         }
         Method {
             name: "shapeToPath"
             type: "QGeoPath"
             isMethodConstant: true
-            lineNumber: 69
+            lineNumber: 70
             Parameter { name: "shape"; type: "QGeoShape" }
         }
         Method {
             name: "shapeToPolygon"
             type: "QGeoPolygon"
             isMethodConstant: true
-            lineNumber: 70
+            lineNumber: 71
             Parameter { name: "shape"; type: "QGeoShape" }
         }
         Method {
@@ -148,7 +148,7 @@ Module {
             revision: 1292
             type: "QGeoCoordinate"
             isMethodConstant: true
-            lineNumber: 72
+            lineNumber: 73
             Parameter { name: "mercator"; type: "QPointF" }
         }
         Method {
@@ -156,13 +156,13 @@ Module {
             revision: 1292
             type: "QPointF"
             isMethodConstant: true
-            lineNumber: 73
+            lineNumber: 74
             Parameter { name: "coord"; type: "QGeoCoordinate" }
         }
     }
     Component {
         file: "private/qdeclarativegeoaddress_p.h"
-        lineNumber: 25
+        lineNumber: 26
         name: "QDeclarativeGeoAddress"
         accessSemantics: "reference"
         prototype: "QObject"
@@ -178,7 +178,7 @@ Module {
             read: "address"
             write: "setAddress"
             index: 0
-            lineNumber: 31
+            lineNumber: 32
         }
         Property {
             name: "text"
@@ -187,7 +187,7 @@ Module {
             write: "setText"
             notify: "textChanged"
             index: 1
-            lineNumber: 32
+            lineNumber: 33
         }
         Property {
             name: "country"
@@ -196,7 +196,7 @@ Module {
             write: "setCountry"
             notify: "countryChanged"
             index: 2
-            lineNumber: 33
+            lineNumber: 34
         }
         Property {
             name: "countryCode"
@@ -205,7 +205,7 @@ Module {
             write: "setCountryCode"
             notify: "countryCodeChanged"
             index: 3
-            lineNumber: 34
+            lineNumber: 35
         }
         Property {
             name: "state"
@@ -214,7 +214,7 @@ Module {
             write: "setState"
             notify: "stateChanged"
             index: 4
-            lineNumber: 35
+            lineNumber: 36
         }
         Property {
             name: "county"
@@ -223,7 +223,7 @@ Module {
             write: "setCounty"
             notify: "countyChanged"
             index: 5
-            lineNumber: 36
+            lineNumber: 37
         }
         Property {
             name: "city"
@@ -232,7 +232,7 @@ Module {
             write: "setCity"
             notify: "cityChanged"
             index: 6
-            lineNumber: 37
+            lineNumber: 38
         }
         Property {
             name: "district"
@@ -241,7 +241,7 @@ Module {
             write: "setDistrict"
             notify: "districtChanged"
             index: 7
-            lineNumber: 38
+            lineNumber: 39
         }
         Property {
             name: "street"
@@ -250,7 +250,7 @@ Module {
             write: "setStreet"
             notify: "streetChanged"
             index: 8
-            lineNumber: 39
+            lineNumber: 40
         }
         Property {
             name: "streetNumber"
@@ -260,7 +260,7 @@ Module {
             write: "setStreetNumber"
             notify: "streetNumberChanged"
             index: 9
-            lineNumber: 40
+            lineNumber: 41
         }
         Property {
             name: "postalCode"
@@ -269,7 +269,7 @@ Module {
             write: "setPostalCode"
             notify: "postalCodeChanged"
             index: 10
-            lineNumber: 42
+            lineNumber: 43
         }
         Property {
             name: "isTextGenerated"
@@ -277,24 +277,24 @@ Module {
             read: "isTextGenerated"
             notify: "isTextGeneratedChanged"
             index: 11
-            lineNumber: 43
+            lineNumber: 44
             isReadonly: true
         }
-        Signal { name: "textChanged"; lineNumber: 75 }
-        Signal { name: "countryChanged"; lineNumber: 76 }
-        Signal { name: "countryCodeChanged"; lineNumber: 77 }
-        Signal { name: "stateChanged"; lineNumber: 78 }
-        Signal { name: "countyChanged"; lineNumber: 79 }
-        Signal { name: "cityChanged"; lineNumber: 80 }
-        Signal { name: "districtChanged"; lineNumber: 81 }
-        Signal { name: "streetChanged"; lineNumber: 82 }
-        Signal { name: "streetNumberChanged"; lineNumber: 83 }
-        Signal { name: "postalCodeChanged"; lineNumber: 84 }
-        Signal { name: "isTextGeneratedChanged"; lineNumber: 85 }
+        Signal { name: "textChanged"; lineNumber: 76 }
+        Signal { name: "countryChanged"; lineNumber: 77 }
+        Signal { name: "countryCodeChanged"; lineNumber: 78 }
+        Signal { name: "stateChanged"; lineNumber: 79 }
+        Signal { name: "countyChanged"; lineNumber: 80 }
+        Signal { name: "cityChanged"; lineNumber: 81 }
+        Signal { name: "districtChanged"; lineNumber: 82 }
+        Signal { name: "streetChanged"; lineNumber: 83 }
+        Signal { name: "streetNumberChanged"; lineNumber: 84 }
+        Signal { name: "postalCodeChanged"; lineNumber: 85 }
+        Signal { name: "isTextGeneratedChanged"; lineNumber: 86 }
     }
     Component {
         file: "private/qdeclarativegeolocation_p.h"
-        lineNumber: 28
+        lineNumber: 29
         name: "QDeclarativeGeoLocation"
         accessSemantics: "reference"
         prototype: "QObject"
@@ -311,7 +311,7 @@ Module {
             read: "location"
             write: "setLocation"
             index: 0
-            lineNumber: 34
+            lineNumber: 35
         }
         Property {
             name: "address"
@@ -321,7 +321,7 @@ Module {
             read: "address"
             write: "setAddress"
             index: 1
-            lineNumber: 35
+            lineNumber: 36
         }
         Property {
             name: "coordinate"
@@ -330,7 +330,7 @@ Module {
             read: "coordinate"
             write: "setCoordinate"
             index: 2
-            lineNumber: 37
+            lineNumber: 38
         }
         Property {
             name: "boundingShape"
@@ -340,7 +340,7 @@ Module {
             read: "boundingShape"
             write: "setBoundingShape"
             index: 3
-            lineNumber: 39
+            lineNumber: 40
         }
         Property {
             name: "extendedAttributes"
@@ -350,12 +350,12 @@ Module {
             read: "extendedAttributes"
             write: "setExtendedAttributes"
             index: 4
-            lineNumber: 41
+            lineNumber: 42
         }
     }
     Component {
         file: "private/qdeclarativepluginparameter_p.h"
-        lineNumber: 27
+        lineNumber: 28
         name: "QDeclarativePluginParameter"
         accessSemantics: "reference"
         prototype: "QObject"
@@ -371,7 +371,7 @@ Module {
             write: "setName"
             notify: "nameChanged"
             index: 0
-            lineNumber: 33
+            lineNumber: 34
         }
         Property {
             name: "value"
@@ -380,23 +380,23 @@ Module {
             write: "setValue"
             notify: "valueChanged"
             index: 1
-            lineNumber: 34
+            lineNumber: 35
         }
         Signal {
             name: "nameChanged"
-            lineNumber: 49
+            lineNumber: 50
             Parameter { name: "name"; type: "QString" }
         }
         Signal {
             name: "valueChanged"
-            lineNumber: 50
+            lineNumber: 51
             Parameter { name: "value"; type: "QVariant" }
         }
-        Signal { name: "initialized"; lineNumber: 51 }
+        Signal { name: "initialized"; lineNumber: 52 }
     }
     Component {
         file: "private/qdeclarativeposition_p.h"
-        lineNumber: 28
+        lineNumber: 29
         name: "QDeclarativePosition"
         accessSemantics: "reference"
         prototype: "QObject"
@@ -414,7 +414,7 @@ Module {
             bindable: "bindableLatitudeValid"
             read: "isLatitudeValid"
             index: 0
-            lineNumber: 34
+            lineNumber: 35
             isReadonly: true
         }
         Property {
@@ -423,7 +423,7 @@ Module {
             bindable: "bindableLongitudeValid"
             read: "isLongitudeValid"
             index: 1
-            lineNumber: 35
+            lineNumber: 36
             isReadonly: true
         }
         Property {
@@ -432,7 +432,7 @@ Module {
             bindable: "bindableAltitudeValid"
             read: "isAltitudeValid"
             index: 2
-            lineNumber: 36
+            lineNumber: 37
             isReadonly: true
         }
         Property {
@@ -441,7 +441,7 @@ Module {
             bindable: "bindableCoordinate"
             read: "coordinate"
             index: 3
-            lineNumber: 37
+            lineNumber: 38
             isReadonly: true
         }
         Property {
@@ -450,7 +450,7 @@ Module {
             bindable: "bindableTimestamp"
             read: "timestamp"
             index: 4
-            lineNumber: 38
+            lineNumber: 39
             isReadonly: true
         }
         Property {
@@ -459,7 +459,7 @@ Module {
             bindable: "bindableSpeed"
             read: "speed"
             index: 5
-            lineNumber: 39
+            lineNumber: 40
             isReadonly: true
         }
         Property {
@@ -468,7 +468,7 @@ Module {
             bindable: "bindableSpeedValid"
             read: "isSpeedValid"
             index: 6
-            lineNumber: 40
+            lineNumber: 41
             isReadonly: true
         }
         Property {
@@ -477,7 +477,7 @@ Module {
             bindable: "bindableHorizontalAccuracy"
             read: "horizontalAccuracy"
             index: 7
-            lineNumber: 41
+            lineNumber: 42
             isReadonly: true
         }
         Property {
@@ -486,7 +486,7 @@ Module {
             bindable: "binableVerticalAccuracy"
             read: "verticalAccuracy"
             index: 8
-            lineNumber: 42
+            lineNumber: 43
             isReadonly: true
         }
         Property {
@@ -495,7 +495,7 @@ Module {
             bindable: "bindableHorizontalAccuracyValid"
             read: "isHorizontalAccuracyValid"
             index: 9
-            lineNumber: 43
+            lineNumber: 44
             isReadonly: true
         }
         Property {
@@ -504,7 +504,7 @@ Module {
             bindable: "bindableVerticalAccuracyValid"
             read: "isVerticalAccuracyValid"
             index: 10
-            lineNumber: 45
+            lineNumber: 46
             isReadonly: true
         }
         Property {
@@ -514,7 +514,7 @@ Module {
             bindable: "bindableDirectionValid"
             read: "isDirectionValid"
             index: 11
-            lineNumber: 48
+            lineNumber: 49
             isReadonly: true
         }
         Property {
@@ -524,7 +524,7 @@ Module {
             bindable: "bindableDirection"
             read: "direction"
             index: 12
-            lineNumber: 50
+            lineNumber: 51
             isReadonly: true
         }
         Property {
@@ -534,7 +534,7 @@ Module {
             bindable: "bindableVerticalSpeedValid"
             read: "isVerticalSpeedValid"
             index: 13
-            lineNumber: 51
+            lineNumber: 52
             isReadonly: true
         }
         Property {
@@ -544,7 +544,7 @@ Module {
             bindable: "bindableVerticalSpeed"
             read: "verticalSpeed"
             index: 14
-            lineNumber: 53
+            lineNumber: 54
             isReadonly: true
         }
         Property {
@@ -554,7 +554,7 @@ Module {
             bindable: "bindableMagneticVariation"
             read: "magneticVariation"
             index: 15
-            lineNumber: 56
+            lineNumber: 57
             isReadonly: true
         }
         Property {
@@ -564,7 +564,7 @@ Module {
             bindable: "bindableMagneticVariationValid"
             read: "isMagneticVariationValid"
             index: 16
-            lineNumber: 58
+            lineNumber: 59
             isReadonly: true
         }
         Property {
@@ -574,7 +574,7 @@ Module {
             bindable: "bindableDirectionAccuracy"
             read: "directionAccuracy"
             index: 17
-            lineNumber: 61
+            lineNumber: 62
             isReadonly: true
         }
         Property {
@@ -584,13 +584,13 @@ Module {
             bindable: "bindableDirectionAccuracyValid"
             read: "isDirectionAccuracyValid"
             index: 18
-            lineNumber: 63
+            lineNumber: 64
             isReadonly: true
         }
     }
     Component {
         file: "private/qdeclarativepositionsource_p.h"
-        lineNumber: 32
+        lineNumber: 33
         name: "QDeclarativePositionSource"
         accessSemantics: "reference"
         defaultProperty: "parameters"
@@ -604,7 +604,7 @@ Module {
         exportMetaObjectRevisions: [1280, 1294, 1536]
         Enum {
             name: "PositioningMethod"
-            lineNumber: 59
+            lineNumber: 60
             values: [
                 "NoPositioningMethods",
                 "SatellitePositioningMethods",
@@ -616,7 +616,7 @@ Module {
             name: "PositioningMethods"
             alias: "PositioningMethod"
             isFlag: true
-            lineNumber: 59
+            lineNumber: 60
             values: [
                 "NoPositioningMethods",
                 "SatellitePositioningMethods",
@@ -626,7 +626,7 @@ Module {
         }
         Enum {
             name: "SourceError"
-            lineNumber: 70
+            lineNumber: 71
             values: [
                 "AccessError",
                 "ClosedError",
@@ -643,7 +643,7 @@ Module {
             read: "position"
             notify: "positionChanged"
             index: 0
-            lineNumber: 38
+            lineNumber: 39
             isReadonly: true
         }
         Property {
@@ -654,7 +654,7 @@ Module {
             write: "setActive"
             notify: "activeChanged"
             index: 1
-            lineNumber: 40
+            lineNumber: 41
         }
         Property {
             name: "valid"
@@ -663,7 +663,7 @@ Module {
             read: "isValid"
             notify: "validityChanged"
             index: 2
-            lineNumber: 42
+            lineNumber: 43
             isReadonly: true
         }
         Property {
@@ -673,7 +673,7 @@ Module {
             write: "setUpdateInterval"
             notify: "updateIntervalChanged"
             index: 3
-            lineNumber: 43
+            lineNumber: 44
         }
         Property {
             name: "supportedPositioningMethods"
@@ -682,7 +682,7 @@ Module {
             read: "supportedPositioningMethods"
             notify: "supportedPositioningMethodsChanged"
             index: 4
-            lineNumber: 45
+            lineNumber: 46
             isReadonly: true
         }
         Property {
@@ -692,7 +692,7 @@ Module {
             write: "setPreferredPositioningMethods"
             notify: "preferredPositioningMethodsChanged"
             index: 5
-            lineNumber: 48
+            lineNumber: 49
         }
         Property {
             name: "sourceError"
@@ -701,7 +701,7 @@ Module {
             read: "sourceError"
             notify: "sourceErrorChanged"
             index: 6
-            lineNumber: 50
+            lineNumber: 51
             isReadonly: true
         }
         Property {
@@ -712,7 +712,7 @@ Module {
             write: "setName"
             notify: "nameChanged"
             index: 7
-            lineNumber: 52
+            lineNumber: 53
         }
         Property {
             name: "parameters"
@@ -721,42 +721,42 @@ Module {
             isList: true
             read: "parameters"
             index: 8
-            lineNumber: 53
+            lineNumber: 54
             isReadonly: true
         }
-        Signal { name: "positionChanged"; lineNumber: 119 }
-        Signal { name: "activeChanged"; lineNumber: 120 }
-        Signal { name: "updateIntervalChanged"; lineNumber: 121 }
-        Signal { name: "supportedPositioningMethodsChanged"; lineNumber: 122 }
-        Signal { name: "preferredPositioningMethodsChanged"; lineNumber: 123 }
-        Signal { name: "sourceErrorChanged"; lineNumber: 124 }
-        Signal { name: "nameChanged"; lineNumber: 125 }
-        Signal { name: "validityChanged"; lineNumber: 126 }
+        Signal { name: "positionChanged"; lineNumber: 120 }
+        Signal { name: "activeChanged"; lineNumber: 121 }
+        Signal { name: "updateIntervalChanged"; lineNumber: 122 }
+        Signal { name: "supportedPositioningMethodsChanged"; lineNumber: 123 }
+        Signal { name: "preferredPositioningMethodsChanged"; lineNumber: 124 }
+        Signal { name: "sourceErrorChanged"; lineNumber: 125 }
+        Signal { name: "nameChanged"; lineNumber: 126 }
+        Signal { name: "validityChanged"; lineNumber: 127 }
         Method {
             name: "update"
-            lineNumber: 114
+            lineNumber: 115
             Parameter { name: "timeout"; type: "int" }
         }
-        Method { name: "update"; isCloned: true; lineNumber: 114 }
-        Method { name: "start"; lineNumber: 115 }
-        Method { name: "stop"; lineNumber: 116 }
+        Method { name: "update"; isCloned: true; lineNumber: 115 }
+        Method { name: "start"; lineNumber: 116 }
+        Method { name: "stop"; lineNumber: 117 }
         Method {
             name: "positionUpdateReceived"
-            lineNumber: 129
+            lineNumber: 130
             Parameter { name: "update"; type: "QGeoPositionInfo" }
         }
         Method {
             name: "sourceErrorReceived"
-            lineNumber: 130
+            lineNumber: 131
             Parameter { name: "error"; type: "QGeoPositionInfoSource::Error" }
         }
-        Method { name: "onParameterInitialized"; lineNumber: 131 }
-        Method { name: "notifySupportedPositioningMethodsChanged"; lineNumber: 132 }
+        Method { name: "onParameterInitialized"; lineNumber: 132 }
+        Method { name: "notifySupportedPositioningMethodsChanged"; lineNumber: 133 }
         Method {
             name: "setBackendProperty"
             revision: 1294
             type: "bool"
-            lineNumber: 103
+            lineNumber: 104
             Parameter { name: "name"; type: "QString" }
             Parameter { name: "value"; type: "QVariant" }
         }
@@ -765,13 +765,13 @@ Module {
             revision: 1294
             type: "QVariant"
             isMethodConstant: true
-            lineNumber: 104
+            lineNumber: 105
             Parameter { name: "name"; type: "QString" }
         }
     }
     Component {
         file: "private/qdeclarativesatellitesource_p.h"
-        lineNumber: 30
+        lineNumber: 31
         name: "QDeclarativeSatelliteSource"
         accessSemantics: "reference"
         defaultProperty: "parameters"
@@ -781,7 +781,7 @@ Module {
         exportMetaObjectRevisions: [1541]
         Enum {
             name: "SourceError"
-            lineNumber: 52
+            lineNumber: 53
             values: [
                 "AccessError",
                 "ClosedError",
@@ -797,7 +797,7 @@ Module {
             write: "setActive"
             notify: "activeChanged"
             index: 0
-            lineNumber: 36
+            lineNumber: 37
         }
         Property {
             name: "valid"
@@ -805,7 +805,7 @@ Module {
             read: "isValid"
             notify: "validityChanged"
             index: 1
-            lineNumber: 37
+            lineNumber: 38
             isReadonly: true
         }
         Property {
@@ -815,7 +815,7 @@ Module {
             write: "setUpdateInterval"
             notify: "updateIntervalChanged"
             index: 2
-            lineNumber: 38
+            lineNumber: 39
         }
         Property {
             name: "sourceError"
@@ -823,7 +823,7 @@ Module {
             read: "sourceError"
             notify: "sourceErrorChanged"
             index: 3
-            lineNumber: 40
+            lineNumber: 41
             isReadonly: true
         }
         Property {
@@ -833,7 +833,7 @@ Module {
             write: "setName"
             notify: "nameChanged"
             index: 4
-            lineNumber: 41
+            lineNumber: 42
         }
         Property {
             name: "parameters"
@@ -841,7 +841,7 @@ Module {
             isList: true
             read: "parameters"
             index: 5
-            lineNumber: 42
+            lineNumber: 43
             isReadonly: true
         }
         Property {
@@ -851,7 +851,7 @@ Module {
             read: "satellitesInUse"
             notify: "satellitesInUseChanged"
             index: 6
-            lineNumber: 43
+            lineNumber: 44
             isReadonly: true
         }
         Property {
@@ -861,44 +861,44 @@ Module {
             read: "satellitesInView"
             notify: "satellitesInViewChanged"
             index: 7
-            lineNumber: 45
+            lineNumber: 46
             isReadonly: true
         }
-        Signal { name: "activeChanged"; lineNumber: 90 }
-        Signal { name: "validityChanged"; lineNumber: 91 }
-        Signal { name: "updateIntervalChanged"; lineNumber: 92 }
-        Signal { name: "sourceErrorChanged"; lineNumber: 93 }
-        Signal { name: "nameChanged"; lineNumber: 94 }
-        Signal { name: "satellitesInUseChanged"; lineNumber: 95 }
-        Signal { name: "satellitesInViewChanged"; lineNumber: 96 }
+        Signal { name: "activeChanged"; lineNumber: 91 }
+        Signal { name: "validityChanged"; lineNumber: 92 }
+        Signal { name: "updateIntervalChanged"; lineNumber: 93 }
+        Signal { name: "sourceErrorChanged"; lineNumber: 94 }
+        Signal { name: "nameChanged"; lineNumber: 95 }
+        Signal { name: "satellitesInUseChanged"; lineNumber: 96 }
+        Signal { name: "satellitesInViewChanged"; lineNumber: 97 }
         Method {
             name: "update"
-            lineNumber: 85
+            lineNumber: 86
             Parameter { name: "timeout"; type: "int" }
         }
-        Method { name: "update"; isCloned: true; lineNumber: 85 }
-        Method { name: "start"; lineNumber: 86 }
-        Method { name: "stop"; lineNumber: 87 }
+        Method { name: "update"; isCloned: true; lineNumber: 86 }
+        Method { name: "start"; lineNumber: 87 }
+        Method { name: "stop"; lineNumber: 88 }
         Method {
             name: "sourceErrorReceived"
-            lineNumber: 99
+            lineNumber: 100
             Parameter { name: "error"; type: "QGeoSatelliteInfoSource::Error" }
         }
-        Method { name: "onParameterInitialized"; lineNumber: 100 }
+        Method { name: "onParameterInitialized"; lineNumber: 101 }
         Method {
             name: "satellitesInViewUpdateReceived"
-            lineNumber: 101
+            lineNumber: 102
             Parameter { name: "satellites"; type: "QGeoSatelliteInfo"; isList: true }
         }
         Method {
             name: "satellitesInUseUpdateReceived"
-            lineNumber: 102
+            lineNumber: 103
             Parameter { name: "satellites"; type: "QGeoSatelliteInfo"; isList: true }
         }
         Method {
             name: "setBackendProperty"
             type: "bool"
-            lineNumber: 81
+            lineNumber: 82
             Parameter { name: "name"; type: "QString" }
             Parameter { name: "value"; type: "QVariant" }
         }
@@ -906,13 +906,13 @@ Module {
             name: "backendProperty"
             type: "QVariant"
             isMethodConstant: true
-            lineNumber: 82
+            lineNumber: 83
             Parameter { name: "name"; type: "QString" }
         }
     }
     Component {
         file: "private/qpositioningquickmodule_p.h"
-        lineNumber: 43
+        lineNumber: 44
         name: "QGeoAddress"
         accessSemantics: "value"
         exports: [
@@ -924,7 +924,9 @@ Module {
     }
     Component {
         file: "private/qpositioningquickmodule_p.h"
-        lineNumber: 61
+        lineNumber: 62
+        resolvedFile: "qgeocircle.h"
+        lineNumberInResolvedFile: 15
         name: "QGeoCircle"
         accessSemantics: "value"
         prototype: "QGeoShape"
@@ -940,7 +942,7 @@ Module {
             read: "center"
             write: "setCenter"
             index: 0
-            lineNumber: 17
+            lineNumber: 18
         }
         Property {
             name: "radius"
@@ -948,11 +950,11 @@ Module {
             read: "radius"
             write: "setRadius"
             index: 1
-            lineNumber: 18
+            lineNumber: 19
         }
         Method {
             name: "translate"
-            lineNumber: 36
+            lineNumber: 37
             Parameter { name: "degreesLatitude"; type: "double" }
             Parameter { name: "degreesLongitude"; type: "double" }
         }
@@ -960,20 +962,22 @@ Module {
             name: "translated"
             type: "QGeoCircle"
             isMethodConstant: true
-            lineNumber: 37
+            lineNumber: 38
             Parameter { name: "degreesLatitude"; type: "double" }
             Parameter { name: "degreesLongitude"; type: "double" }
         }
         Method {
             name: "extendCircle"
-            lineNumber: 38
+            lineNumber: 39
             Parameter { name: "coordinate"; type: "QGeoCoordinate" }
         }
-        Method { name: "toString"; type: "QString"; isMethodConstant: true; lineNumber: 40 }
+        Method { name: "toString"; type: "QString"; isMethodConstant: true; lineNumber: 41 }
     }
     Component {
         file: "private/qpositioningquickmodule_p.h"
-        lineNumber: 34
+        lineNumber: 35
+        resolvedFile: "qgeocoordinate.h"
+        lineNumberInResolvedFile: 22
         name: "QGeoCoordinate"
         accessSemantics: "value"
         exports: [
@@ -984,7 +988,7 @@ Module {
         exportMetaObjectRevisions: [1280, 1536]
         Enum {
             name: "CoordinateFormat"
-            lineNumber: 38
+            lineNumber: 39
             values: [
                 "Degrees",
                 "DegreesWithHemisphere",
@@ -1000,7 +1004,7 @@ Module {
             read: "latitude"
             write: "setLatitude"
             index: 0
-            lineNumber: 25
+            lineNumber: 26
         }
         Property {
             name: "longitude"
@@ -1008,7 +1012,7 @@ Module {
             read: "longitude"
             write: "setLongitude"
             index: 1
-            lineNumber: 26
+            lineNumber: 27
         }
         Property {
             name: "altitude"
@@ -1016,35 +1020,35 @@ Module {
             read: "altitude"
             write: "setAltitude"
             index: 2
-            lineNumber: 27
+            lineNumber: 28
         }
         Property {
             name: "isValid"
             type: "bool"
             read: "isValid"
             index: 3
-            lineNumber: 28
+            lineNumber: 29
             isReadonly: true
         }
         Method {
             name: "distanceTo"
             type: "double"
             isMethodConstant: true
-            lineNumber: 81
+            lineNumber: 82
             Parameter { name: "other"; type: "QGeoCoordinate" }
         }
         Method {
             name: "azimuthTo"
             type: "double"
             isMethodConstant: true
-            lineNumber: 82
+            lineNumber: 83
             Parameter { name: "other"; type: "QGeoCoordinate" }
         }
         Method {
             name: "atDistanceAndAzimuth"
             type: "QGeoCoordinate"
             isMethodConstant: true
-            lineNumber: 84
+            lineNumber: 85
             Parameter { name: "distance"; type: "double" }
             Parameter { name: "azimuth"; type: "double" }
             Parameter { name: "distanceUp"; type: "double" }
@@ -1054,7 +1058,7 @@ Module {
             type: "QGeoCoordinate"
             isCloned: true
             isMethodConstant: true
-            lineNumber: 84
+            lineNumber: 85
             Parameter { name: "distance"; type: "double" }
             Parameter { name: "azimuth"; type: "double" }
         }
@@ -1062,7 +1066,7 @@ Module {
             name: "toString"
             type: "QString"
             isMethodConstant: true
-            lineNumber: 86
+            lineNumber: 87
             Parameter { name: "format"; type: "CoordinateFormat" }
         }
         Method {
@@ -1070,12 +1074,14 @@ Module {
             type: "QString"
             isCloned: true
             isMethodConstant: true
-            lineNumber: 86
+            lineNumber: 87
         }
     }
     Component {
         file: "private/qpositioningquickmodule_p.h"
-        lineNumber: 106
+        lineNumber: 107
+        resolvedFile: "private/qgeocoordinateobject_p.h"
+        lineNumberInResolvedFile: 27
         name: "QGeoCoordinateObject"
         accessSemantics: "reference"
         prototype: "QObject"
@@ -1087,13 +1093,13 @@ Module {
             write: "setCoordinate"
             notify: "coordinateChanged"
             index: 0
-            lineNumber: 29
+            lineNumber: 30
         }
-        Signal { name: "coordinateChanged"; lineNumber: 51 }
+        Signal { name: "coordinateChanged"; lineNumber: 52 }
     }
     Component {
         file: "private/qpositioningquickmodule_p.h"
-        lineNumber: 88
+        lineNumber: 89
         name: "QGeoLocation"
         accessSemantics: "value"
         exports: [
@@ -1105,7 +1111,9 @@ Module {
     }
     Component {
         file: "private/qpositioningquickmodule_p.h"
-        lineNumber: 70
+        lineNumber: 71
+        resolvedFile: "qgeopath.h"
+        lineNumberInResolvedFile: 16
         name: "QGeoPath"
         accessSemantics: "value"
         prototype: "QGeoShape"
@@ -1118,9 +1126,127 @@ Module {
             read: "variantPath"
             write: "setVariantPath"
             index: 0
-            lineNumber: 18
+            lineNumber: 19
         }
-        Property { name: "width"; type: "double"; read: "width"; write: "setWidth"; index: 1; lineNumber: 19 }
+        Property { name: "width"; type: "double"; read: "width"; write: "setWidth"; index: 1; lineNumber: 20 }
+        Method {
+            name: "translate"
+            lineNumber: 41
+            Parameter { name: "degreesLatitude"; type: "double" }
+            Parameter { name: "degreesLongitude"; type: "double" }
+        }
+        Method {
+            name: "translated"
+            type: "QGeoPath"
+            isMethodConstant: true
+            lineNumber: 42
+            Parameter { name: "degreesLatitude"; type: "double" }
+            Parameter { name: "degreesLongitude"; type: "double" }
+        }
+        Method {
+            name: "length"
+            type: "double"
+            isMethodConstant: true
+            lineNumber: 43
+            Parameter { name: "indexFrom"; type: "qsizetype" }
+            Parameter { name: "indexTo"; type: "qsizetype" }
+        }
+        Method {
+            name: "length"
+            type: "double"
+            isCloned: true
+            isMethodConstant: true
+            lineNumber: 43
+            Parameter { name: "indexFrom"; type: "qsizetype" }
+        }
+        Method { name: "length"; type: "double"; isCloned: true; isMethodConstant: true; lineNumber: 43 }
+        Method { name: "size"; type: "qsizetype"; isMethodConstant: true; lineNumber: 44 }
+        Method {
+            name: "addCoordinate"
+            lineNumber: 45
+            Parameter { name: "coordinate"; type: "QGeoCoordinate" }
+        }
+        Method {
+            name: "insertCoordinate"
+            lineNumber: 46
+            Parameter { name: "index"; type: "qsizetype" }
+            Parameter { name: "coordinate"; type: "QGeoCoordinate" }
+        }
+        Method {
+            name: "replaceCoordinate"
+            lineNumber: 47
+            Parameter { name: "index"; type: "qsizetype" }
+            Parameter { name: "coordinate"; type: "QGeoCoordinate" }
+        }
+        Method {
+            name: "coordinateAt"
+            type: "QGeoCoordinate"
+            isMethodConstant: true
+            lineNumber: 48
+            Parameter { name: "index"; type: "qsizetype" }
+        }
+        Method {
+            name: "containsCoordinate"
+            type: "bool"
+            isMethodConstant: true
+            lineNumber: 49
+            Parameter { name: "coordinate"; type: "QGeoCoordinate" }
+        }
+        Method {
+            name: "removeCoordinate"
+            lineNumber: 50
+            Parameter { name: "coordinate"; type: "QGeoCoordinate" }
+        }
+        Method {
+            name: "removeCoordinate"
+            lineNumber: 51
+            Parameter { name: "index"; type: "qsizetype" }
+        }
+        Method { name: "toString"; type: "QString"; isMethodConstant: true; lineNumber: 53 }
+    }
+    Component {
+        file: "private/qpositioningquickmodule_p.h"
+        lineNumber: 80
+        resolvedFile: "qgeopolygon.h"
+        lineNumberInResolvedFile: 16
+        name: "QGeoPolygon"
+        accessSemantics: "value"
+        prototype: "QGeoShape"
+        exports: [
+            "QtPositioning/geoPolygon 5.0",
+            "QtPositioning/geoPolygon 5.12",
+            "QtPositioning/geoPolygon 6.0"
+        ]
+        isStructured: true
+        exportMetaObjectRevisions: [1280, 1292, 1536]
+        Property {
+            name: "perimeter"
+            revision: 1292
+            type: "QGeoCoordinate"
+            isList: true
+            read: "perimeter"
+            write: "setPerimeter"
+            index: 0
+            lineNumber: 19
+        }
+        Method {
+            name: "addHole"
+            lineNumber: 34
+            Parameter { name: "holePath"; type: "QVariant" }
+        }
+        Method {
+            name: "hole"
+            type: "QVariantList"
+            isMethodConstant: true
+            lineNumber: 36
+            Parameter { name: "index"; type: "qsizetype" }
+        }
+        Method {
+            name: "removeHole"
+            lineNumber: 38
+            Parameter { name: "index"; type: "qsizetype" }
+        }
+        Method { name: "holesCount"; type: "qsizetype"; isMethodConstant: true; lineNumber: 39 }
         Method {
             name: "translate"
             lineNumber: 40
@@ -1129,7 +1255,7 @@ Module {
         }
         Method {
             name: "translated"
-            type: "QGeoPath"
+            type: "QGeoPolygon"
             isMethodConstant: true
             lineNumber: 41
             Parameter { name: "degreesLatitude"; type: "double" }
@@ -1198,123 +1324,7 @@ Module {
     }
     Component {
         file: "private/qpositioningquickmodule_p.h"
-        lineNumber: 79
-        name: "QGeoPolygon"
-        accessSemantics: "value"
-        prototype: "QGeoShape"
-        exports: [
-            "QtPositioning/geoPolygon 5.0",
-            "QtPositioning/geoPolygon 5.12",
-            "QtPositioning/geoPolygon 6.0"
-        ]
-        isStructured: true
-        exportMetaObjectRevisions: [1280, 1292, 1536]
-        Property {
-            name: "perimeter"
-            revision: 1292
-            type: "QGeoCoordinate"
-            isList: true
-            read: "perimeter"
-            write: "setPerimeter"
-            index: 0
-            lineNumber: 18
-        }
-        Method {
-            name: "addHole"
-            lineNumber: 33
-            Parameter { name: "holePath"; type: "QVariant" }
-        }
-        Method {
-            name: "hole"
-            type: "QVariantList"
-            isMethodConstant: true
-            lineNumber: 35
-            Parameter { name: "index"; type: "qsizetype" }
-        }
-        Method {
-            name: "removeHole"
-            lineNumber: 37
-            Parameter { name: "index"; type: "qsizetype" }
-        }
-        Method { name: "holesCount"; type: "qsizetype"; isMethodConstant: true; lineNumber: 38 }
-        Method {
-            name: "translate"
-            lineNumber: 39
-            Parameter { name: "degreesLatitude"; type: "double" }
-            Parameter { name: "degreesLongitude"; type: "double" }
-        }
-        Method {
-            name: "translated"
-            type: "QGeoPolygon"
-            isMethodConstant: true
-            lineNumber: 40
-            Parameter { name: "degreesLatitude"; type: "double" }
-            Parameter { name: "degreesLongitude"; type: "double" }
-        }
-        Method {
-            name: "length"
-            type: "double"
-            isMethodConstant: true
-            lineNumber: 41
-            Parameter { name: "indexFrom"; type: "qsizetype" }
-            Parameter { name: "indexTo"; type: "qsizetype" }
-        }
-        Method {
-            name: "length"
-            type: "double"
-            isCloned: true
-            isMethodConstant: true
-            lineNumber: 41
-            Parameter { name: "indexFrom"; type: "qsizetype" }
-        }
-        Method { name: "length"; type: "double"; isCloned: true; isMethodConstant: true; lineNumber: 41 }
-        Method { name: "size"; type: "qsizetype"; isMethodConstant: true; lineNumber: 42 }
-        Method {
-            name: "addCoordinate"
-            lineNumber: 43
-            Parameter { name: "coordinate"; type: "QGeoCoordinate" }
-        }
-        Method {
-            name: "insertCoordinate"
-            lineNumber: 44
-            Parameter { name: "index"; type: "qsizetype" }
-            Parameter { name: "coordinate"; type: "QGeoCoordinate" }
-        }
-        Method {
-            name: "replaceCoordinate"
-            lineNumber: 45
-            Parameter { name: "index"; type: "qsizetype" }
-            Parameter { name: "coordinate"; type: "QGeoCoordinate" }
-        }
-        Method {
-            name: "coordinateAt"
-            type: "QGeoCoordinate"
-            isMethodConstant: true
-            lineNumber: 46
-            Parameter { name: "index"; type: "qsizetype" }
-        }
-        Method {
-            name: "containsCoordinate"
-            type: "bool"
-            isMethodConstant: true
-            lineNumber: 47
-            Parameter { name: "coordinate"; type: "QGeoCoordinate" }
-        }
-        Method {
-            name: "removeCoordinate"
-            lineNumber: 48
-            Parameter { name: "coordinate"; type: "QGeoCoordinate" }
-        }
-        Method {
-            name: "removeCoordinate"
-            lineNumber: 49
-            Parameter { name: "index"; type: "qsizetype" }
-        }
-        Method { name: "toString"; type: "QString"; isMethodConstant: true; lineNumber: 51 }
-    }
-    Component {
-        file: "private/qpositioningquickmodule_p.h"
-        lineNumber: 114
+        lineNumber: 115
         name: "QGeoPositionInfo"
         accessSemantics: "value"
         exports: [
@@ -1326,7 +1336,9 @@ Module {
     }
     Component {
         file: "private/qpositioningquickmodule_p.h"
-        lineNumber: 52
+        lineNumber: 53
+        resolvedFile: "qgeorectangle.h"
+        lineNumberInResolvedFile: 14
         name: "QGeoRectangle"
         accessSemantics: "value"
         prototype: "QGeoShape"
@@ -1342,7 +1354,7 @@ Module {
             read: "bottomLeft"
             write: "setBottomLeft"
             index: 0
-            lineNumber: 16
+            lineNumber: 17
         }
         Property {
             name: "bottomRight"
@@ -1350,7 +1362,7 @@ Module {
             read: "bottomRight"
             write: "setBottomRight"
             index: 1
-            lineNumber: 17
+            lineNumber: 18
         }
         Property {
             name: "topLeft"
@@ -1358,7 +1370,7 @@ Module {
             read: "topLeft"
             write: "setTopLeft"
             index: 2
-            lineNumber: 18
+            lineNumber: 19
         }
         Property {
             name: "topRight"
@@ -1366,7 +1378,7 @@ Module {
             read: "topRight"
             write: "setTopRight"
             index: 3
-            lineNumber: 19
+            lineNumber: 20
         }
         Property {
             name: "center"
@@ -1374,7 +1386,7 @@ Module {
             read: "center"
             write: "setCenter"
             index: 4
-            lineNumber: 20
+            lineNumber: 21
         }
         Property {
             name: "height"
@@ -1382,19 +1394,19 @@ Module {
             read: "height"
             write: "setHeight"
             index: 5
-            lineNumber: 21
+            lineNumber: 22
         }
-        Property { name: "width"; type: "double"; read: "width"; write: "setWidth"; index: 6; lineNumber: 22 }
+        Property { name: "width"; type: "double"; read: "width"; write: "setWidth"; index: 6; lineNumber: 23 }
         Method {
             name: "intersects"
             type: "bool"
             isMethodConstant: true
-            lineNumber: 59
+            lineNumber: 60
             Parameter { name: "rectangle"; type: "QGeoRectangle" }
         }
         Method {
             name: "translate"
-            lineNumber: 61
+            lineNumber: 62
             Parameter { name: "degreesLatitude"; type: "double" }
             Parameter { name: "degreesLongitude"; type: "double" }
         }
@@ -1402,27 +1414,29 @@ Module {
             name: "translated"
             type: "QGeoRectangle"
             isMethodConstant: true
-            lineNumber: 62
+            lineNumber: 63
             Parameter { name: "degreesLatitude"; type: "double" }
             Parameter { name: "degreesLongitude"; type: "double" }
         }
         Method {
             name: "extendRectangle"
-            lineNumber: 63
+            lineNumber: 64
             Parameter { name: "coordinate"; type: "QGeoCoordinate" }
         }
         Method {
             name: "united"
             type: "QGeoRectangle"
             isMethodConstant: true
-            lineNumber: 65
+            lineNumber: 66
             Parameter { name: "rectangle"; type: "QGeoRectangle" }
         }
-        Method { name: "toString"; type: "QString"; isMethodConstant: true; lineNumber: 69 }
+        Method { name: "toString"; type: "QString"; isMethodConstant: true; lineNumber: 70 }
     }
     Component {
         file: "private/qpositioningquickmodule_p.h"
-        lineNumber: 123
+        lineNumber: 124
+        resolvedFile: "qgeosatelliteinfo.h"
+        lineNumberInResolvedFile: 29
         name: "QGeoSatelliteInfo"
         accessSemantics: "value"
         exports: ["QtPositioning/geoSatelliteInfo 6.5"]
@@ -1430,12 +1444,12 @@ Module {
         exportMetaObjectRevisions: [1541]
         Enum {
             name: "Attribute"
-            lineNumber: 36
+            lineNumber: 37
             values: ["Elevation", "Azimuth"]
         }
         Enum {
             name: "SatelliteSystem"
-            lineNumber: 42
+            lineNumber: 43
             values: [
                 "Undefined",
                 "GPS",
@@ -1443,6 +1457,8 @@ Module {
                 "GALILEO",
                 "BEIDOU",
                 "QZSS",
+                "IRNSS",
+                "SBAS",
                 "Multiple",
                 "CustomType"
             ]
@@ -1452,7 +1468,7 @@ Module {
             type: "SatelliteSystem"
             read: "satelliteSystem"
             index: 0
-            lineNumber: 31
+            lineNumber: 32
             isReadonly: true
             isFinal: true
         }
@@ -1461,7 +1477,7 @@ Module {
             type: "int"
             read: "satelliteIdentifier"
             index: 1
-            lineNumber: 32
+            lineNumber: 33
             isReadonly: true
             isFinal: true
         }
@@ -1470,7 +1486,7 @@ Module {
             type: "double"
             read: "signalStrength"
             index: 2
-            lineNumber: 33
+            lineNumber: 34
             isReadonly: true
             isFinal: true
         }
@@ -1478,20 +1494,22 @@ Module {
             name: "attribute"
             type: "double"
             isMethodConstant: true
-            lineNumber: 84
+            lineNumber: 87
             Parameter { name: "attribute"; type: "Attribute" }
         }
         Method {
             name: "hasAttribute"
             type: "bool"
             isMethodConstant: true
-            lineNumber: 87
+            lineNumber: 90
             Parameter { name: "attribute"; type: "Attribute" }
         }
     }
     Component {
         file: "private/qpositioningquickmodule_p.h"
-        lineNumber: 138
+        lineNumber: 139
+        resolvedFile: "private/qpositioningquickmodule_p.h"
+        lineNumberInResolvedFile: 134
         name: "QGeoSatelliteInfoDerived"
         accessSemantics: "none"
         prototype: "QGeoSatelliteInfo"
@@ -1501,14 +1519,16 @@ Module {
     }
     Component {
         file: "private/qpositioningquickmodule_p.h"
-        lineNumber: 97
+        lineNumber: 98
+        resolvedFile: "qgeoshape.h"
+        lineNumberInResolvedFile: 17
         name: "QGeoShape"
         accessSemantics: "value"
         exports: ["QtPositioning/geoShape 5.0", "QtPositioning/geoShape 6.0"]
         exportMetaObjectRevisions: [1280, 1536]
         Enum {
             name: "ShapeType"
-            lineNumber: 29
+            lineNumber: 30
             values: [
                 "UnknownType",
                 "RectangleType",
@@ -1517,13 +1537,13 @@ Module {
                 "PolygonType"
             ]
         }
-        Property { name: "type"; type: "ShapeType"; read: "type"; index: 0; lineNumber: 19; isReadonly: true }
+        Property { name: "type"; type: "ShapeType"; read: "type"; index: 0; lineNumber: 20; isReadonly: true }
         Property {
             name: "isValid"
             type: "bool"
             read: "isValid"
             index: 1
-            lineNumber: 20
+            lineNumber: 21
             isReadonly: true
         }
         Property {
@@ -1531,7 +1551,7 @@ Module {
             type: "bool"
             read: "isEmpty"
             index: 2
-            lineNumber: 21
+            lineNumber: 22
             isReadonly: true
         }
         Property {
@@ -1539,33 +1559,33 @@ Module {
             type: "QGeoCoordinate"
             read: "center"
             index: 3
-            lineNumber: 22
+            lineNumber: 23
             isReadonly: true
         }
         Method {
             name: "contains"
             type: "bool"
             isMethodConstant: true
-            lineNumber: 42
+            lineNumber: 43
             Parameter { name: "coordinate"; type: "QGeoCoordinate" }
         }
         Method {
             name: "boundingGeoRectangle"
             type: "QGeoRectangle"
             isMethodConstant: true
-            lineNumber: 43
+            lineNumber: 44
         }
-        Method { name: "toString"; type: "QString"; isMethodConstant: true; lineNumber: 57 }
+        Method { name: "toString"; type: "QString"; isMethodConstant: true; lineNumber: 58 }
         Method {
             name: "QGeoShape"
             isConstructor: true
-            lineNumber: 26
+            lineNumber: 27
             Parameter { name: "other"; type: "QGeoShape" }
         }
     }
     Component {
         file: "private/qquickgeocoordinateanimation_p.h"
-        lineNumber: 26
+        lineNumber: 27
         name: "QQuickGeoCoordinateAnimation"
         accessSemantics: "reference"
         prototype: "QQuickPropertyAnimation"
@@ -1576,7 +1596,7 @@ Module {
         exportMetaObjectRevisions: [1283, 1536]
         Enum {
             name: "Direction"
-            lineNumber: 38
+            lineNumber: 39
             values: ["Shortest", "West", "East"]
         }
         Property {
@@ -1585,9 +1605,18 @@ Module {
             read: "from"
             write: "setFrom"
             index: 0
-            lineNumber: 32
+            lineNumber: 33
+            isOverride: true
         }
-        Property { name: "to"; type: "QGeoCoordinate"; read: "to"; write: "setTo"; index: 1; lineNumber: 33 }
+        Property {
+            name: "to"
+            type: "QGeoCoordinate"
+            read: "to"
+            write: "setTo"
+            index: 1
+            lineNumber: 34
+            isOverride: true
+        }
         Property {
             name: "direction"
             type: "Direction"
@@ -1596,8 +1625,8 @@ Module {
             write: "setDirection"
             notify: "directionChanged"
             index: 2
-            lineNumber: 34
+            lineNumber: 35
         }
-        Signal { name: "directionChanged"; lineNumber: 59 }
+        Signal { name: "directionChanged"; lineNumber: 60 }
     }
 }

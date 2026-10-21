@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Installer>
 	<Name>BonVGroundStation</Name>
-    <Version>STAGED_1.1</Version>
+    <Version>STAGED_1.2</Version>
 	<Title>BonVGroundStation Installer</Title>
 	<Publisher>BonV Aero</Publisher>
-	<StartMenuDir>BonVGroundStation_Staged_v1.1</StartMenuDir>
+	<StartMenuDir>BonVGroundStation_Staged_v1.2</StartMenuDir>
 	<TargetDir>@ApplicationsDir@/BonVGroundStation</TargetDir>
 	<ControlScript>controlscript.qs</ControlScript>
 	<RemoteRepositories>

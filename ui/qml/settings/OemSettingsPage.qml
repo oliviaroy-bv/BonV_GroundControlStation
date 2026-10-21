@@ -13,6 +13,10 @@ Item {
     property QtObject palette: Palette { darkMode: root.darkTheme }
     property string activeDetailPage: ""
     property int activeSectionIndex: -1
+    property bool draftPayloadButtonVisible: false
+    readonly property bool payloadButtonVisible: tacticalSettings.showPayloadButton
+    property bool draftVpsModuleEnabled: false
+    readonly property bool vpsModuleEnabled: vpsSettings.enabled
     property bool draftServoButtonVisible: true
     property string draftServoChannelsJson: "[9,10,11,12,13,14]"
     property int draftLowPwm: 1000
@@ -97,7 +101,8 @@ Item {
         { title: "Joystick", detail: "Configure joystick, axis mapping\nand control settings.", icon: "joystick", accent: root.accentColor, bg: root.iconTileColor },
         { title: "RC", detail: "Radio calibration,\nchannel mapping and reversals.", icon: "rc", accent: "#d9689d", bg: root.iconTileColor },
         { title: "MAVLink", detail: "Configure MAVLink connections,\nRTK, NTRIP and data settings.", icon: "network", accent: root.accentColor, bg: root.iconTileColor },
-        { title: "Modules", detail: "Configure external modules\n(VPS, ADS-B, Rangefinder, etc).", icon: "modules", accent: "#a48cd8", bg: root.iconTileColor },
+        { title: "Tactical", detail: "Configure Payload command button\nvisibility in the command panel.", icon: "modules", accent: "#a48cd8", bg: root.iconTileColor },
+        { title: "VPS", detail: "Enable visual positioning\ncontrols in the command panel.", icon: "telemetry", accent: root.accentColor, bg: root.iconTileColor },
         { title: "Safety", detail: "Failsafes, geofence, alarms\nand safety parameters.", icon: "safety", accent: root.successColor, bg: root.iconTileColor },
         { title: "User & License", detail: "License information,\nuser preferences and activation.", icon: "users", accent: root.dangerColor, bg: root.iconTileColor },
         { title: "Data Management", detail: "Logs, terrain data, maps\nand storage settings.", icon: "cloud", accent: root.accentColor, bg: root.iconTileColor },
@@ -116,6 +121,18 @@ Item {
         property int lowPwm: 1000
         property int midPwm: 1500
         property int highPwm: 2000
+    }
+
+    Settings {
+        id: tacticalSettings
+        category: "Tactical"
+        property bool showPayloadButton: false
+    }
+
+    Settings {
+        id: vpsSettings
+        category: "VPS"
+        property bool enabled: false
     }
 
     ListModel {
@@ -146,6 +163,8 @@ Item {
     onJoystickDevicesChanged: synchronizeSelectedJoystick()
 
     function loadDraftSettings() {
+        draftPayloadButtonVisible = tacticalSettings.showPayloadButton
+        draftVpsModuleEnabled = vpsSettings.enabled
         draftServoButtonVisible = servoSettings.showTopPanelButton
         draftServoChannelsJson = normalizedChannelsJson(servoSettings.selectedChannelsJson)
         draftLowPwm = safePwm(servoSettings.lowPwm, 1000)
@@ -161,6 +180,8 @@ Item {
         draftMidPwm = safePwm(draftMidPwm, 1500)
         draftHighPwm = safePwm(draftHighPwm, 2000)
 
+        tacticalSettings.showPayloadButton = draftPayloadButtonVisible
+        vpsSettings.enabled = draftVpsModuleEnabled
         servoSettings.showTopPanelButton = draftServoButtonVisible
         servoSettings.selectedChannelsJson = draftServoChannelsJson
         servoSettings.lowPwm = draftLowPwm
@@ -1082,6 +1103,10 @@ Item {
                                                ? mavlinkInspectorPage
                                              : root.activeDetailPage === "mavlink-forwarding"
                                                ? mavlinkForwardingPage
+                                             : root.activeDetailPage === "tactical"
+                                             ? tacticalSettingsPage
+                                             : root.activeDetailPage === "vps"
+                                             ? vpsSettingsPage
                                              : placeholderSettingsPage
                         }
                     }
@@ -1269,6 +1294,93 @@ Item {
                     PwmEditor { label: "LOW"; value: root.draftLowPwm; onEdited: root.draftLowPwm = value }
                     PwmEditor { label: "MID"; value: root.draftMidPwm; onEdited: root.draftMidPwm = value }
                     PwmEditor { label: "HIGH"; value: root.draftHighPwm; onEdited: root.draftHighPwm = value }
+                }
+            }
+        }
+    }
+
+    Component {
+        id: tacticalSettingsPage
+
+        ColumnLayout {
+            width: parent ? parent.width : 0
+            spacing: 14
+
+            SettingBlock {
+                title: "PAYLOAD COMMAND BUTTON"
+                detail: "Show Payload after RTL in critical actions when a vehicle is connected."
+
+                CheckBox {
+                    id: payloadButtonCheck
+                    checked: root.draftPayloadButtonVisible
+                    onToggled: root.draftPayloadButtonVisible = checked
+
+                    indicator: Rectangle {
+                        implicitWidth: 20
+                        implicitHeight: 20
+                        radius: 4
+                        color: payloadButtonCheck.checked ? root.accentColor : "#00000000"
+                        border.color: payloadButtonCheck.checked ? root.accentColor : root.borderColor
+                        border.width: 1
+
+                        Canvas {
+                            anchors.centerIn: parent
+                            width: 12
+                            height: 10
+                            visible: payloadButtonCheck.checked
+                            onPaint: {
+                                var ctx = getContext("2d")
+                                ctx.reset()
+                                ctx.strokeStyle = root.darkTheme ? root.pageColor : "#ffffff"
+                                ctx.lineWidth = 2
+                                ctx.lineCap = "round"
+                                ctx.lineJoin = "round"
+                                ctx.beginPath()
+                                ctx.moveTo(2, 5)
+                                ctx.lineTo(5, 8)
+                                ctx.lineTo(10, 2)
+                                ctx.stroke()
+                            }
+                        }
+                    }
+
+                    contentItem: Text {
+                        text: payloadButtonCheck.checked ? "Enabled" : "Disabled"
+                        color: payloadButtonCheck.checked ? root.accentColor : root.mutedColor
+                        font.pixelSize: 12
+                        font.bold: true
+                        verticalAlignment: Text.AlignVCenter
+                        leftPadding: 28
+                    }
+                }
+            }
+        }
+    }
+
+    Component {
+        id: vpsSettingsPage
+
+        ColumnLayout {
+            width: parent ? parent.width : 0
+            spacing: 14
+
+            SettingBlock {
+                title: "VPS MODULE"
+                detail: "Show VPS controls in the command panel when a vehicle is connected."
+
+                CheckBox {
+                    id: vpsModuleCheck
+                    checked: root.draftVpsModuleEnabled
+                    onToggled: root.draftVpsModuleEnabled = checked
+                    text: checked ? "Enabled" : "Disabled"
+                    contentItem: Text {
+                        text: vpsModuleCheck.text
+                        color: vpsModuleCheck.checked ? root.accentColor : root.mutedColor
+                        font.pixelSize: 12
+                        font.bold: true
+                        verticalAlignment: Text.AlignVCenter
+                        leftPadding: vpsModuleCheck.indicator.width + 8
+                    }
                 }
             }
         }

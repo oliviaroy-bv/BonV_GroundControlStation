@@ -21,17 +21,32 @@ T.SearchField {
                              searchIndicator.implicitIndicatorHeight + topPadding + bottomPadding,
                              clearIndicator.implicitIndicatorHeight + topPadding + bottomPadding)
 
-    leftPadding: padding + (control.mirrored || !searchIndicator.indicator || !searchIndicator.indicator.visible ? 0 : searchIndicator.indicator.width + spacing)
-    rightPadding: padding + (control.mirrored || !clearIndicator.indicator || !clearIndicator.indicator.visible ? 0 : clearIndicator.indicator.width + spacing)
+    readonly property bool __searchIndicatorVisible: control.searchIndicator.indicator && control.searchIndicator.indicator.visible
+    readonly property bool __clearIndicatorVisible: control.clearIndicator.indicator && control.clearIndicator.indicator.visible
+
+    leftPadding: padding + (control.mirrored
+                            ? (control.__clearIndicatorVisible ? control.clearIndicator.indicator.width + spacing : 0)
+                            : (control.__searchIndicatorVisible ? control.searchIndicator.indicator.width + spacing : 0))
+
+    rightPadding: padding + (control.mirrored
+                             ? (control.__searchIndicatorVisible ? control.searchIndicator.indicator.width + spacing : 0)
+                             : (control.__clearIndicatorVisible ? control.clearIndicator.indicator.width + spacing : 0))
 
     delegate: MenuItem {
+        id: delegate
+
         width: ListView.view.width
-        text: model[control.textRole]
-        font.weight: control.currentIndex === index ? Font.DemiBold : Font.Normal
         highlighted: control.highlightedIndex === index
         hoverEnabled: control.hoverEnabled
 
         Material.foreground: control.currentIndex === index ? ListView.view.contentItem.Material.accent : ListView.view.contentItem.Material.foreground
+
+        contentItem: Text {
+            text: delegate.model[control.textRole]
+            color: delegate.enabled ? delegate.Material.foreground : delegate.Material.hintTextColor
+            elide: Text.ElideRight
+            verticalAlignment: Text.AlignVCenter
+        }
 
         required property var model
         required property int index
@@ -39,8 +54,8 @@ T.SearchField {
 
     searchIndicator.indicator: Item {
         x: !control.mirrored ? 10 : control.width - width - 10
-        y: control.topPadding + (control.availableHeight - height) / 2
-        height: control.height
+        y: control.topPadding
+        height: control.availableHeight
         width: height / 2
 
         ColorImage {
@@ -54,8 +69,8 @@ T.SearchField {
 
     clearIndicator.indicator: Item {
         x: control.mirrored ? 10 : control.width - width - 10
-        y: control.topPadding + (control.availableHeight - height) / 2
-        height: control.height
+        y: control.topPadding
+        height: control.availableHeight
         width: height / 2
         visible: control.text.length > 0
 
@@ -69,17 +84,50 @@ T.SearchField {
     }
 
     contentItem: T.TextField {
+        implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset,
+                                 contentHeight + topPadding + bottomPadding)
+
         leftPadding: Material.textFieldHorizontalPadding
+                     + (control.mirrored ? (control.__clearIndicatorVisible ? 6 : 3)
+                                         : (control.__searchIndicatorVisible ? 6 : 3))
         rightPadding: Material.textFieldHorizontalPadding
+                      + (control.mirrored ? (control.__searchIndicatorVisible ? 6 : 3)
+                                          : (control.__clearIndicatorVisible ? 6 : 3))
         topPadding: Material.textFieldVerticalPadding
         bottomPadding: Material.textFieldVerticalPadding
 
+        // If we're clipped, set topInset to half the height of the placeholder text to avoid it being clipped.
+        topInset: clip ? placeholder.height / 2 : 0
+
         text: control.text
+        placeholderText: control.placeholderText
+
+        PlaceholderText {
+            id: placeholder
+            x: parent.leftPadding
+            y: parent.topPadding
+            width: parent.width - parent.leftPadding - parent.rightPadding
+            height: parent.height - parent.topPadding - parent.bottomPadding
+
+            text: control.placeholderText
+            font: parent.font
+            color: parent.enabled && parent.activeFocus ? Material.accentColor : Material.hintTextColor
+            visible: !parent.length && !parent.preeditText && (!parent.activeFocus || parent.horizontalAlignment !== Qt.AlignHCenter)
+            verticalAlignment: parent.verticalAlignment
+            elide: Text.ElideRight
+            renderType: parent.renderType
+        }
+
+        selectByMouse: control.selectTextByMouse
 
         color: control.enabled ? control.Material.foreground : control.Material.hintTextColor
         selectionColor: control.Material.accentColor
         selectedTextColor: control.Material.primaryHighlightedTextColor
         verticalAlignment: Text.AlignVCenter
+
+        ContextMenu.menu: TextEditingContextMenu {
+            editor: parent
+        }
 
         cursorDelegate: CursorDelegate { }
     }
@@ -102,6 +150,10 @@ T.SearchField {
         topMargin: 10
         bottomMargin: 10
         verticalPadding: 10
+
+        Material.theme: control.Material.theme
+        Material.accent: control.Material.accent
+        Material.primary: control.Material.primary
 
         contentItem: ListView {
             clip: true

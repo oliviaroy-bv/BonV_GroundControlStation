@@ -75,6 +75,15 @@ Item {
     property bool preflightChecklistOpen: false
     property string currentClockText: "--:--"
     property bool oemSettingsOpen: false
+    readonly property var vpsModuleMarkers: ({vio: oemSettingsPage.vpsModuleEnabled && vpsMarkerSettings.vio, vpr: oemSettingsPage.vpsModuleEnabled && vpsMarkerSettings.vpr, fused: oemSettingsPage.vpsModuleEnabled && vpsMarkerSettings.fused})
+
+    Settings {
+        id: vpsMarkerSettings
+        category: "VPSMarkers"
+        property bool vio: false
+        property bool vpr: false
+        property bool fused: false
+    }
 
     onMissionGraphDrawerMaxHeightChanged: {
         root.missionGraphDrawerHeight = root.clampMissionGraphDrawerHeight(root.missionGraphDrawerHeight)
@@ -601,6 +610,8 @@ Item {
 
         FlyMap {
             id: flyMap
+            mavlinkObject: root.mavlinkObject
+            vpsMarkers: root.vpsModuleMarkers
 
             anchors.fill: parent
             vehicleConnected: root.vehicleConnected
@@ -993,6 +1004,11 @@ Item {
 
     TopPanel {
         id: topBar
+        vpsModuleEnabled: oemSettingsPage.vpsModuleEnabled
+        vpsVioMarker: vpsMarkerSettings.vio
+        vpsVprMarker: vpsMarkerSettings.vpr
+        vpsFusedMarker: vpsMarkerSettings.fused
+        onVpsMarkerChanged: function(marker, enabled) { vpsMarkerSettings[marker] = enabled }
         z: 20
         layer.enabled: root.preflightChecklistOpen
         layer.effect: MultiEffect {
@@ -2349,6 +2365,9 @@ Item {
 
     BottomPanel {
         id: bottomBar
+        payloadButtonVisible: oemSettingsPage.payloadButtonVisible
+        vpsModuleEnabled: oemSettingsPage.vpsModuleEnabled
+        payloadPanelRightInset: root.telemetryPanelOpen ? root.rightPanelWidth : 0
         z: 33
         layer.enabled: root.preflightChecklistOpen
         layer.effect: MultiEffect {
@@ -3725,6 +3744,8 @@ Item {
 
         FlyMap {
             vehicleConnected: root.vehicleConnected
+            mavlinkObject: root.mavlinkObject
+            vpsMarkers: root.vpsModuleMarkers
             vehicle: root.vehicle
             missionWaypoints: root.mavlinkObject ? root.mavlinkObject.missionWaypoints : []
             mission3dWaypoints: root.mavlinkObject ? root.mavlinkObject.missionElevationWaypoints : []

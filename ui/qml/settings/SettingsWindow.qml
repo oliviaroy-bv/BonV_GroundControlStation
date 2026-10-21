@@ -26,6 +26,13 @@ Window {
     readonly property bool editingLink: editingLinkIndex >= 0
     property string mapViewMode: "satellite"
     property var mavlinkObject: null
+    property bool vpsModuleEnabled: false
+    property bool vehicleArmed: false
+    property bool vpsVioMarker: false
+    property bool vpsVprMarker: false
+    property bool vpsFusedMarker: false
+    signal vpsMarkerChanged(string marker, bool enabled)
+    onVpsModuleEnabledChanged: if (!vpsModuleEnabled && activeCategory === "vps") activeCategory = "comm"
     property var videoObject: null
     property string pendingCommAddress: ""
     property string pendingCameraAddress: ""
@@ -602,6 +609,7 @@ Window {
                 SideButton { iconType: "camera"; label: "CAM"; selected: root.activeCategory === "camera"; onClicked: root.activeCategory = "camera" }
                 SideButton { iconType: "log"; label: "LOG"; selected: root.activeCategory === "log"; onClicked: root.activeCategory = "log" }
                 SideButton { iconType: "maps"; label: "MAPS"; selected: root.activeCategory === "maps"; onClicked: root.activeCategory = "maps" }
+                SideButton { iconType: "general"; label: "VPS"; visible: root.vpsModuleEnabled; selected: root.activeCategory === "vps"; onClicked: { root.activeCategory = "vps"; if (root.mavlinkObject && root.mavlinkObject.vpsConnected) root.mavlinkObject.refreshVpsConfig() } }
             }
         }
 
@@ -615,6 +623,7 @@ Window {
                   : root.activeCategory === "comm" ? "COMMUNICATION LINKS"
                   : root.activeCategory === "camera" ? "CAMERA LINKS"
                   : root.activeCategory === "log" ? "LOG SETTINGS"
+                  : root.activeCategory === "vps" ? "VPS SETTINGS"
                   : "MAP SETTINGS"
             color: root.accentColor
             font.pixelSize: 14
@@ -651,6 +660,110 @@ Window {
             anchors.topMargin: 56
             height: 1
             color: root.borderColor
+        }
+
+        Flickable {
+            id: vpsView
+            property bool requestedOnConnection: false
+            visible: root.activeCategory === "vps" && root.vpsModuleEnabled
+            anchors.left: sideRail.right; anchors.leftMargin: 24
+            anchors.right: parent.right; anchors.rightMargin: 24
+            anchors.top: parent.top; anchors.topMargin: 78
+            anchors.bottom: parent.bottom; anchors.bottomMargin: 24
+            contentWidth: width; contentHeight: vpsColumn.implicitHeight
+            clip: true; boundsBehavior: Flickable.StopAtBounds
+            ScrollBar.vertical: ScrollBar { }
+
+            function result(sent) {
+                vpsMessage.text = sent ? "Request sent. Refresh to check the reported configuration." : "Request could not be sent. Check the VPS connection and values."
+            }
+            function loadConfig() {
+                if (!root.mavlinkObject) return
+                var c = root.mavlinkObject.vpsConfig
+                if (c.latitude === undefined) return
+                latitude.text = String(c.latitude); longitude.text = String(c.longitude)
+                logAuto.checked = c.logging; sensorSpeed.currentIndex = c.sensorSpeed === 1 ? 1 : 0
+                fixType.currentIndex = Math.max(0, Math.min(3, c.fixType - 3))
+                sats.text = String(c.satCount); hdop.text = String(c.hdop)
+                hAcc.text = String(c.hAcc); vAcc.text = String(c.vAcc)
+                healthy.text = String(c.healthy); unhealthy.text = String(c.unhealthy)
+                jamEnable.checked = c.jamEnabled; jamTime.text = String(c.jamTime)
+                jamHAcc.text = String(c.jamHAcc); jamVAcc.text = String(c.jamVAcc)
+                jamUnhealthy.text = String(c.jamUnhealthy)
+                vpsMessage.text = "Configuration received from VPS."
+            }
+            Connections {
+                target: root.mavlinkObject
+                function onVpsConfigChanged() { vpsView.loadConfig() }
+                function onVpsStatusChanged() {
+                    if (!root.mavlinkObject.vpsConnected) vpsView.requestedOnConnection = false
+                    else if (root.activeCategory === "vps" && !vpsView.requestedOnConnection && root.mavlinkObject.vpsConfig.latitude === undefined) {
+                        vpsView.requestedOnConnection = true
+                        root.mavlinkObject.refreshVpsConfig()
+                    }
+                }
+            }
+            ColumnLayout {
+                id: vpsColumn
+                width: vpsView.width; spacing: 10
+                Label { text: root.mavlinkObject && root.mavlinkObject.vpsConnected ? "VPS CONNECTED" : "VPS DISCONNECTED"; color: root.accentColor; font.bold: true }
+                Button { text: "Refresh configuration"; enabled: root.mavlinkObject && root.mavlinkObject.vpsConnected; onClicked: vpsView.result(root.mavlinkObject.refreshVpsConfig()) }
+                Label { id: vpsMessage; Layout.fillWidth: true; text: "Connect to the VPS and refresh its configuration."; color: root.labelColor; wrapMode: Text.WordWrap }
+                Label { text: "VPS CONFIGURATION"; color: root.accentColor; font.bold: true }
+                CheckBox { text: "VIO marker"; checked: root.vpsVioMarker; onToggled: root.vpsMarkerChanged("vio", checked) }
+                CheckBox { text: "VPR marker"; checked: root.vpsVprMarker; onToggled: root.vpsMarkerChanged("vpr", checked) }
+                CheckBox { text: "VPS marker"; checked: root.vpsFusedMarker; onToggled: root.vpsMarkerChanged("fused", checked) }
+                CheckBox { id: logAuto; text: "Auto logging"; enabled: root.mavlinkObject && root.mavlinkObject.vpsConnected && root.mavlinkObject.vpsConfig.logging !== undefined }
+                Button { text: "Apply auto logging"; enabled: logAuto.enabled; onClicked: vpsView.result(root.mavlinkObject.setVpsLogging(logAuto.checked)) }
+                Label { text: "Initial latitude / longitude"; color: root.textColor }
+                RowLayout {
+                    Layout.fillWidth: true
+                    TextField { id: latitude; Layout.fillWidth: true; placeholderText: "Latitude"; validator: DoubleValidator { bottom: -90; top: 90; notation: DoubleValidator.StandardNotation } }
+                    TextField { id: longitude; Layout.fillWidth: true; placeholderText: "Longitude"; validator: DoubleValidator { bottom: -180; top: 180; notation: DoubleValidator.StandardNotation } }
+                    Button { text: "Set"; enabled: root.mavlinkObject && root.mavlinkObject.vpsConnected && latitude.acceptableInput && longitude.acceptableInput; onClicked: vpsView.result(root.mavlinkObject.setVpsHome(Number(latitude.text), Number(longitude.text))) }
+                }
+                Label { text: "Sensor clock speed"; color: root.textColor }
+                ComboBox { id: sensorSpeed; Layout.fillWidth: true; model: ["High", "Low"] }
+                Label { Layout.fillWidth: true; text: "Change only while disarmed. Restart Sensors and VIO after changing."; color: root.labelColor; wrapMode: Text.WordWrap }
+                Button { text: "Apply sensor speed"; enabled: root.mavlinkObject && root.mavlinkObject.vpsConnected && root.mavlinkObject.vpsConfig.sensorSpeed !== undefined && !root.vehicleArmed; onClicked: vpsView.result(root.mavlinkObject.setVpsSensorSpeed(sensorSpeed.currentIndex)) }
+                Label { Layout.fillWidth: true; text: "VPS data transfer and IMU vibration compensation: unavailable in the supplied VPS protocol."; color: root.labelColor; wrapMode: Text.WordWrap }
+                Label { text: "GPS HEALTH CHECKS"; color: root.accentColor; font.bold: true; Layout.topMargin: 12 }
+                Label { text: "Used when auto aiding is enabled."; color: root.labelColor }
+                Label { text: "GPS fix type"; color: root.textColor }
+                ComboBox { id: fixType; Layout.fillWidth: true; model: ["3D fix", "DGPS", "RTK float", "RTK fixed"] }
+                Label { text: "Satellite count"; color: root.textColor }
+                TextField { id: sats; Layout.fillWidth: true; validator: IntValidator { bottom: 0; top: 255 } }
+                Label { text: "HDOP"; color: root.textColor }
+                TextField { id: hdop; Layout.fillWidth: true; validator: DoubleValidator { bottom: 0; top: 100; notation: DoubleValidator.StandardNotation } }
+                Label { text: "Horizontal accuracy (mm)"; color: root.textColor }
+                TextField { id: hAcc; Layout.fillWidth: true; validator: IntValidator { bottom: 0; top: 1000000 } }
+                Label { text: "Velocity accuracy (mm/s)"; color: root.textColor }
+                TextField { id: vAcc; Layout.fillWidth: true; validator: IntValidator { bottom: 0; top: 1000000 } }
+                Label { text: "Healthy duration (s)"; color: root.textColor }
+                TextField { id: healthy; Layout.fillWidth: true; validator: DoubleValidator { bottom: 0; top: 3600; notation: DoubleValidator.StandardNotation } }
+                Label { text: "Unhealthy duration (s)"; color: root.textColor }
+                TextField { id: unhealthy; Layout.fillWidth: true; validator: DoubleValidator { bottom: 0; top: 3600; notation: DoubleValidator.StandardNotation } }
+                Button {
+                    text: "Apply GPS check parameters"
+                    enabled: root.mavlinkObject && root.mavlinkObject.vpsConnected && root.mavlinkObject.vpsConfig.fixType !== undefined && sats.acceptableInput && hdop.acceptableInput && hAcc.acceptableInput && vAcc.acceptableInput && healthy.acceptableInput && unhealthy.acceptableInput
+                    onClicked: vpsView.result(root.mavlinkObject.setVpsGpsCheck({fixType: fixType.currentIndex + 3, satCount: sats.text, hdop: hdop.text, hAcc: hAcc.text, vAcc: vAcc.text, healthy: healthy.text, unhealthy: unhealthy.text}))
+                }
+                Label { text: "GPS JAMMING DETECTION"; color: root.accentColor; font.bold: true; Layout.topMargin: 12 }
+                CheckBox { id: jamEnable; text: "Enable jamming detection" }
+                Label { text: "Sample time (s)"; color: root.textColor }
+                TextField { id: jamTime; Layout.fillWidth: true; validator: DoubleValidator { bottom: 0; top: 3600; notation: DoubleValidator.StandardNotation } }
+                Label { text: "Horizontal accuracy delta (mm)"; color: root.textColor }
+                TextField { id: jamHAcc; Layout.fillWidth: true; validator: IntValidator { bottom: 0; top: 1000000 } }
+                Label { text: "Velocity accuracy delta (mm/s)"; color: root.textColor }
+                TextField { id: jamVAcc; Layout.fillWidth: true; validator: IntValidator { bottom: 0; top: 1000000 } }
+                Label { text: "Unhealthy duration (s)"; color: root.textColor }
+                TextField { id: jamUnhealthy; Layout.fillWidth: true; validator: DoubleValidator { bottom: 0; top: 3600; notation: DoubleValidator.StandardNotation } }
+                Button {
+                    text: "Apply jamming parameters"
+                    enabled: root.mavlinkObject && root.mavlinkObject.vpsConnected && root.mavlinkObject.vpsConfig.jamEnabled !== undefined && jamTime.acceptableInput && jamHAcc.acceptableInput && jamVAcc.acceptableInput && jamUnhealthy.acceptableInput
+                    onClicked: vpsView.result(root.mavlinkObject.setVpsGpsJamming({enabled: jamEnable.checked, time: jamTime.text, hAcc: jamHAcc.text, vAcc: jamVAcc.text, unhealthy: jamUnhealthy.text}))
+                }
+            }
         }
 
         Flickable {

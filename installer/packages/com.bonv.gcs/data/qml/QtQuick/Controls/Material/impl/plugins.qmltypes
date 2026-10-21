@@ -22,9 +22,20 @@ Module {
             "QtQuick.Controls.Material.impl/BusyIndicatorImpl 2.11",
             "QtQuick.Controls.Material.impl/BusyIndicatorImpl 6.0",
             "QtQuick.Controls.Material.impl/BusyIndicatorImpl 6.3",
-            "QtQuick.Controls.Material.impl/BusyIndicatorImpl 6.7"
+            "QtQuick.Controls.Material.impl/BusyIndicatorImpl 6.7",
+            "QtQuick.Controls.Material.impl/BusyIndicatorImpl 6.12"
         ]
-        exportMetaObjectRevisions: [512, 513, 516, 519, 523, 1536, 1539, 1543]
+        exportMetaObjectRevisions: [
+            512,
+            513,
+            516,
+            519,
+            523,
+            1536,
+            1539,
+            1543,
+            1548
+        ]
         Property {
             name: "color"
             type: "QColor"
@@ -52,9 +63,10 @@ Module {
         prototype: "QQuickPlaceholderText"
         exports: [
             "QtQuick.Controls.Material.impl/FloatingPlaceholderText 6.5",
-            "QtQuick.Controls.Material.impl/FloatingPlaceholderText 6.7"
+            "QtQuick.Controls.Material.impl/FloatingPlaceholderText 6.7",
+            "QtQuick.Controls.Material.impl/FloatingPlaceholderText 6.12"
         ]
-        exportMetaObjectRevisions: [1541, 1543]
+        exportMetaObjectRevisions: [1541, 1543, 1548]
         Property {
             name: "filled"
             type: "bool"
@@ -164,9 +176,20 @@ Module {
             "QtQuick.Controls.Material.impl/ProgressBarImpl 2.11",
             "QtQuick.Controls.Material.impl/ProgressBarImpl 6.0",
             "QtQuick.Controls.Material.impl/ProgressBarImpl 6.3",
-            "QtQuick.Controls.Material.impl/ProgressBarImpl 6.7"
+            "QtQuick.Controls.Material.impl/ProgressBarImpl 6.7",
+            "QtQuick.Controls.Material.impl/ProgressBarImpl 6.12"
         ]
-        exportMetaObjectRevisions: [512, 513, 516, 519, 523, 1536, 1539, 1543]
+        exportMetaObjectRevisions: [
+            512,
+            513,
+            516,
+            519,
+            523,
+            1536,
+            1539,
+            1543,
+            1548
+        ]
         Property {
             name: "color"
             type: "QColor"
@@ -211,9 +234,20 @@ Module {
             "QtQuick.Controls.Material.impl/Ripple 2.11",
             "QtQuick.Controls.Material.impl/Ripple 6.0",
             "QtQuick.Controls.Material.impl/Ripple 6.3",
-            "QtQuick.Controls.Material.impl/Ripple 6.7"
+            "QtQuick.Controls.Material.impl/Ripple 6.7",
+            "QtQuick.Controls.Material.impl/Ripple 6.12"
         ]
-        exportMetaObjectRevisions: [512, 513, 516, 519, 523, 1536, 1539, 1543]
+        exportMetaObjectRevisions: [
+            512,
+            513,
+            516,
+            519,
+            523,
+            1536,
+            1539,
+            1543,
+            1548
+        ]
         Enum {
             name: "Trigger"
             lineNumber: 52
@@ -283,9 +317,10 @@ Module {
         prototype: "QQuickPaintedItem"
         exports: [
             "QtQuick.Controls.Material.impl/MaterialTextContainer 6.5",
-            "QtQuick.Controls.Material.impl/MaterialTextContainer 6.7"
+            "QtQuick.Controls.Material.impl/MaterialTextContainer 6.7",
+            "QtQuick.Controls.Material.impl/MaterialTextContainer 6.12"
         ]
-        exportMetaObjectRevisions: [1541, 1543]
+        exportMetaObjectRevisions: [1541, 1543, 1548]
         Enum {
             name: "PlaceHolderHAlignment"
             lineNumber: 48

@@ -8,12 +8,12 @@ import QtQuick.tooling 1.2
 Module {
     Component {
         file: "qpa/qplatformtheme.h"
-        lineNumber: 42
+        lineNumber: 43
         name: "QPlatformTheme"
         accessSemantics: "value"
         Enum {
             name: "ThemeHint"
-            lineNumber: 50
+            lineNumber: 51
             values: [
                 "CursorFlashTime",
                 "KeyboardInputInterval",
@@ -72,7 +72,7 @@ Module {
         }
         Enum {
             name: "DialogType"
-            lineNumber: 107
+            lineNumber: 108
             values: [
                 "FileDialog",
                 "ColorDialog",
@@ -82,7 +82,7 @@ Module {
         }
         Enum {
             name: "Palette"
-            lineNumber: 115
+            lineNumber: 116
             values: [
                 "SystemPalette",
                 "ToolTipPalette",
@@ -107,7 +107,7 @@ Module {
         }
         Enum {
             name: "Font"
-            lineNumber: 138
+            lineNumber: 139
             values: [
                 "SystemFont",
                 "MenuFont",
@@ -141,7 +141,7 @@ Module {
         }
         Enum {
             name: "StandardPixmap"
-            lineNumber: 170
+            lineNumber: 171
             values: [
                 "TitleBarMenuButton",
                 "TitleBarMinButton",
@@ -222,13 +222,17 @@ Module {
                 "DialogIgnoreButton",
                 "RestoreDefaultsButton",
                 "TabCloseButton",
+                "TabScrollLeftButton",
+                "TabScrollRightButton",
+                "TabScrollUpButton",
+                "TabScrollDownButton",
                 "NStandardPixmap",
                 "CustomBase"
             ]
         }
         Enum {
             name: "KeyboardSchemes"
-            lineNumber: 257
+            lineNumber: 262
             values: [
                 "WindowsKeyboardScheme",
                 "MacKeyboardScheme",
@@ -240,7 +244,7 @@ Module {
         }
         Enum {
             name: "UiEffect"
-            lineNumber: 268
+            lineNumber: 273
             values: [
                 "GeneralUiEffect",
                 "AnimateMenuUiEffect",
@@ -282,7 +286,8 @@ Module {
             "QtQuick.Controls.impl/CheckLabel 6.0",
             "QtQuick.Controls.impl/CheckLabel 6.2",
             "QtQuick.Controls.impl/CheckLabel 6.3",
-            "QtQuick.Controls.impl/CheckLabel 6.7"
+            "QtQuick.Controls.impl/CheckLabel 6.7",
+            "QtQuick.Controls.impl/CheckLabel 6.12"
         ]
         exportMetaObjectRevisions: [
             515,
@@ -295,7 +300,8 @@ Module {
             1536,
             1538,
             1539,
-            1543
+            1543,
+            1548
         ]
     }
     Component {
@@ -316,7 +322,8 @@ Module {
             "QtQuick.Controls.impl/ClippedText 6.0",
             "QtQuick.Controls.impl/ClippedText 6.2",
             "QtQuick.Controls.impl/ClippedText 6.3",
-            "QtQuick.Controls.impl/ClippedText 6.7"
+            "QtQuick.Controls.impl/ClippedText 6.7",
+            "QtQuick.Controls.impl/ClippedText 6.12"
         ]
         exportMetaObjectRevisions: [
             514,
@@ -330,7 +337,8 @@ Module {
             1536,
             1538,
             1539,
-            1543
+            1543,
+            1548
         ]
         Property {
             name: "clipX"
@@ -370,37 +378,6 @@ Module {
         }
     }
     Component {
-        file: "private/qquickcolor_p.h"
-        lineNumber: 26
-        name: "QQuickColor"
-        accessSemantics: "reference"
-        prototype: "QObject"
-        exports: [
-            "QtQuick.Controls.impl/Color 2.3",
-            "QtQuick.Controls.impl/Color 6.0"
-        ]
-        isCreatable: false
-        isSingleton: true
-        exportMetaObjectRevisions: [515, 1536]
-        Method {
-            name: "transparent"
-            type: "QColor"
-            isMethodConstant: true
-            lineNumber: 36
-            Parameter { name: "color"; type: "QColor" }
-            Parameter { name: "opacity"; type: "double" }
-        }
-        Method {
-            name: "blend"
-            type: "QColor"
-            isMethodConstant: true
-            lineNumber: 37
-            Parameter { name: "a"; type: "QColor" }
-            Parameter { name: "b"; type: "QColor" }
-            Parameter { name: "factor"; type: "double" }
-        }
-    }
-    Component {
         file: "private/qquickcolorimage_p.h"
         lineNumber: 25
         name: "QQuickColorImage"
@@ -418,7 +395,8 @@ Module {
             "QtQuick.Controls.impl/ColorImage 6.2",
             "QtQuick.Controls.impl/ColorImage 6.3",
             "QtQuick.Controls.impl/ColorImage 6.7",
-            "QtQuick.Controls.impl/ColorImage 6.8"
+            "QtQuick.Controls.impl/ColorImage 6.8",
+            "QtQuick.Controls.impl/ColorImage 6.12"
         ]
         exportMetaObjectRevisions: [
             515,
@@ -432,7 +410,8 @@ Module {
             1538,
             1539,
             1543,
-            1544
+            1544,
+            1548
         ]
         Property {
             name: "color"
@@ -477,7 +456,8 @@ Module {
             "QtQuick.Controls.impl/IconImage 6.2",
             "QtQuick.Controls.impl/IconImage 6.3",
             "QtQuick.Controls.impl/IconImage 6.7",
-            "QtQuick.Controls.impl/IconImage 6.8"
+            "QtQuick.Controls.impl/IconImage 6.8",
+            "QtQuick.Controls.impl/IconImage 6.12"
         ]
         exportMetaObjectRevisions: [
             515,
@@ -491,7 +471,8 @@ Module {
             1538,
             1539,
             1543,
-            1544
+            1544,
+            1548
         ]
         Property {
             name: "name"
@@ -531,12 +512,24 @@ Module {
             "QtQuick.Controls.impl/IconLabel 2.11",
             "QtQuick.Controls.impl/IconLabel 6.0",
             "QtQuick.Controls.impl/IconLabel 6.3",
-            "QtQuick.Controls.impl/IconLabel 6.7"
+            "QtQuick.Controls.impl/IconLabel 6.7",
+            "QtQuick.Controls.impl/IconLabel 6.11",
+            "QtQuick.Controls.impl/IconLabel 6.12"
         ]
-        exportMetaObjectRevisions: [515, 516, 519, 523, 1536, 1539, 1543]
+        exportMetaObjectRevisions: [
+            515,
+            516,
+            519,
+            523,
+            1536,
+            1539,
+            1543,
+            1547,
+            1548
+        ]
         Enum {
             name: "Display"
-            lineNumber: 46
+            lineNumber: 48
             values: [
                 "IconOnly",
                 "TextOnly",
@@ -656,6 +649,18 @@ Module {
             lineNumber: 41
             isFinal: true
         }
+        Property {
+            name: "defaultIconColor"
+            revision: 1547
+            type: "QColor"
+            read: "defaultIconColor"
+            write: "setDefaultIconColor"
+            notify: "defaultIconColorChanged"
+            index: 12
+            lineNumber: 42
+            isFinal: true
+        }
+        Signal { name: "defaultIconColorChanged"; lineNumber: 103 }
     }
     Component {
         file: "private/qquickimageselector_p.h"
@@ -740,7 +745,8 @@ Module {
             "QtQuick.Controls.impl/ItemGroup 6.0",
             "QtQuick.Controls.impl/ItemGroup 6.2",
             "QtQuick.Controls.impl/ItemGroup 6.3",
-            "QtQuick.Controls.impl/ItemGroup 6.7"
+            "QtQuick.Controls.impl/ItemGroup 6.7",
+            "QtQuick.Controls.impl/ItemGroup 6.12"
         ]
         exportMetaObjectRevisions: [
             514,
@@ -750,8 +756,30 @@ Module {
             1536,
             1538,
             1539,
-            1543
+            1543,
+            1548
         ]
+    }
+    Component {
+        file: "private/qquickmenuitemiconlabel_p.h"
+        lineNumber: 26
+        name: "QQuickMenuItemIconLabel"
+        accessSemantics: "reference"
+        prototype: "QQuickIconLabel"
+        exports: ["QtQuick.Controls.impl/MenuItemIconLabel 6.12"]
+        exportMetaObjectRevisions: [1548]
+        Property {
+            name: "menuItem"
+            type: "QQuickMenuItem"
+            isPointer: true
+            read: "menuItem"
+            write: "setMenuItem"
+            notify: "menuItemChanged"
+            index: 0
+            lineNumber: 29
+            isFinal: true
+        }
+        Signal { name: "menuItemChanged"; lineNumber: 41 }
     }
     Component {
         file: "private/qquickmnemoniclabel_p.h"
@@ -770,7 +798,8 @@ Module {
             "QtQuick.Controls.impl/MnemonicLabel 6.0",
             "QtQuick.Controls.impl/MnemonicLabel 6.2",
             "QtQuick.Controls.impl/MnemonicLabel 6.3",
-            "QtQuick.Controls.impl/MnemonicLabel 6.7"
+            "QtQuick.Controls.impl/MnemonicLabel 6.7",
+            "QtQuick.Controls.impl/MnemonicLabel 6.12"
         ]
         exportMetaObjectRevisions: [
             515,
@@ -783,7 +812,8 @@ Module {
             1536,
             1538,
             1539,
-            1543
+            1543,
+            1548
         ]
         Property {
             name: "text"
@@ -822,7 +852,8 @@ Module {
             "QtQuick.Controls.impl/NinePatchImage 6.2",
             "QtQuick.Controls.impl/NinePatchImage 6.3",
             "QtQuick.Controls.impl/NinePatchImage 6.7",
-            "QtQuick.Controls.impl/NinePatchImage 6.8"
+            "QtQuick.Controls.impl/NinePatchImage 6.8",
+            "QtQuick.Controls.impl/NinePatchImage 6.12"
         ]
         exportMetaObjectRevisions: [
             515,
@@ -836,7 +867,8 @@ Module {
             1538,
             1539,
             1543,
-            1544
+            1544,
+            1548
         ]
         Property {
             name: "topPadding"
@@ -953,9 +985,20 @@ Module {
             "QtQuick.Controls.impl/PaddedRectangle 2.11",
             "QtQuick.Controls.impl/PaddedRectangle 6.0",
             "QtQuick.Controls.impl/PaddedRectangle 6.3",
-            "QtQuick.Controls.impl/PaddedRectangle 6.7"
+            "QtQuick.Controls.impl/PaddedRectangle 6.7",
+            "QtQuick.Controls.impl/PaddedRectangle 6.12"
         ]
-        exportMetaObjectRevisions: [512, 513, 516, 519, 523, 1536, 1539, 1543]
+        exportMetaObjectRevisions: [
+            512,
+            513,
+            516,
+            519,
+            523,
+            1536,
+            1539,
+            1543,
+            1548
+        ]
         Property {
             name: "padding"
             type: "double"
@@ -1035,7 +1078,8 @@ Module {
             "QtQuick.Controls.impl/PlaceholderText 6.0",
             "QtQuick.Controls.impl/PlaceholderText 6.2",
             "QtQuick.Controls.impl/PlaceholderText 6.3",
-            "QtQuick.Controls.impl/PlaceholderText 6.7"
+            "QtQuick.Controls.impl/PlaceholderText 6.7",
+            "QtQuick.Controls.impl/PlaceholderText 6.12"
         ]
         exportMetaObjectRevisions: [
             514,
@@ -1049,7 +1093,8 @@ Module {
             1536,
             1538,
             1539,
-            1543
+            1543,
+            1548
         ]
         Method { name: "updateAlignment"; lineNumber: 39 }
     }
@@ -1076,6 +1121,8 @@ Module {
     Component {
         file: "private/qquickchecklabel_p.h"
         lineNumber: 34
+        resolvedFile: "private/qquicktext_p.h"
+        lineNumberInResolvedFile: 28
         name: "QQuickText"
         accessSemantics: "reference"
         prototype: "QQuickImplicitSizeItem"
@@ -1161,6 +1208,7 @@ Module {
             notify: "textChanged"
             index: 0
             lineNumber: 33
+            isVirtual: true
         }
         Property {
             name: "font"
@@ -1170,6 +1218,7 @@ Module {
             notify: "fontChanged"
             index: 1
             lineNumber: 34
+            isVirtual: true
         }
         Property {
             name: "color"
@@ -1442,6 +1491,7 @@ Module {
             notify: "leftPaddingChanged"
             index: 30
             lineNumber: 65
+            isVirtual: true
         }
         Property {
             name: "rightPadding"
@@ -1615,9 +1665,19 @@ Module {
             "QtQuick.Controls.impl/TumblerView 2.11",
             "QtQuick.Controls.impl/TumblerView 6.0",
             "QtQuick.Controls.impl/TumblerView 6.3",
-            "QtQuick.Controls.impl/TumblerView 6.7"
+            "QtQuick.Controls.impl/TumblerView 6.7",
+            "QtQuick.Controls.impl/TumblerView 6.12"
         ]
-        exportMetaObjectRevisions: [513, 516, 519, 523, 1536, 1539, 1543]
+        exportMetaObjectRevisions: [
+            513,
+            516,
+            519,
+            523,
+            1536,
+            1539,
+            1543,
+            1548
+        ]
         Property {
             name: "model"
             type: "QVariant"

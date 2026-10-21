@@ -9,6 +9,25 @@ Item {
 
     property bool vehicleConnected: false
     property var vehicle: null
+    property var mavlinkObject: null
+    property var vpsMarkers: ({})
+    onVpsMarkersChanged: syncVpsMarkers()
+    onMavlinkObjectChanged: syncVpsMarkers()
+    Connections {
+        target: root.mavlinkObject
+        function onVpsStatusChanged() { root.syncVpsMarkers() }
+    }
+    function syncVpsMarkers() {
+        if (!mapReady) return
+        var status = mavlinkObject && mavlinkObject.vpsConnected ? mavlinkObject.vpsStatus : {}
+        var points = []
+        for (var name of ["vio", "vpr", "fused"]) {
+            var lat = Number(status[name + "Lat"]), lon = Number(status[name + "Lon"])
+            if (vpsMarkers[name] && isValidCoordinate(lat, lon))
+                points.push({name: name, lat: lat, lon: lon})
+        }
+        webView.runJavaScript("setVpsMarkers(" + JSON.stringify(points) + ");")
+    }
     property var missionWaypoints: []
     property var mission3dWaypoints: missionWaypoints
     property string mapViewMode: "satellite"
@@ -285,6 +304,7 @@ Item {
                 root.mapReady = true
 
                 syncMapViewMode()
+                syncVpsMarkers()
 
                 if (root.vehicleConnected) {
                     syncVehiclePosition()
