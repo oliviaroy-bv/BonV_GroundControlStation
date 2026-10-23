@@ -11,6 +11,7 @@ UdpLink::UdpLink(QObject *parent)
 
 bool UdpLink::connectLink(const QString &host, int port, int timeoutMs)
 {
+    Q_UNUSED(host)
     Q_UNUSED(timeoutMs)
 
     if (connectedState) {
@@ -22,21 +23,12 @@ bool UdpLink::connectLink(const QString &host, int port, int timeoutMs)
         pendingLookupId = -1;
     }
 
-    QHostAddress parsedAddress;
-    if (parsedAddress.setAddress(host)) {
-        connectResolvedAddress(parsedAddress, port);
-        return true;
-    }
+    if (!socket->bind(QHostAddress::AnyIPv4, static_cast<quint16>(port)))
+        return false;
 
-    pendingLookupId = QHostInfo::lookupHost(host, this, [this, port](const QHostInfo &hostInfo) {
-        pendingLookupId = -1;
-        if (hostInfo.error() != QHostInfo::NoError || hostInfo.addresses().isEmpty()) {
-            emit disconnected();
-            return;
-        }
-
-        connectResolvedAddress(hostInfo.addresses().first(), port);
-    });
+    connectedState = true;
+    hasPeer = false;
+    emit connected();
     return true;
 }
 
@@ -52,7 +44,9 @@ void UdpLink::disconnectLink()
     }
 
     socket->disconnectFromHost();
+    socket->close();
     connectedState = false;
+    hasPeer = false;
     emit disconnected();
 }
 
@@ -62,8 +56,13 @@ QByteArray UdpLink::readAll()
 
     while (socket->hasPendingDatagrams()) {
         QByteArray datagram;
+        QHostAddress sender;
+        quint16 senderPort = 0;
         datagram.resize(static_cast<int>(socket->pendingDatagramSize()));
-        socket->readDatagram(datagram.data(), datagram.size());
+        socket->readDatagram(datagram.data(), datagram.size(), &sender, &senderPort);
+        peerAddress = sender;
+        peerPort = senderPort;
+        hasPeer = true;
         data.append(datagram);
     }
 
@@ -76,7 +75,9 @@ qint64 UdpLink::writeData(const char *data, qint64 size)
         return -1;
     }
 
-    return socket->write(data, size);
+    if (!hasPeer)
+        return -1;
+    return socket->writeDatagram(data, size, peerAddress, peerPort);
 }
 
 bool UdpLink::flush()

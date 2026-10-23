@@ -27,6 +27,7 @@ private:
     QUdpSocket *socket = nullptr;
     QHostAddress peerAddress;
     quint16 peerPort = 0;
+    bool hasPeer = false;
     bool connectedState = false;
     int pendingLookupId = -1;
 };

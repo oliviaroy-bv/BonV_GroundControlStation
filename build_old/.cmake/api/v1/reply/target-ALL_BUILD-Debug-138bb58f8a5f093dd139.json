@@ -1,0 +1,95 @@
+{
+	"backtrace" : 0,
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : 
+		[
+			"CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			}
+		]
+	},
+	"codemodelVersion" : 
+	{
+		"major" : 2,
+		"minor" : 11
+	},
+	"dependencies" : 
+	[
+		{
+			"id" : "MavlinkPOCCore::@6890427a1f51a3e7e1df"
+		},
+		{
+			"id" : "BonVGroundStation::@6890427a1f51a3e7e1df"
+		},
+		{
+			"id" : "TerrainProviderTest::@a44f0ac069e85531cdee"
+		},
+		{
+			"id" : "MavlinkInspectorModelTest::@a44f0ac069e85531cdee"
+		},
+		{
+			"id" : "VideoTest::@a44f0ac069e85531cdee"
+		},
+		{
+			"id" : "MavlinkForwarderTest::@a44f0ac069e85531cdee"
+		},
+		{
+			"id" : "MavlinkTest::@a44f0ac069e85531cdee"
+		},
+		{
+			"id" : "VehicleManagerTest::@a44f0ac069e85531cdee"
+		},
+		{
+			"id" : "VehicleTest::@a44f0ac069e85531cdee"
+		},
+		{
+			"id" : "ZERO_CHECK::@6890427a1f51a3e7e1df"
+		}
+	],
+	"id" : "ALL_BUILD::@6890427a1f51a3e7e1df",
+	"isGeneratorProvided" : true,
+	"name" : "ALL_BUILD",
+	"orderDependencies" : 
+	[
+		{
+			"id" : "MavlinkPOCCore::@6890427a1f51a3e7e1df"
+		},
+		{
+			"id" : "BonVGroundStation::@6890427a1f51a3e7e1df"
+		},
+		{
+			"id" : "TerrainProviderTest::@a44f0ac069e85531cdee"
+		},
+		{
+			"id" : "MavlinkInspectorModelTest::@a44f0ac069e85531cdee"
+		},
+		{
+			"id" : "VideoTest::@a44f0ac069e85531cdee"
+		},
+		{
+			"id" : "MavlinkForwarderTest::@a44f0ac069e85531cdee"
+		},
+		{
+			"id" : "MavlinkTest::@a44f0ac069e85531cdee"
+		},
+		{
+			"id" : "VehicleManagerTest::@a44f0ac069e85531cdee"
+		},
+		{
+			"id" : "VehicleTest::@a44f0ac069e85531cdee"
+		}
+	],
+	"paths" : 
+	{
+		"build" : ".",
+		"source" : "."
+	},
+	"sources" : [],
+	"type" : "UTILITY"
+}

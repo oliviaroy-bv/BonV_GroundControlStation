@@ -41,6 +41,16 @@ static QPushButton *btn(const QString &t, QWidget *parent, const std::function<v
     return b;
 }
 
+static void styleToggle(QPushButton *button, bool on)
+{
+    button->setText(on ? "ON" : "OFF");
+    button->setStyleSheet(on
+        ? "QPushButton { background:#168b4b; border:1px solid #45ed88; color:white; font-weight:bold; padding:6px 18px; }"
+          "QPushButton:hover { background:#20aa5d; }"
+        : "QPushButton { background:#a83232; border:1px solid #ff7777; color:white; font-weight:bold; padding:6px 18px; }"
+          "QPushButton:hover { background:#c74343; }");
+}
+
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
     setWindowTitle("VPS Ground Station (MAVLink TUNNEL over TCP)");
@@ -235,6 +245,24 @@ QWidget *MainWindow::buildControlTab()
     h1->addWidget(btn("Stop", this, [this] {
         send(TX_PROCESS, buildProcess(Process(m_procCombo->currentIndex()), false),
              "Stop " + m_procCombo->currentText()); }));
+    auto *vioToggle = new QPushButton(this);
+    auto *vprToggle = new QPushButton(this);
+    styleToggle(vioToggle, false);
+    styleToggle(vprToggle, false);
+    h1->addWidget(new QLabel("VIO:"));
+    h1->addWidget(vioToggle);
+    h1->addWidget(new QLabel("VPR:"));
+    h1->addWidget(vprToggle);
+    connect(vioToggle, &QPushButton::clicked, this, [this, vioToggle] {
+        const bool on = vioToggle->text() != "ON";
+        send(TX_PROCESS, buildProcess(PROC_VIO, on), on ? "Start VIO" : "Stop VIO");
+        styleToggle(vioToggle, on);
+    });
+    connect(vprToggle, &QPushButton::clicked, this, [this, vprToggle] {
+        const bool on = vprToggle->text() != "ON";
+        send(TX_PROCESS, buildProcess(PROC_VPR, on), on ? "Start VPR" : "Stop VPR");
+        styleToggle(vprToggle, on);
+    });
     h1->addStretch();
 
     // 5.2 / 5.10 home / initial
@@ -262,10 +290,24 @@ QWidget *MainWindow::buildControlTab()
     // 5.7 / 5.13 / 5.8
     auto *g4 = new QGroupBox("Aiding (5.7, 5.13, 5.8)");
     auto *h4 = new QHBoxLayout(g4);
-    h4->addWidget(btn("Aiding ON",  this, [this] { send(TX_AIDING, buildByte(1), "Aiding ON"); m_manualAiding = true; setLabel("aid", "ON (commanded)"); }));
-    h4->addWidget(btn("Aiding OFF", this, [this] { send(TX_AIDING, buildByte(0), "Aiding OFF"); m_manualAiding = false; setLabel("aid", "OFF (commanded)"); }));
-    h4->addWidget(btn("Auto-Aiding ON",  this, [this] { send(TX_AUTO_AIDING, buildByte(1), "Auto aiding ON"); }));
-    h4->addWidget(btn("Auto-Aiding OFF", this, [this] { send(TX_AUTO_AIDING, buildByte(0), "Auto aiding OFF"); }));
+    auto *aidingToggle = new QPushButton(this);
+    auto *autoAidingToggle = new QPushButton(this);
+    styleToggle(aidingToggle, false);
+    styleToggle(autoAidingToggle, false);
+    h4->addWidget(new QLabel("Aiding:")); h4->addWidget(aidingToggle);
+    h4->addWidget(new QLabel("Auto-Aiding:")); h4->addWidget(autoAidingToggle);
+    connect(aidingToggle, &QPushButton::clicked, this, [this, aidingToggle] {
+        const bool on = aidingToggle->text() != "ON";
+        send(TX_AIDING, buildByte(on ? 1 : 0), on ? "Aiding ON" : "Aiding OFF");
+        m_manualAiding = on;
+        setLabel("aid", on ? "ON (commanded)" : "OFF (commanded)");
+        styleToggle(aidingToggle, on);
+    });
+    connect(autoAidingToggle, &QPushButton::clicked, this, [this, autoAidingToggle] {
+        const bool on = autoAidingToggle->text() != "ON";
+        send(TX_AUTO_AIDING, buildByte(on ? 1 : 0), on ? "Auto aiding ON" : "Auto aiding OFF");
+        styleToggle(autoAidingToggle, on);
+    });
     m_rcCh = ispin(5, 100, 100);
     m_rcCh->setToolTip("5..16 = RC channel, 100 = disabled");
     h4->addWidget(new QLabel("RC channel (100=off):")); h4->addWidget(m_rcCh);

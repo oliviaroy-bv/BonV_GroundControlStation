@@ -64,10 +64,23 @@ void prependEnvPath(const char *name, const QString &path)
 void configureBundledGStreamerRuntime()
 {
     const QDir appDir(QCoreApplication::applicationDirPath());
-    prependEnvPath("GST_PLUGIN_PATH", appDir.filePath("lib/gstreamer-1.0"));
+    const QString externalRoot = qEnvironmentVariable("BONV_GSTREAMER_ROOT").trimmed();
+    const bool useExternalRuntime = !externalRoot.isEmpty() && QDir(externalRoot).exists();
+    if (useExternalRuntime) {
+        prependEnvPath("PATH", QDir(externalRoot).filePath("bin"));
+        prependEnvPath("GST_PLUGIN_PATH", QDir(externalRoot).filePath("lib/gstreamer-1.0"));
+        const QString externalScanner = QDir(externalRoot).filePath(
+                    "libexec/gstreamer-1.0/gst-plugin-scanner.exe");
+        if (QFileInfo::exists(externalScanner)) {
+            qputenv("GST_PLUGIN_SCANNER", QDir::toNativeSeparators(externalScanner).toUtf8());
+        }
+    }
+    if (!useExternalRuntime) {
+        prependEnvPath("GST_PLUGIN_PATH", appDir.filePath("lib/gstreamer-1.0"));
+    }
 
     const QString scannerPath = appDir.filePath("libexec/gstreamer-1.0/gst-plugin-scanner.exe");
-    if (QFileInfo::exists(scannerPath) && qgetenv("GST_PLUGIN_SCANNER").isEmpty()) {
+    if (!useExternalRuntime && QFileInfo::exists(scannerPath) && qgetenv("GST_PLUGIN_SCANNER").isEmpty()) {
         qputenv("GST_PLUGIN_SCANNER", QDir::toNativeSeparators(scannerPath).toUtf8());
     }
 }
@@ -78,13 +91,13 @@ void ensureGStreamerInitialized()
     if (!initialized) {
         configureBundledGStreamerRuntime();
         gst_init(nullptr, nullptr);
-        setElementRank("openh264dec", GST_RANK_PRIMARY + 100);
-        setElementRank("d3d11h264dec", GST_RANK_NONE);
-        setElementRank("qsvh264dec", GST_RANK_NONE);
+        // Verified against the EO camera: d3d11h264dec delivers frames, while
+        // openh264dec (software) drops every frame for this stream. Prefer the
+        // D3D11 decoder and leave openh264dec as a lower-ranked fallback.
+        setElementRank("d3d11h264dec", GST_RANK_PRIMARY + 100);
         setElementRank("d3d11h265dec", GST_RANK_PRIMARY + 90);
-        setElementRank("qsvh265dec", GST_RANK_PRIMARY + 80);
-        setElementRank("d3d11download", GST_RANK_PRIMARY + 70);
-        setElementRank("d3d11convert", GST_RANK_PRIMARY + 60);
+        setElementRank("qsvh264dec", GST_RANK_NONE);
+        setElementRank("qsvh265dec", GST_RANK_NONE);
         setElementRank("videoconvert", GST_RANK_PRIMARY + 50);
         initialized = true;
     }
@@ -273,9 +286,9 @@ void Video::start()
     }
 
     busPollTimer.start();
-    // PLAYING only means GStreamer accepted the pipeline.  It does not mean
-    // the RTSP server is reachable or that the stream can be decoded.  Mark
-    // the camera connected only after the first valid video frame arrives.
+    // Keep the video surface hidden until a real decoded frame arrives. The
+    // RTSP session may reach PLAYING while it is still waiting for a keyframe;
+    // exposing the surface at that point produces a misleading black screen.
     setStreaming(false);
 #endif
 }
@@ -556,8 +569,8 @@ QString Video::pipelineDescription() const
     const qint64 timeoutUs = static_cast<qint64>(connectionTimeoutMsValue) * 1000;
     const int effectiveLatencyMs = std::max(latencyMsValue, 50);
     QString source = QStringLiteral(
-        "rtspsrc name=src location=\"%1\" latency=%2 drop-on-latency=true "
-        "do-retransmission=false timeout=%3 tcp-timeout=%3"
+        "rtspsrc name=src location=\"%1\" latency=%2 drop-on-latency=false "
+        "do-retransmission=true timeout=%3 tcp-timeout=%3"
     ).arg(escapedGstString(rtspLinkValue)).arg(effectiveLatencyMs).arg(timeoutUs);
 
     switch (transportModeValue) {
@@ -573,9 +586,15 @@ QString Video::pipelineDescription() const
 
     return source + QStringLiteral(
         " ! queue max-size-buffers=0 max-size-time=200000000 max-size-bytes=0"
+        // decodebin auto-detects the codec (H.264 or H.265) like QGC does.
+        // D3D11/QSV decoders are ranked NONE, so a software decoder is used.
         " ! decodebin"
         " ! queue leaky=downstream max-size-buffers=1 max-size-time=0 max-size-bytes=0"
-        " ! d3d11download"
+        // Keep the display path independent of D3D11. Some Windows systems
+        // expose a D3D11 decoder but do not expose the device interface
+        // required by d3d11download, which leaves RTSP connected but no
+        // frames reaching appsink. Software conversion is reliable here and
+        // the downstream queue still bounds CPU/UI pressure.
         " ! videoconvert n-threads=2"
         " ! video/x-raw,format=BGRx"
         " ! appsink name=videoSink emit-signals=true max-buffers=1 drop=true sync=false"
@@ -706,6 +725,7 @@ bool Video::createPipeline()
 {
     GError *parseError = nullptr;
     const QByteArray pipelineText = pipelineDescription().toUtf8();
+    qDebug().noquote() << "GStreamer pipeline:" << QString::fromUtf8(pipelineText);
     pipeline = gst_parse_launch(pipelineText.constData(), &parseError);
     if (!pipeline) {
         const QString message = parseError && parseError->message
@@ -805,7 +825,8 @@ void Video::configureSource(GstElement *source)
     const qint64 timeoutUs = static_cast<qint64>(connectionTimeoutMsValue) * 1000;
     g_object_set(source,
                  "latency", latencyMsValue,
-                 "drop-on-latency", TRUE,
+                 "drop-on-latency", FALSE,
+                 "do-retransmission", TRUE,
                  "timeout", timeoutUs,
                  "tcp-timeout", timeoutUs,
                  nullptr);

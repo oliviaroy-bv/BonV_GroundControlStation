@@ -45,6 +45,21 @@ html, body, #map {
     transform-origin: center center;
 }
 
+.vps-marker {
+    min-width: 30px;
+    height: 20px;
+    padding: 0 5px;
+    border-radius: 10px;
+    border: 2px solid white;
+    background: #FF8A00;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font: 800 10px/1 Arial, sans-serif;
+    box-shadow: 0 0 14px rgba(255, 138, 0, 0.85);
+}
+
 .mission-marker {
     min-width: 22px;
     height: 22px;
@@ -120,9 +135,14 @@ let droneArrow = null;
 let missionMarkers = [];
 let homeMarker = null;
 let vehicleTrailCoordinates = [];
+let vpsTrailCoordinates = [];
+let vpsMarker = null;
 const vehicleTrailSourceId = 'vehicle-trail';
 const vehicleTrailGlowLayerId = 'vehicle-trail-glow';
 const vehicleTrailLineLayerId = 'vehicle-trail-line';
+const vpsTrailSourceId = 'vps-trail';
+const vpsTrailGlowLayerId = 'vps-trail-glow';
+const vpsTrailLineLayerId = 'vps-trail-line';
 const minVehicleTrailPointSpacingMeters = 0.75;
 const maxVehicleTrailPoints = 5000;
 const rasterOverlayLayerPrefix = 'raster-overlay-layer-';
@@ -141,6 +161,11 @@ const map = new maplibregl.Map({
     transformRequest: (url) => ({ url: tileProxyUrl(url) })
 });
 
+map.on('error', (event) => {
+    const error = event && event.error ? event.error : event;
+    console.error('MapLibre error:', error && error.message ? error.message : String(error));
+});
+
 map.addControl(new maplibregl.NavigationControl());
 
 function getMapView()
@@ -151,6 +176,25 @@ function getMapView()
         longitude: center.lng,
         zoom: map.getZoom()
     };
+}
+
+function getCoordinateAt(x, y)
+{
+    if (!map || !Number.isFinite(Number(x)) || !Number.isFinite(Number(y))) {
+        return null;
+    }
+    // QML/WebEngine coordinates are relative to the web view, while
+    // MapLibre expects coordinates relative to its canvas. Account for any
+    // canvas offset and CSS/device-pixel scaling before unprojecting.
+    const canvas = map.getCanvas();
+    const rect = canvas.getBoundingClientRect();
+    const container = map.getContainer().getBoundingClientRect();
+    const scaleX = rect.width > 0 ? canvas.clientWidth / rect.width : 1;
+    const scaleY = rect.height > 0 ? canvas.clientHeight / rect.height : 1;
+    const canvasX = (Number(x) - container.left) * scaleX;
+    const canvasY = (Number(y) - container.top) * scaleY;
+    const coordinate = map.unproject([canvasX, canvasY]);
+    return { latitude: coordinate.lat, longitude: coordinate.lng };
 }
 
 function flushPendingMapOperations()
@@ -465,6 +509,54 @@ function updateVehicleTrail(lat, lon)
     });
 }
 
+function ensureVpsTrail()
+{
+    if (map.getSource(vpsTrailSourceId)) return;
+    map.addSource(vpsTrailSourceId, {
+        type: 'geojson',
+        data: {type: 'Feature', geometry: {type: 'LineString', coordinates: []}}
+    });
+    map.addLayer({id: vpsTrailGlowLayerId, type: 'line', source: vpsTrailSourceId,
+        paint: {'line-color': '#ff8a00', 'line-width': 8, 'line-opacity': 0.22}},
+        map.getLayer(vehicleTrailGlowLayerId) ? vehicleTrailGlowLayerId : undefined);
+    map.addLayer({id: vpsTrailLineLayerId, type: 'line', source: vpsTrailSourceId,
+        layout: {'line-cap': 'round', 'line-join': 'round'},
+        paint: {'line-color': '#ff8a00', 'line-width': 4, 'line-opacity': 0.95}},
+        map.getLayer(vehicleTrailLineLayerId) ? vehicleTrailLineLayerId : undefined);
+}
+
+function updateVpsPosition(lat, lon)
+{
+    if (!isValidCoordinate(lat, lon)) return;
+    runWhenMapReady(() => {
+        ensureVpsTrail();
+        const coordinate = [lon, lat];
+        const previous = vpsTrailCoordinates[vpsTrailCoordinates.length - 1];
+        if (!previous || distanceMeters(previous[0], previous[1], lon, lat) >= minVehicleTrailPointSpacingMeters) {
+            vpsTrailCoordinates.push(coordinate);
+            if (vpsTrailCoordinates.length > maxVehicleTrailPoints)
+                vpsTrailCoordinates = vpsTrailCoordinates.slice(-maxVehicleTrailPoints);
+            map.getSource(vpsTrailSourceId).setData({type: 'Feature', geometry: {type: 'LineString', coordinates: vpsTrailCoordinates}});
+        }
+        if (!vpsMarker) {
+            const element = document.createElement('div');
+            element.className = 'vps-marker';
+            element.textContent = 'VPS';
+            vpsMarker = new maplibregl.Marker({element, anchor: 'center'}).setLngLat(coordinate).addTo(map);
+        } else {
+            vpsMarker.setLngLat(coordinate);
+        }
+    });
+}
+
+function clearVpsTrack()
+{
+    vpsTrailCoordinates = [];
+    if (vpsMarker) { vpsMarker.remove(); vpsMarker = null; }
+    if (map.getSource(vpsTrailSourceId))
+        map.getSource(vpsTrailSourceId).setData({type: 'Feature', geometry: {type: 'LineString', coordinates: []}});
+}
+
 function clearVehicleTrail()
 {
     runWhenMapReady(() => {
@@ -713,6 +805,8 @@ window.setMapViewMode = setMapViewMode;
 window.centerMap = centerMap;
 window.initializeMap = initializeMap;
 window.updateDrone = updateDrone;
+window.updateVpsPosition = updateVpsPosition;
+window.clearVpsTrack = clearVpsTrack;
 const vpsMarkers = {};
 window.setVpsMarkers = function(points) {
     const active = new Set(points.map(point => point.name));

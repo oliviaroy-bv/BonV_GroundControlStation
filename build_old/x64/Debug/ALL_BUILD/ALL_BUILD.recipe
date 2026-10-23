@@ -1,0 +1,62 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <ProjectOutputs>
+    <ProjectOutput>
+      <FullPath>C:\GCS\BonV_GroundControlStation\build\x64\Debug\ZERO_CHECK</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>C:\GCS\BonV_GroundControlStation\build\x64\Debug\BonVGroundStation_qmlimportscan</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>C:\GCS\BonV_GroundControlStation\build\Debug\BonVGroundStation.exe</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>C:\GCS\BonV_GroundControlStation\build\tests\x64\Debug\MavlinkForwarderTest_qmlimportscan</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>C:\GCS\BonV_GroundControlStation\build\tests\Debug\MavlinkForwarderTest.exe</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>C:\GCS\BonV_GroundControlStation\build\tests\x64\Debug\MavlinkInspectorModelTest_qmlimportscan</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>C:\GCS\BonV_GroundControlStation\build\tests\Debug\MavlinkInspectorModelTest.exe</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>C:\GCS\BonV_GroundControlStation\build\tests\x64\Debug\MavlinkTest_qmlimportscan</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>C:\GCS\BonV_GroundControlStation\build\tests\Debug\MavlinkTest.exe</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>C:\GCS\BonV_GroundControlStation\build\tests\x64\Debug\TerrainProviderTest_qmlimportscan</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>C:\GCS\BonV_GroundControlStation\build\tests\Debug\TerrainProviderTest.exe</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>C:\GCS\BonV_GroundControlStation\build\tests\x64\Debug\VehicleManagerTest_qmlimportscan</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>C:\GCS\BonV_GroundControlStation\build\tests\Debug\VehicleManagerTest.exe</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>C:\GCS\BonV_GroundControlStation\build\tests\x64\Debug\VehicleTest_qmlimportscan</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>C:\GCS\BonV_GroundControlStation\build\tests\Debug\VehicleTest.exe</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>C:\GCS\BonV_GroundControlStation\build\tests\x64\Debug\VideoTest_qmlimportscan</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>C:\GCS\BonV_GroundControlStation\build\tests\Debug\VideoTest.exe</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>C:\GCS\BonV_GroundControlStation\build\x64\Debug\ALL_BUILD</FullPath>
+    </ProjectOutput>
+  </ProjectOutputs>
+  <ContentFiles />
+  <SatelliteDlls />
+  <NonRecipeFileRefs />
+</Project>

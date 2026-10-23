@@ -1,0 +1,32 @@
+^C:\GCS\BONV_GROUNDCONTROLSTATION\BUILD\CMAKEFILES\DCC15547222EC443EAF477A437D88962\MAVLINKTEST_BUILD.CMAKE.RULE
+setlocal
+cd C:\GCS\BonV_GroundControlStation\tests
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+call C:\GCS\BonV_GroundControlStation\build\.qt\bin\qt_setup_tool_path.bat C:/Qt/6.12.0/msvc2022_64/bin/qmlimportscanner.exe @C:/GCS/BonV_GroundControlStation/build/tests/.qt/qml_imports/MavlinkTest_build.rsp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\GCS\BONV_GROUNDCONTROLSTATION\BUILD\CMAKEFILES\4F48A2BEAAC2A844A709EA1E48713290\MAVLINKTEST_QMLIMPORTSCAN.RULE
+setlocal
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\GCS\BONV_GROUNDCONTROLSTATION\TESTS\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/GCS/BonV_GroundControlStation -BC:/GCS/BonV_GroundControlStation/build --check-stamp-file C:/GCS/BonV_GroundControlStation/build/tests/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

@@ -20,6 +20,8 @@ Item {
     property string rtspLink: ""
     property string cameraName: ""
     property string mapViewMode: "satellite"
+    property real mapContextLatitude: NaN
+    property real mapContextLongitude: NaN
     readonly property var vehicleManagerObject: typeof vehicleManager !== "undefined" ? vehicleManager : null
     property var vehicle: vehicleManagerObject ? vehicleManagerObject.activeVehicle : null
     readonly property var mavlinkObject: root.vehicle ? root.vehicle.mavlink : null
@@ -137,10 +139,12 @@ Item {
         pipWindow.requestActivate()
     }
 
-    function openMapMissionMenu(mapItem, mapX, mapY) {
+    function openMapMissionMenu(mapItem, mapX, mapY, latitude, longitude) {
+        mapContextLatitude = latitude
+        mapContextLongitude = longitude
         var scenePoint = mapItem.mapToItem(root, mapX, mapY)
         var menuWidth = mapMissionMenu.implicitWidth > 0 ? mapMissionMenu.implicitWidth : 132
-        var menuHeight = 118
+        var menuHeight = 310
         mapMissionMenu.x = Math.max(8, Math.min(root.width - menuWidth - 8, scenePoint.x))
         mapMissionMenu.y = Math.max(8, Math.min(root.height - menuHeight - 8, scenePoint.y))
         mapMissionMenu.open()
@@ -622,8 +626,8 @@ Item {
             compactControls: root.videoFocused
             joystickAvailable: typeof backend !== "undefined" && backend ? backend.joystickAvailable : false
             joystickEnabled: typeof backend !== "undefined" && backend ? backend.joystickEnabled : false
-            onMapContextMenuRequested: function(x, y) {
-                root.openMapMissionMenu(flyMap, x, y)
+            onMapContextMenuRequested: function(x, y, latitude, longitude) {
+                root.openMapMissionMenu(flyMap, x, y, latitude, longitude)
             }
             onJoystickEnabledRequested: function(enabled) {
                 root.setJoystickControlEnabled(enabled)
@@ -737,6 +741,37 @@ Item {
             text: "Clear"
             enabled: root.mavlinkObject && (root.vehicleConnected || root.mavlinkObject.missionWaypoints.length > 0)
             onTriggered: root.requestVehicleMissionClear()
+        }
+
+        MenuSeparator { }
+
+        MissionMenuItem {
+            text: "Set home here"
+            enabled: root.vehicleConnected && root.mavlinkObject && isFinite(root.mapContextLatitude) && isFinite(root.mapContextLongitude)
+            onTriggered: root.mavlinkObject.setVpsHome(root.mapContextLatitude, root.mapContextLongitude)
+        }
+
+        MissionMenuItem {
+            text: "Set VPS here"
+            enabled: root.mavlinkObject && root.mavlinkObject.vpsConnected && isFinite(root.mapContextLatitude) && isFinite(root.mapContextLongitude)
+            onTriggered: root.mavlinkObject.setVpsHome(root.mapContextLatitude, root.mapContextLongitude)
+        }
+
+        MissionMenuItem {
+            text: "Clear Trajectory"
+            enabled: false
+        }
+
+        MissionMenuItem {
+            text: "Auto VPS origin"
+            enabled: root.mavlinkObject && root.mavlinkObject.vpsConnected && isFinite(root.mapContextLatitude) && isFinite(root.mapContextLongitude)
+            onTriggered: root.mavlinkObject.autoVpsPosition()
+        }
+
+        MissionMenuItem {
+            text: "VPS heading align"
+            enabled: root.mavlinkObject && root.mavlinkObject.vpsConnected
+            onTriggered: root.mavlinkObject.alignVpsHeading()
         }
     }
 

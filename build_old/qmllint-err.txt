@@ -1,0 +1,752 @@
+Warning: ui/qml/core/FlyView.qml:3730:31: Unqualified access [unqualified]
+            vehicleConnected: root.vehicleConnected
+                              ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtQuick
+Warning: ui/qml/core/FlyView.qml:3731:22: Unqualified access [unqualified]
+            vehicle: root.vehicle
+                     ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtQuick
+Warning: ui/qml/core/FlyView.qml:3732:31: Unqualified access [unqualified]
+            missionWaypoints: root.mavlinkObject ? root.mavlinkObject.missionWaypoints : []
+                              ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtQuick
+Warning: ui/qml/core/FlyView.qml:3732:52: Unqualified access [unqualified]
+            missionWaypoints: root.mavlinkObject ? root.mavlinkObject.missionWaypoints : []
+                                                   ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtQuick
+Warning: ui/qml/core/FlyView.qml:3733:33: Unqualified access [unqualified]
+            mission3dWaypoints: root.mavlinkObject ? root.mavlinkObject.missionElevationWaypoints : []
+                                ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtQuick
+Warning: ui/qml/core/FlyView.qml:3733:54: Unqualified access [unqualified]
+            mission3dWaypoints: root.mavlinkObject ? root.mavlinkObject.missionElevationWaypoints : []
+                                                     ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtQuick
+Warning: ui/qml/core/FlyView.qml:3734:26: Unqualified access [unqualified]
+            mapViewMode: root.mapViewMode
+                         ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtQuick
+Warning: ui/qml/core/FlyView.qml:3735:66: Unqualified access [unqualified]
+            joystickAvailable: typeof backend !== "undefined" && backend ? backend.joystickAvailable : false
+                                                                 ^^^^^^^
+Warning: ui/qml/core/FlyView.qml:3735:76: Unqualified access [unqualified]
+            joystickAvailable: typeof backend !== "undefined" && backend ? backend.joystickAvailable : false
+                                                                           ^^^^^^^
+Warning: ui/qml/core/FlyView.qml:3736:64: Unqualified access [unqualified]
+            joystickEnabled: typeof backend !== "undefined" && backend ? backend.joystickEnabled : false
+                                                               ^^^^^^^
+Warning: ui/qml/core/FlyView.qml:3736:74: Unqualified access [unqualified]
+            joystickEnabled: typeof backend !== "undefined" && backend ? backend.joystickEnabled : false
+                                                                         ^^^^^^^
+Warning: ui/qml/core/FlyView.qml:3738:17: Unqualified access [unqualified]
+                root.setJoystickControlEnabled(enabled)
+                ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtQuick
+Warning: ui/qml/core/FlyView.qml:3749:30: Unqualified access [unqualified]
+                videoObject: root.videoObject
+                             ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtQuick
+Warning: ui/qml/core/FlyView.qml:3750:27: Unqualified access [unqualified]
+                rtspLink: root.rtspLink
+                          ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtQuick
+Warning: ui/qml/core/FlyView.qml:3751:29: Unqualified access [unqualified]
+                cameraName: root.cameraName
+                            ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtQuick
+Warning: ui/qml/core/FlyView.qml:3760:28: Unqualified access [unqualified]
+                darkTheme: root.darkTheme
+                           ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtQuick
+Warning: ui/qml/core/FlyView.qml:3761:30: Unqualified access [unqualified]
+                videoObject: root.videoObject
+                             ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtQuick
+Warning: ui/qml/core/FlyView.qml:3762:26: Unqualified access [unqualified]
+                visible: root.cameraConnected
+                         ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtQuick
+Warning: ui/qml/panels/BottomPanel.qml:470:30: Unqualified access [unqualified]
+                    enabled: root.vpsConnected
+                             ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:471:32: Unqualified access [unqualified]
+                    onClicked: root.requestVpsStart(index, modelData.label)
+                               ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:478:35: Unqualified access [unqualified]
+                            text: modelData.label
+                                  ^^^^^^^^^
+Info: modelData is a member of a parent element.
+      You can qualify the access with its id to avoid this warning.
+
+Suggested change:
+                            text: vpsActionButton.modelData.label
+                                  ^^^^^^^^^^^^^^^^
+Warning: ui/qml/panels/BottomPanel.qml:479:62: Unqualified access [unqualified]
+                            color: vpsActionButton.enabled ? root.textColor : root.disabledColor
+                                                             ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:479:79: Unqualified access [unqualified]
+                            color: vpsActionButton.enabled ? root.textColor : root.disabledColor
+                                                                              ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:485:35: Unqualified access [unqualified]
+                            text: root.vpsConnected && modelData.key.length > 0
+                                  ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:485:56: Unqualified access [unqualified]
+                            text: root.vpsConnected && modelData.key.length > 0
+                                                       ^^^^^^^^^
+Info: modelData is a member of a parent element.
+      You can qualify the access with its id to avoid this warning.
+
+Suggested change:
+                            text: root.vpsConnected && vpsActionButton.modelData.key.length > 0
+                                                       ^^^^^^^^^^^^^^^^
+Warning: ui/qml/panels/BottomPanel.qml:486:38: Unqualified access [unqualified]
+                                  ? (root.mavlinkObject.vpsStatus[modelData.key] || "Unknown") : ""
+                                     ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:486:67: Unqualified access [unqualified]
+                                  ? (root.mavlinkObject.vpsStatus[modelData.key] || "Unknown") : ""
+                                                                  ^^^^^^^^^
+Info: modelData is a member of a parent element.
+      You can qualify the access with its id to avoid this warning.
+
+Suggested change:
+                                  ? (root.mavlinkObject.vpsStatus[vpsActionButton.modelData.key] || "Unknown") : ""
+                                                                  ^^^^^^^^^^^^^^^^
+Warning: ui/qml/panels/BottomPanel.qml:487:36: Unqualified access [unqualified]
+                            color: root.mutedColor
+                                   ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:493:55: Unqualified access [unqualified]
+                        color: vpsActionButton.down ? root.downColor
+                                                      ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:494:59: Unqualified access [unqualified]
+                              : vpsActionButton.hovered ? root.hoverColor : root.panelColor
+                                                          ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:494:77: Unqualified access [unqualified]
+                              : vpsActionButton.hovered ? root.hoverColor : root.panelColor
+                                                                            ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:495:77: Unqualified access [unqualified]
+                        border.color: vpsActionButton.enabled ? "#00aeca" : root.borderColor
+                                                                            ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:576:38: Member "text" not found on type "QQuickItem" [missing-property]
+                        text: parent.text
+                                     ^^^^
+Info: Did you mean "left"?
+Suggested change:
+                        text: parent.left
+                                     ^^^^
+Warning: ui/qml/panels/BottomPanel.qml:612:49: Unqualified access [unqualified]
+                    readonly property int step: index
+                                                ^^^^^
+Info: 'index' is implicitly injected into this delegate. Add a required property 'index' to the delegate instead.
+Warning: ui/qml/panels/BottomPanel.qml:613:99: Unqualified access [unqualified]
+                    readonly property int commandId: [ 0x02, 0x03, 0x04, 0x05, 0x06, 0x08, 0x0B ][index]
+                                                                                                  ^^^^^
+Info: 'index' is implicitly injected into this delegate. Add a required property 'index' to the delegate instead.
+Warning: ui/qml/panels/BottomPanel.qml:615:55: Unqualified access [unqualified]
+                    readonly property bool completed: root.tacticalPayloadStep > step
+                                                      ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:616:30: Unqualified access [unqualified]
+                    enabled: root.tacticalPayloadStep >= step
+                             ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:618:29: Unqualified access [unqualified]
+                    height: root.tacticalPayloadActionHeight
+                            ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:622:32: Unqualified access [unqualified]
+                    onClicked: root.sendTacticalPayloadCommand(
+                               ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:623:42: Unqualified access [unqualified]
+                                   step, modelData.label, commandId, watchdogMinutes)
+                                         ^^^^^^^^^
+Warning: ui/qml/panels/BottomPanel.qml:629:35: Unqualified access [unqualified]
+                            text: modelData.icon
+                                  ^^^^^^^^^
+Warning: ui/qml/panels/BottomPanel.qml:630:64: Unqualified access [unqualified]
+                            color: payloadStepButton.enabled ? modelData.accent : root.disabledColor
+                                                               ^^^^^^^^^
+Warning: ui/qml/panels/BottomPanel.qml:630:83: Unqualified access [unqualified]
+                            color: payloadStepButton.enabled ? modelData.accent : root.disabledColor
+                                                                                  ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:637:35: Unqualified access [unqualified]
+                            text: modelData.label
+                                  ^^^^^^^^^
+Warning: ui/qml/panels/BottomPanel.qml:638:64: Unqualified access [unqualified]
+                            color: payloadStepButton.enabled ? root.textColor : root.disabledColor
+                                                               ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:638:81: Unqualified access [unqualified]
+                            color: payloadStepButton.enabled ? root.textColor : root.disabledColor
+                                                                                ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:646:36: Unqualified access [unqualified]
+                            color: modelData.accent
+                                   ^^^^^^^^^
+Warning: ui/qml/panels/BottomPanel.qml:653:62: Unqualified access [unqualified]
+                        color: !payloadStepButton.enabled ? (root.darkTheme ? "#0b1018" : "#f3f6fb")
+                                                             ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:654:68: Unqualified access [unqualified]
+                              : payloadStepButton.down ? Qt.darker(modelData.accent, 2.8)
+                                                                   ^^^^^^^^^
+Warning: ui/qml/panels/BottomPanel.qml:655:62: Unqualified access [unqualified]
+                              : payloadStepButton.hovered ? (root.darkTheme ? Qt.darker(modelData.accent, 2.1) : "#f2f7fb")
+                                                             ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:655:89: Unqualified access [unqualified]
+                              : payloadStepButton.hovered ? (root.darkTheme ? Qt.darker(modelData.accent, 2.1) : "#f2f7fb")
+                                                                                        ^^^^^^^^^
+Warning: ui/qml/panels/BottomPanel.qml:656:33: Unqualified access [unqualified]
+                              : root.panelColor
+                                ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:657:67: Unqualified access [unqualified]
+                        border.color: payloadStepButton.enabled ? modelData.accent : root.borderColor
+                                                                  ^^^^^^^^^
+Warning: ui/qml/panels/BottomPanel.qml:657:86: Unqualified access [unqualified]
+                        border.color: payloadStepButton.enabled ? modelData.accent : root.borderColor
+                                                                                     ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:670:59: Unqualified access [unqualified]
+        currentFolder: (typeof backend !== "undefined" && backend.missionsDirectoryUrl)
+                                                          ^^^^^^^
+Warning: ui/qml/panels/BottomPanel.qml:671:26: Unqualified access [unqualified]
+                       ? backend.missionsDirectoryUrl()
+                         ^^^^^^^
+Warning: ui/qml/panels/BottomPanel.qml:976:34: Unqualified access [unqualified]
+            Rectangle { x: 5; y: modelData; width: 7; height: 1; color: "#00d7f2" }
+                                 ^^^^^^^^^
+Warning: ui/qml/panels/BottomPanel.qml:1242:65: Unqualified access [unqualified]
+            color: dialogButton.enabled ? dialogButton.accent : root.disabledColor
+                                                                ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:1250:41: Unqualified access [unqualified]
+            color: dialogButton.down ? (root.darkTheme ? Qt.darker(dialogButton.accent, 3.0) : "#e1edf8") : dialogButton.hovered ? root.hoverColor : root.panelColor
+                                        ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:1250:132: Unqualified access [unqualified]
+            color: dialogButton.down ? (root.darkTheme ? Qt.darker(dialogButton.accent, 3.0) : "#e1edf8") : dialogButton.hovered ? root.hoverColor : root.panelColor
+                                                                                                                                   ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:1250:150: Unqualified access [unqualified]
+            color: dialogButton.down ? (root.darkTheme ? Qt.darker(dialogButton.accent, 3.0) : "#e1edf8") : dialogButton.hovered ? root.hoverColor : root.panelColor
+                                                                                                                                                     ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:1251:72: Unqualified access [unqualified]
+            border.color: dialogButton.enabled ? dialogButton.accent : root.borderColor
+                                                                       ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:1265:45: Unqualified access [unqualified]
+            color: !confirmButton.enabled ? root.disabledColor : confirmButton.active ? root.textColor : root.mutedColor
+                                            ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:1265:89: Unqualified access [unqualified]
+            color: !confirmButton.enabled ? root.disabledColor : confirmButton.active ? root.textColor : root.mutedColor
+                                                                                        ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:1265:106: Unqualified access [unqualified]
+            color: !confirmButton.enabled ? root.disabledColor : confirmButton.active ? root.textColor : root.mutedColor
+                                                                                                         ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:1273:46: Unqualified access [unqualified]
+            color: !confirmButton.enabled ? (root.darkTheme ? "#182132" : "#f3f6fb") : confirmButton.down ? root.downColor : confirmButton.hovered ? root.hoverColor : confirmButton.active ? (root.darkTheme ? "#1b2740" : "#eaf3ff") : root.panelColor
+                                             ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:1273:109: Unqualified access [unqualified]
+            color: !confirmButton.enabled ? (root.darkTheme ? "#182132" : "#f3f6fb") : confirmButton.down ? root.downColor : confirmButton.hovered ? root.hoverColor : confirmButton.active ? (root.darkTheme ? "#1b2740" : "#eaf3ff") : root.panelColor
+                                                                                                            ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:1273:150: Unqualified access [unqualified]
+            color: !confirmButton.enabled ? (root.darkTheme ? "#182132" : "#f3f6fb") : confirmButton.down ? root.downColor : confirmButton.hovered ? root.hoverColor : confirmButton.active ? (root.darkTheme ? "#1b2740" : "#eaf3ff") : root.panelColor
+                                                                                                                                                     ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:1273:192: Unqualified access [unqualified]
+            color: !confirmButton.enabled ? (root.darkTheme ? "#182132" : "#f3f6fb") : confirmButton.down ? root.downColor : confirmButton.hovered ? root.hoverColor : confirmButton.active ? (root.darkTheme ? "#1b2740" : "#eaf3ff") : root.panelColor
+                                                                                                                                                                                               ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:1273:234: Unqualified access [unqualified]
+            color: !confirmButton.enabled ? (root.darkTheme ? "#182132" : "#f3f6fb") : confirmButton.down ? root.downColor : confirmButton.hovered ? root.hoverColor : confirmButton.active ? (root.darkTheme ? "#1b2740" : "#eaf3ff") : root.panelColor
+                                                                                                                                                                                                                                         ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:1274:52: Unqualified access [unqualified]
+            border.color: !confirmButton.enabled ? root.borderColor : confirmButton.active ? "#1fc969" : root.borderColor
+                                                   ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:1274:106: Unqualified access [unqualified]
+            border.color: !confirmButton.enabled ? root.borderColor : confirmButton.active ? "#1fc969" : root.borderColor
+                                                                                                         ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:1311:20: Unqualified access [unqualified]
+            color: root.mutedColor
+                   ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:1339:54: Unqualified access [unqualified]
+                    readonly property bool selected: modelData.label === modeGroup.normalizedCurrentMode
+                                                     ^^^^^^^^^
+Warning: ui/qml/panels/BottomPanel.qml:1339:74: Unqualified access [unqualified]
+                    readonly property bool selected: modelData.label === modeGroup.normalizedCurrentMode
+                                                                         ^^^^^^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:1340:28: Unqualified access [unqualified]
+                    width: modeGroup.expanded ? 72 : 0
+                           ^^^^^^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:1341:30: Unqualified access [unqualified]
+                    opacity: modeGroup.expanded ? 1 : 0
+                             ^^^^^^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:1343:28: Unqualified access [unqualified]
+                    label: modelData.label
+                           ^^^^^^^^^
+Warning: ui/qml/panels/BottomPanel.qml:1344:29: Unqualified access [unqualified]
+                    accent: modelData.accent
+                            ^^^^^^^^^
+Warning: ui/qml/panels/BottomPanel.qml:1345:30: Unqualified access [unqualified]
+                    enabled: modeGroup.vehicleConnected
+                             ^^^^^^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:1347:32: Unqualified access [unqualified]
+                    onClicked: modeGroup.modeRequested(modelData.customMode)
+                               ^^^^^^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:1347:56: Unqualified access [unqualified]
+                    onClicked: modeGroup.modeRequested(modelData.customMode)
+                                                       ^^^^^^^^^
+Warning: ui/qml/panels/BottomPanel.qml:1387:33: Unqualified access [unqualified]
+            anchors.leftMargin: chevron ? 12 : 4
+                                ^^^^^^^
+Info: chevron is a member of a parent element.
+      You can qualify the access with its id to avoid this warning.
+
+Suggested change:
+            anchors.leftMargin: modeButton.chevron ? 12 : 4
+                                ^^^^^^^^^^^
+Warning: ui/qml/panels/BottomPanel.qml:1388:34: Unqualified access [unqualified]
+            anchors.rightMargin: chevron ? 10 : 4
+                                 ^^^^^^^
+Info: chevron is a member of a parent element.
+      You can qualify the access with its id to avoid this warning.
+
+Suggested change:
+            anchors.rightMargin: modeButton.chevron ? 10 : 4
+                                 ^^^^^^^^^^^
+Warning: ui/qml/panels/BottomPanel.qml:1394:46: Unqualified access [unqualified]
+                color: !modeButton.enabled ? root.disabledColor : modeButton.active ? root.textColor : modeButton.accent
+                                             ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:1394:87: Unqualified access [unqualified]
+                color: !modeButton.enabled ? root.disabledColor : modeButton.active ? root.textColor : modeButton.accent
+                                                                                      ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:1405:46: Unqualified access [unqualified]
+                color: !modeButton.enabled ? root.disabledColor : modeButton.accent
+                                             ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:1413:43: Unqualified access [unqualified]
+            color: !modeButton.enabled ? (root.darkTheme ? "#0b1018" : "#f3f6fb")
+                                          ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:1414:40: Unqualified access [unqualified]
+                  : modeButton.down ? (root.darkTheme ? Qt.darker(modeButton.accent, 3.0) : "#e1edf8")
+                                       ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:1415:42: Unqualified access [unqualified]
+                  : modeButton.active ? (root.darkTheme ? "#07546a" : "#bdeffd")
+                                         ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:1416:42: Unqualified access [unqualified]
+                  : modeButton.hovered ? root.hoverColor
+                                         ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:1417:21: Unqualified access [unqualified]
+                  : root.panelColor
+                    ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:1420:49: Unqualified access [unqualified]
+            border.color: !modeButton.enabled ? root.borderColor : modeButton.active ? "#48e5ff" : modeButton.accent
+                                                ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:1428:31: Unqualified access [unqualified]
+                border.color: root.darkTheme ? "#6627dff8" : "#55008fb8"
+                              ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:1451:52: Unqualified access [unqualified]
+            color: group.dangerTitle ? "#ff3b30" : root.mutedColor
+                                                   ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:1465:27: Unqualified access [unqualified]
+                    text: modelData.label
+                          ^^^^^^^^^
+Warning: ui/qml/panels/BottomPanel.qml:1466:30: Unqualified access [unqualified]
+                    enabled: modelData.enabled
+                             ^^^^^^^^^
+Warning: ui/qml/panels/BottomPanel.qml:1487:32: Unqualified access [unqualified]
+                    onClicked: group.actionRequested(modelData.action)
+                               ^^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:1487:54: Unqualified access [unqualified]
+                    onClicked: group.actionRequested(modelData.action)
+                                                     ^^^^^^^^^
+Warning: ui/qml/panels/BottomPanel.qml:1463:44: Unqualified access [unqualified]
+                    Layout.preferredWidth: group.buttonWidth
+                                           ^^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:1472:38: Member "text" not found on type "QQuickItem" [missing-property]
+                        text: parent.text
+                                     ^^^^
+Info: Did you mean "left"?
+Suggested change:
+                        text: parent.left
+                                     ^^^^
+Warning: ui/qml/panels/BottomPanel.qml:1473:49: Unqualified access [unqualified]
+                        color: parent.enabled ? modelData.accent : root.disabledColor
+                                                ^^^^^^^^^
+Warning: ui/qml/panels/BottomPanel.qml:1473:68: Unqualified access [unqualified]
+                        color: parent.enabled ? modelData.accent : root.disabledColor
+                                                                   ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:1481:51: Unqualified access [unqualified]
+                        color: !parent.enabled ? (root.darkTheme ? "#0b1018" : "#f3f6fb") : parent.down ? (root.darkTheme ? Qt.darker(modelData.accent, 3.0) : "#e1edf8") : parent.hovered ? (root.darkTheme ? (modelData.hoverFill || root.hoverColor) : root.hoverColor) : (root.darkTheme ? (modelData.fill || root.panelColor) : root.panelColor)
+                                                  ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:1481:100: Member "down" not found on type "QQuickItem" [missing-property]
+                        color: !parent.enabled ? (root.darkTheme ? "#0b1018" : "#f3f6fb") : parent.down ? (root.darkTheme ? Qt.darker(modelData.accent, 3.0) : "#e1edf8") : parent.hovered ? (root.darkTheme ? (modelData.hoverFill || root.hoverColor) : root.hoverColor) : (root.darkTheme ? (modelData.fill || root.panelColor) : root.panelColor)
+                                                                                                   ^^^^
+Warning: ui/qml/panels/BottomPanel.qml:1481:108: Unqualified access [unqualified]
+                        color: !parent.enabled ? (root.darkTheme ? "#0b1018" : "#f3f6fb") : parent.down ? (root.darkTheme ? Qt.darker(modelData.accent, 3.0) : "#e1edf8") : parent.hovered ? (root.darkTheme ? (modelData.hoverFill || root.hoverColor) : root.hoverColor) : (root.darkTheme ? (modelData.fill || root.panelColor) : root.panelColor)
+                                                                                                           ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:1481:135: Unqualified access [unqualified]
+                        color: !parent.enabled ? (root.darkTheme ? "#0b1018" : "#f3f6fb") : parent.down ? (root.darkTheme ? Qt.darker(modelData.accent, 3.0) : "#e1edf8") : parent.hovered ? (root.darkTheme ? (modelData.hoverFill || root.hoverColor) : root.hoverColor) : (root.darkTheme ? (modelData.fill || root.panelColor) : root.panelColor)
+                                                                                                                                      ^^^^^^^^^
+Warning: ui/qml/panels/BottomPanel.qml:1481:180: Member "hovered" not found on type "QQuickItem" [missing-property]
+                        color: !parent.enabled ? (root.darkTheme ? "#0b1018" : "#f3f6fb") : parent.down ? (root.darkTheme ? Qt.darker(modelData.accent, 3.0) : "#e1edf8") : parent.hovered ? (root.darkTheme ? (modelData.hoverFill || root.hoverColor) : root.hoverColor) : (root.darkTheme ? (modelData.fill || root.panelColor) : root.panelColor)
+                                                                                                                                                                                   ^^^^^^^
+Warning: ui/qml/panels/BottomPanel.qml:1481:191: Unqualified access [unqualified]
+                        color: !parent.enabled ? (root.darkTheme ? "#0b1018" : "#f3f6fb") : parent.down ? (root.darkTheme ? Qt.darker(modelData.accent, 3.0) : "#e1edf8") : parent.hovered ? (root.darkTheme ? (modelData.hoverFill || root.hoverColor) : root.hoverColor) : (root.darkTheme ? (modelData.fill || root.panelColor) : root.panelColor)
+                                                                                                                                                                                              ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:1481:209: Unqualified access [unqualified]
+                        color: !parent.enabled ? (root.darkTheme ? "#0b1018" : "#f3f6fb") : parent.down ? (root.darkTheme ? Qt.darker(modelData.accent, 3.0) : "#e1edf8") : parent.hovered ? (root.darkTheme ? (modelData.hoverFill || root.hoverColor) : root.hoverColor) : (root.darkTheme ? (modelData.fill || root.panelColor) : root.panelColor)
+                                                                                                                                                                                                                ^^^^^^^^^
+Warning: ui/qml/panels/BottomPanel.qml:1481:232: Unqualified access [unqualified]
+                        color: !parent.enabled ? (root.darkTheme ? "#0b1018" : "#f3f6fb") : parent.down ? (root.darkTheme ? Qt.darker(modelData.accent, 3.0) : "#e1edf8") : parent.hovered ? (root.darkTheme ? (modelData.hoverFill || root.hoverColor) : root.hoverColor) : (root.darkTheme ? (modelData.fill || root.panelColor) : root.panelColor)
+                                                                                                                                                                                                                                       ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:1481:251: Unqualified access [unqualified]
+                        color: !parent.enabled ? (root.darkTheme ? "#0b1018" : "#f3f6fb") : parent.down ? (root.darkTheme ? Qt.darker(modelData.accent, 3.0) : "#e1edf8") : parent.hovered ? (root.darkTheme ? (modelData.hoverFill || root.hoverColor) : root.hoverColor) : (root.darkTheme ? (modelData.fill || root.panelColor) : root.panelColor)
+                                                                                                                                                                                                                                                          ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:1481:271: Unqualified access [unqualified]
+                        color: !parent.enabled ? (root.darkTheme ? "#0b1018" : "#f3f6fb") : parent.down ? (root.darkTheme ? Qt.darker(modelData.accent, 3.0) : "#e1edf8") : parent.hovered ? (root.darkTheme ? (modelData.hoverFill || root.hoverColor) : root.hoverColor) : (root.darkTheme ? (modelData.fill || root.panelColor) : root.panelColor)
+                                                                                                                                                                                                                                                                              ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:1481:289: Unqualified access [unqualified]
+                        color: !parent.enabled ? (root.darkTheme ? "#0b1018" : "#f3f6fb") : parent.down ? (root.darkTheme ? Qt.darker(modelData.accent, 3.0) : "#e1edf8") : parent.hovered ? (root.darkTheme ? (modelData.hoverFill || root.hoverColor) : root.hoverColor) : (root.darkTheme ? (modelData.fill || root.panelColor) : root.panelColor)
+                                                                                                                                                                                                                                                                                                ^^^^^^^^^
+Warning: ui/qml/panels/BottomPanel.qml:1481:307: Unqualified access [unqualified]
+                        color: !parent.enabled ? (root.darkTheme ? "#0b1018" : "#f3f6fb") : parent.down ? (root.darkTheme ? Qt.darker(modelData.accent, 3.0) : "#e1edf8") : parent.hovered ? (root.darkTheme ? (modelData.hoverFill || root.hoverColor) : root.hoverColor) : (root.darkTheme ? (modelData.fill || root.panelColor) : root.panelColor)
+                                                                                                                                                                                                                                                                                                                  ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:1481:326: Unqualified access [unqualified]
+                        color: !parent.enabled ? (root.darkTheme ? "#0b1018" : "#f3f6fb") : parent.down ? (root.darkTheme ? Qt.darker(modelData.accent, 3.0) : "#e1edf8") : parent.hovered ? (root.darkTheme ? (modelData.hoverFill || root.hoverColor) : root.hoverColor) : (root.darkTheme ? (modelData.fill || root.panelColor) : root.panelColor)
+                                                                                                                                                                                                                                                                                                                                     ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:1482:56: Unqualified access [unqualified]
+                        border.color: parent.enabled ? modelData.accent : root.borderColor
+                                                       ^^^^^^^^^
+Warning: ui/qml/panels/BottomPanel.qml:1482:75: Unqualified access [unqualified]
+                        border.color: parent.enabled ? modelData.accent : root.borderColor
+                                                                          ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:1490:29: Unqualified access [unqualified]
+                        if (modelData.action === "payload")
+                            ^^^^^^^^^
+Warning: ui/qml/panels/BottomPanel.qml:1491:29: Unqualified access [unqualified]
+                            group.payloadButton = controlButton
+                            ^^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:1494:29: Unqualified access [unqualified]
+                        if (group.payloadButton === controlButton)
+                            ^^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/panels/BottomPanel.qml:1495:29: Unqualified access [unqualified]
+                            group.payloadButton = null
+                            ^^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtCore
+Warning: ui/qml/settings/OemSettingsPage.qml:4545:33: Unqualified access [unqualified]
+                ctx.fillStyle = root.darkTheme ? root.pageColor : "#ffffff"
+                                ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtQuick
+Warning: ui/qml/settings/OemSettingsPage.qml:4545:50: Unqualified access [unqualified]
+                ctx.fillStyle = root.darkTheme ? root.pageColor : "#ffffff"
+                                                 ^^^^
+Info: Set "pragma ComponentBehavior: Bound" in order to use IDs from outer components in nested components.
+Suggested change:
+pragma ComponentBehavior: Bound
+import QtQuick

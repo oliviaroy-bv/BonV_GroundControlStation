@@ -1,0 +1,11 @@
+prefix=${pcfiledir}/../../..
+includedir=${prefix}/include
+libdir=${prefix}/lib
+
+Name: gstkate
+Description: gst-plugins-bad: gstkate
+Version: 1.22.12
+Requires.private: gstreamer-base-1.0 >=  1.22.0, gstreamer-video-1.0 >=  1.22.0, gstreamer-tag-1.0 >=  1.22.0, kate >= 0.1.7
+Libs: -L${prefix}/lib/gstreamer-1.0 -lgstkate
+Cflags: -I${includedir}
+

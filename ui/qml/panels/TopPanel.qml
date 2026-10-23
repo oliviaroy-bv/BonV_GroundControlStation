@@ -174,7 +174,7 @@ Rectangle {
         commLinks = commLinks.map(function(link, index) {
             return { name: link.name, address: link.address, protocol: link.protocol || "UDP", baudRate: link.baudRate || 57600, connected: index === linkIndex }
         })
-        settingsWindow.setCommLinkConnectionState(connectedCommAddress, linkIndex >= 0)
+        settingsWindow.setCommLinkConnectionState(linkIndex, linkIndex >= 0)
     }
 
     function markSelectedCameraLink(linkIndex) {
@@ -941,11 +941,16 @@ Rectangle {
         function onConnectionStatusChanged(connected) {
             if (!connected) root.markSelectedCommLink(-1)
             else {
-                var linkIndex = root.commLinks.findIndex(function(link) {
-                    return link.address === root.pendingCommAddress
-                })
+                var linkIndex = root.commLinks.findIndex(function(link) { return link.connected })
+                if (linkIndex < 0 && settingsWindow && settingsWindow.activeCommLinkIndex >= 0)
+                    linkIndex = settingsWindow.activeCommLinkIndex
+                if (linkIndex < 0) {
+                    linkIndex = root.commLinks.findIndex(function(link) {
+                        return link.address === root.pendingCommAddress
+                    })
+                }
                 root.markSelectedCommLink(linkIndex)
-                settingsWindow.setCommLinkConnectionState(root.connectedCommAddress, linkIndex >= 0)
+                settingsWindow.setCommLinkConnectionState(linkIndex, linkIndex >= 0)
             }
         }
     }

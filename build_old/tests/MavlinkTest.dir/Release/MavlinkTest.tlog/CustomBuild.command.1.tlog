@@ -1,0 +1,28 @@
+^C:\GCS\BONV_GROUNDCONTROLSTATION\BUILD\CMAKEFILES\6B597182C1A490F3A2D21B797CC3B061\TIMESTAMP_(CONFIG).RULE
+setlocal
+cd C:\GCS\BonV_GroundControlStation\build\tests
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E cmake_autogen C:/GCS/BonV_GroundControlStation/build/tests/CMakeFiles/MavlinkTest_autogen.dir/AutogenInfo.json Release
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/GCS/BonV_GroundControlStation/build/tests/MavlinkTest_autogen/timestamp_Release
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E cmake_transform_depfile "Visual Studio 18 2026" MSBuildAdditionalInputs C:/GCS/BonV_GroundControlStation C:/GCS/BonV_GroundControlStation/tests C:/GCS/BonV_GroundControlStation/build C:/GCS/BonV_GroundControlStation/build/tests C:/GCS/BonV_GroundControlStation/build/tests/MavlinkTest_autogen/deps_Release C:/GCS/BonV_GroundControlStation/build/CMakeFiles/d/18339fef79157f709bf6eed3fbd359af4eadd362a0d62f6527e2772c52b07e14.AdditionalInputs
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\GCS\BONV_GROUNDCONTROLSTATION\TESTS\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/GCS/BonV_GroundControlStation -BC:/GCS/BonV_GroundControlStation/build --check-stamp-file C:/GCS/BonV_GroundControlStation/build/tests/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

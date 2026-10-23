@@ -1,0 +1,9 @@
+-rootPath
+C:/Users/Olivia-BV0054/Downloads/BonV_GroundControlStation/tests
+-cmake-output
+-output-file
+C:/Users/Olivia-BV0054/Downloads/BonV_GroundControlStation/build/MSVC_SDK_Fix/tests/.qt/qml_imports/VehicleManagerTest_conf.cmake
+-importPath
+C:/Users/Olivia-BV0054/Downloads/BonV_GroundControlStation/build/MSVC_SDK_Fix/tests
+-importPath
+C:/Qt/Qt6.10.1/6.10.3/msvc2022_64/qml

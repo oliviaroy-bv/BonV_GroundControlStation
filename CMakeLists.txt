@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+﻿cmake_minimum_required(VERSION 3.16)
 
 project(MavlinkPOC VERSION 0.1 LANGUAGES CXX)
 
@@ -494,11 +494,17 @@ if(WIN32)
     #     "${OPENSSL_INSTALL_DIR}/bin/libssl-*.dll"
     #     "${OPENSSL_INSTALL_DIR}/bin/libcrypto-*.dll"
     # )
-    set(OPENSSL_INSTALL_DIR "C:/Program Files/OpenSSL-Win64")
+    set(OPENSSL_INSTALL_DIR "C:/Users/Olivia-BV0054/Desktop/New_GCS/BonV_GroundControlStation/build/Desktop_Qt_6_10_1_MSVC2022_64bit-Debug/vcpkg_installed/x64-windows")
+
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        set(OPENSSL_RUNTIME_DIR "${OPENSSL_INSTALL_DIR}/debug/bin")
+    else()
+        set(OPENSSL_RUNTIME_DIR "${OPENSSL_INSTALL_DIR}/bin")
+    endif()
 
     file(GLOB OPENSSL_RUNTIME_DLLS
-        "${OPENSSL_INSTALL_DIR}/bin/libssl-*.dll"
-        "${OPENSSL_INSTALL_DIR}/bin/libcrypto-*.dll"
+        "${OPENSSL_RUNTIME_DIR}/libssl-*.dll"
+        "${OPENSSL_RUNTIME_DIR}/libcrypto-*.dll"
     )
     if(NOT OPENSSL_RUNTIME_DLLS)
         message(FATAL_ERROR "OpenSSL runtime DLLs were not found in: ${OPENSSL_INSTALL_DIR}/bin")
@@ -551,3 +557,4 @@ if(WIN32)
 endif()
 add_subdirectory(tests)
 # add_subdirectory(tools/raster_prep)
+

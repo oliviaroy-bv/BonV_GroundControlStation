@@ -277,6 +277,12 @@ private:
 Mavlink::Mavlink(QObject *parent)
     : QObject(parent)
 {
+    payloadAckTimer = new QTimer(this);
+    payloadAckTimer->setSingleShot(true);
+    payloadAckTimer->setInterval(3000);
+    connect(payloadAckTimer, &QTimer::timeout, this, [this]() {
+        failPendingPayloadCommand(QStringLiteral("no acknowledgement received"));
+    });
     vpsTimeoutTimer = new QTimer(this);
     vpsTimeoutTimer->setSingleShot(true);
     vpsTimeoutTimer->setInterval(5000);
@@ -326,17 +332,33 @@ Mavlink::Mavlink(QObject *parent)
     terrainRetryTimer = new QTimer(this);
     terrainRetryTimer->setInterval(terrainRetryIntervalMs);
     connect(terrainRetryTimer, &QTimer::timeout, this, &Mavlink::retryPendingTerrainRequests);
+
+    terrainWorkTimer = new QTimer(this);
+    terrainWorkTimer->setSingleShot(true);
+    terrainWorkTimer->setInterval(0);
+    connect(terrainWorkTimer, &QTimer::timeout, this, &Mavlink::processTerrainRequests);
+
+    missionProfileRefreshTimer = new QTimer(this);
+    missionProfileRefreshTimer->setSingleShot(true);
+    missionProfileRefreshTimer->setInterval(250);
+    connect(missionProfileRefreshTimer, &QTimer::timeout, this, [this]() {
+        const QVariantList &profileWaypoints = !loadedMissionElevationWaypoints.isEmpty()
+                ? loadedMissionElevationWaypoints
+                : loadedMissionWaypoints;
+        if (profileWaypoints.isEmpty()) {
+            return;
+        }
+        loadedMissionTerrainProfile = buildMissionTerrainProfile(profileWaypoints);
+        emit missionTerrainProfileChanged();
+    });
+
     connect(&terrainProvider, &TerrainProvider::tileAvailable, this, [this]() {
         if (!pendingTerrainBlocks.isEmpty()) {
             retryPendingTerrainRequests();
         }
 
-        const QVariantList &profileWaypoints = !loadedMissionElevationWaypoints.isEmpty()
-                ? loadedMissionElevationWaypoints
-                : loadedMissionWaypoints;
-        if (!profileWaypoints.isEmpty()) {
-            loadedMissionTerrainProfile = buildMissionTerrainProfile(profileWaypoints);
-            emit missionTerrainProfileChanged();
+        if (missionProfileRefreshTimer) {
+            missionProfileRefreshTimer->start();
         }
     });
     connect(&terrainProvider, &TerrainProvider::tileDownloadFailed, this,
@@ -549,6 +571,9 @@ void Mavlink::disconnectFromVehicle()
     downloadingMissionItems.clear();
     downloadedMissionItemSeqs.clear();
     clearPendingTerrainRequests();
+    if (missionProfileRefreshTimer) {
+        missionProfileRefreshTimer->stop();
+    }
     targetSystemId = 1;
     targetComponentId = MAV_COMP_ID_AUTOPILOT1;
     resetParameterCache();
@@ -746,12 +771,17 @@ bool Mavlink::writeVpsMessage(uint16_t type, const QByteArray &payload)
 
 bool Mavlink::startVpsAction(int action)
 {
+    return setVpsAction(action, true);
+}
+
+bool Mavlink::setVpsAction(int action, bool enabled)
+{
     if (action >= 0 && action <= 3)
-        return writeVpsMessage(Vps::TX_PROCESS, Vps::buildProcess(static_cast<Vps::Process>(action), true));
+        return writeVpsMessage(Vps::TX_PROCESS, Vps::buildProcess(static_cast<Vps::Process>(action), enabled));
     if (action == 4)
-        return writeVpsMessage(Vps::TX_AIDING, Vps::buildByte(1));
+        return writeVpsMessage(Vps::TX_AIDING, Vps::buildByte(enabled ? 1 : 0));
     if (action == 5)
-        return writeVpsMessage(Vps::TX_AUTO_AIDING, Vps::buildByte(1));
+        return writeVpsMessage(Vps::TX_AUTO_AIDING, Vps::buildByte(enabled ? 1 : 0));
     return false;
 }
 
@@ -760,6 +790,16 @@ bool Mavlink::setVpsHome(double lat, double lon)
 {
     return std::isfinite(lat) && std::isfinite(lon) && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180
             && writeVpsMessage(Vps::TX_SET_HOME, Vps::buildHome(lat, lon));
+}
+
+bool Mavlink::autoVpsPosition()
+{
+    return writeVpsMessage(Vps::TX_AUTO_POSITION, Vps::buildByte(100));
+}
+
+bool Mavlink::alignVpsHeading()
+{
+    return writeVpsMessage(Vps::TX_ALIGN_HEADING, Vps::buildByte(100));
 }
 bool Mavlink::setVpsLogging(bool enabled) { return writeVpsMessage(Vps::TX_LOG_AUTOSTART, Vps::buildByte(enabled)); }
 bool Mavlink::setVpsSensorSpeed(int speed)
@@ -796,6 +836,17 @@ bool Mavlink::setVpsGpsJamming(const QVariantMap &v)
     return writeVpsMessage(Vps::TX_GPS_JAMMING, Vps::buildGpsJamming(j));
 }
 
+void Mavlink::failPendingPayloadCommand(const QString &reason)
+{
+    if (pendingPayloadCommandId < 0)
+        return;
+
+    const int commandId = pendingPayloadCommandId;
+    pendingPayloadCommandId = -1;
+    payloadAckTimer->stop();
+    emit payloadCommandFailed(commandId, reason);
+}
+
 bool Mavlink::sendPayloadCommand(int commandId, int watchdogMinutes)
 {
     if (!connectedState) {
@@ -805,6 +856,11 @@ bool Mavlink::sendPayloadCommand(int commandId, int watchdogMinutes)
 
     if (commandId < 0 || commandId > 255 || watchdogMinutes < 0 || watchdogMinutes > 255) {
         qDebug() << "Rejected invalid payload command:" << commandId << watchdogMinutes;
+        return false;
+    }
+
+    if (pendingPayloadCommandId >= 0) {
+        qDebug() << "Payload command" << pendingPayloadCommandId << "still awaiting acknowledgement";
         return false;
     }
 
@@ -828,6 +884,9 @@ bool Mavlink::sendPayloadCommand(int commandId, int watchdogMinutes)
         0
     );
 
+    pendingPayloadCommandId = commandId;
+    pendingPayloadWatchdogMinutes = watchdogMinutes;
+    payloadAckTimer->start();
     sendMavlinkMessage(msg);
     qDebug() << "Sent payload command:" << commandId
              << "watchdog minutes:" << watchdogMinutes
@@ -1739,6 +1798,10 @@ void Mavlink::setConnected(bool connected)
         return;
     }
 
+    if (!connected) {
+        failPendingPayloadCommand(QStringLiteral("vehicle disconnected"));
+    }
+
     connectedState = connected;
     if (!connectedState) {
         clearVpsStatus();
@@ -2387,6 +2450,7 @@ QString Mavlink::mavSeverityText(uint8_t severity) const
 
 void Mavlink::handleTerrainRequest(const mavlink_message_t &msg)
 {
+    static QElapsedTimer duplicateTerrainRequestClock;
     if (msg.msgid != MAVLINK_MSG_ID_TERRAIN_REQUEST) {
         return;
     }
@@ -2394,26 +2458,80 @@ void Mavlink::handleTerrainRequest(const mavlink_message_t &msg)
     mavlink_terrain_request_t request;
     mavlink_msg_terrain_request_decode(&msg, &request);
 
-    qDebug() << "Terrain request:"
-             << "lat" << request.lat
-             << "lon" << request.lon
-             << "gridSpacing" << request.grid_spacing
-             << "mask" << QStringLiteral("0x%1").arg(request.mask, 0, 16);
-
-    if (request.grid_spacing == 0 || request.mask == 0) {
+    // ArduPilot can emit placeholder requests before a valid GPS position is
+    // available. Do not spend time processing or logging those requests.
+    if ((request.lat == 0 && request.lon == 0)
+            || request.grid_spacing == 0 || request.mask == 0) {
         return;
     }
 
-    for (uint8_t gridbit = 0; gridbit < 56; ++gridbit) {
-        if ((request.mask & (1ULL << gridbit)) == 0) {
+    // ArduPilot may repeat the same request many times while waiting for a
+    // response. Avoid doing the same disk/HGT work again within one event
+    // loop interval; a later request is still accepted if the data changes.
+    static int32_t lastTerrainLat = 0;
+    static int32_t lastTerrainLon = 0;
+    static uint16_t lastTerrainSpacing = 0;
+    static uint64_t lastTerrainMask = 0;
+    if (duplicateTerrainRequestClock.isValid()
+            && duplicateTerrainRequestClock.elapsed() < 250
+            && request.lat == lastTerrainLat
+            && request.lon == lastTerrainLon
+            && request.grid_spacing == lastTerrainSpacing
+            && request.mask == lastTerrainMask) {
+        return;
+    }
+    lastTerrainLat = request.lat;
+    lastTerrainLon = request.lon;
+    lastTerrainSpacing = request.grid_spacing;
+    lastTerrainMask = request.mask;
+    duplicateTerrainRequestClock.restart();
+
+    for (const PendingTerrainRequest &pending : std::as_const(pendingTerrainRequests)) {
+        if (pending.request.lat == request.lat && pending.request.lon == request.lon
+                && pending.request.grid_spacing == request.grid_spacing
+                && pending.request.mask == request.mask) {
+            return;
+        }
+    }
+
+    if (pendingTerrainRequests.size() >= 8) {
+        pendingTerrainRequests.removeFirst();
+    }
+    pendingTerrainRequests.append({request, 0});
+    if (terrainWorkTimer && !terrainWorkTimer->isActive()) {
+        terrainWorkTimer->start();
+    }
+}
+
+void Mavlink::processTerrainRequests()
+{
+    static QElapsedTimer missingTerrainWarningClock;
+    if (pendingTerrainRequests.isEmpty()) {
+        return;
+    }
+
+    PendingTerrainRequest pending = pendingTerrainRequests.takeFirst();
+    int processed = 0;
+    while (pending.nextGridbit < 56 && processed < 4) {
+        const uint8_t gridbit = pending.nextGridbit++;
+        if ((pending.request.mask & (1ULL << gridbit)) == 0) {
             continue;
         }
-
-        if (!sendTerrainDataBlock(request, gridbit)) {
-            qWarning() << "Unable to satisfy terrain request block" << gridbit
-                       << "from directories" << terrainProvider.terrainDirectories();
-            queuePendingTerrainBlock(request, gridbit);
+        ++processed;
+        if (!sendTerrainDataBlock(pending.request, gridbit)
+                && (!missingTerrainWarningClock.isValid()
+                    || missingTerrainWarningClock.elapsed() >= 10000)) {
+            qWarning() << "Terrain data unavailable; add the required .hgt tile to"
+                       << terrainProvider.terrainDirectories();
+            missingTerrainWarningClock.restart();
         }
+    }
+
+    if (pending.nextGridbit < 56) {
+        pendingTerrainRequests.prepend(pending);
+    }
+    if (!pendingTerrainRequests.isEmpty() && terrainWorkTimer) {
+        terrainWorkTimer->start();
     }
 }
 
@@ -2528,6 +2646,10 @@ void Mavlink::retryPendingTerrainRequests()
 
 void Mavlink::clearPendingTerrainRequests()
 {
+    pendingTerrainRequests.clear();
+    if (terrainWorkTimer) {
+        terrainWorkTimer->stop();
+    }
     pendingTerrainBlocks.clear();
     if (terrainRetryTimer) {
         terrainRetryTimer->stop();
@@ -2815,6 +2937,23 @@ void Mavlink::handleMissionMessage(const mavlink_message_t &msg)
         // accepting the legacy REQUEST_DATA_STREAM fallback sent above.
         if (ack.command == MAV_CMD_SET_MESSAGE_INTERVAL) {
             return;
+        }
+
+        if (ack.command == MAV_CMD_USER_2 && pendingPayloadCommandId >= 0
+                && msg.sysid == targetSystemId) {
+            if (ack.result == MAV_RESULT_ACCEPTED) {
+                const int commandId = pendingPayloadCommandId;
+                const int watchdogMinutes = pendingPayloadWatchdogMinutes;
+                pendingPayloadCommandId = -1;
+                payloadAckTimer->stop();
+                emit payloadCommandAcknowledged(commandId, watchdogMinutes);
+                return;
+            }
+            if (ack.result == MAV_RESULT_IN_PROGRESS) {
+                payloadAckTimer->start();
+                return;
+            }
+            failPendingPayloadCommand(QStringLiteral("rejected by payload (result %1)").arg(ack.result));
         }
 
         PendingMotorTestAck motorAck;

@@ -20,6 +20,15 @@ Item {
     function syncVpsMarkers() {
         if (!mapReady) return
         var status = mavlinkObject && mavlinkObject.vpsConnected ? mavlinkObject.vpsStatus : {}
+        var fusedLat = Number(status.fusedLat), fusedLon = Number(status.fusedLon)
+        if (isValidCoordinate(fusedLat, fusedLon))
+            webView.runJavaScript("updateVpsPosition(" + fusedLat + "," + fusedLon + ");")
+        else if (!mavlinkObject || !mavlinkObject.vpsConnected)
+            webView.runJavaScript("clearVpsTrack();")
+        if (isValidCoordinate(fusedLat, fusedLon)
+                && (String(status.aiding || "").toLowerCase() === "on"
+                    || String(status.autoAid || "").toLowerCase() === "on"))
+            updatePointer(fusedLat, fusedLon, root.vehicleHeading, root.compassFollowEnabled, true)
         var points = []
         for (var name of ["vio", "vpr", "fused"]) {
             var lat = Number(status[name + "Lat"]), lon = Number(status[name + "Lon"])
@@ -53,6 +62,34 @@ Item {
     property bool vehiclePositionReady: false
     property bool vehicleCentered: false
     property bool compassFollowEnabled: false
+    property double lastMapUpdateMs: 0
+    property double pendingMapLat: NaN
+    property double pendingMapLon: NaN
+    property double pendingMapHeading: 0
+    property double pendingTrailLat: NaN
+    property double pendingTrailLon: NaN
+
+    Timer {
+        id: mapUpdateTimer
+        interval: 75
+        repeat: false
+        onTriggered: {
+            if (!root.isValidCoordinate(root.pendingMapLat, root.pendingMapLon))
+                return
+            root.updatePointer(root.pendingMapLat, root.pendingMapLon, root.pendingMapHeading,
+                               root.compassFollowEnabled, true)
+        }
+    }
+
+    Timer {
+        id: trailUpdateTimer
+        interval: 150
+        repeat: false
+        onTriggered: {
+            if (root.isValidCoordinate(root.pendingTrailLat, root.pendingTrailLon))
+                root.updateVehicleTrail(root.pendingTrailLat, root.pendingTrailLon)
+        }
+    }
 
     Settings {
         id: persistedMapView
@@ -62,7 +99,7 @@ Item {
         property real zoom: 15
     }
 
-    signal mapContextMenuRequested(real x, real y)
+    signal mapContextMenuRequested(real x, real y, real latitude, real longitude)
     signal joystickEnabledRequested(bool enabled)
 
     onVehicleConnectedChanged: {
@@ -72,6 +109,8 @@ Item {
             vehiclePositionReady = false
             vehicleCentered = false
             compassFollowEnabled = false
+            mapUpdateTimer.stop()
+            trailUpdateTimer.stop()
             clearVehicleTrail()
 
             if (systemPositionReady) {
@@ -191,8 +230,27 @@ Item {
             root.vehicleCentered = true
         }
 
-        updatePointer(root.vehicleLat, root.vehicleLon, root.vehicleHeading, root.compassFollowEnabled, true)
-        updateVehicleTrail(root.vehicleLat, root.vehicleLon)
+        var status = mavlinkObject && mavlinkObject.vpsConnected ? mavlinkObject.vpsStatus : {}
+        var fusedLat = Number(status.fusedLat), fusedLon = Number(status.fusedLon)
+        var aidingOn = String(status.aiding || status.autoAid || "").toLowerCase() === "on"
+        if (aidingOn && isValidCoordinate(fusedLat, fusedLon)) {
+            updatePointer(fusedLat, fusedLon, root.vehicleHeading, root.compassFollowEnabled, true)
+        } else {
+            var now = Date.now()
+            root.pendingMapLat = root.vehicleLat
+            root.pendingMapLon = root.vehicleLon
+            root.pendingMapHeading = root.vehicleHeading
+            if (now - root.lastMapUpdateMs >= 75) {
+                root.lastMapUpdateMs = now
+                updatePointer(root.vehicleLat, root.vehicleLon, root.vehicleHeading, root.compassFollowEnabled, true)
+            } else if (!mapUpdateTimer.running) {
+                mapUpdateTimer.start()
+            }
+        }
+        root.pendingTrailLat = root.vehicleLat
+        root.pendingTrailLon = root.vehicleLon
+        if (!trailUpdateTimer.running)
+            trailUpdateTimer.start()
     }
 
     function syncVehicleHeading()
@@ -332,9 +390,13 @@ Item {
             }
         }
 
+        onJavaScriptConsoleMessage: function(level, message, lineNumber, sourceID) {
+            console.log("Map JavaScript:", message, "at", sourceID, lineNumber)
+        }
+
         onContextMenuRequested: function(request) {
             request.accepted = true
-            root.mapContextMenuRequested(request.position.x, request.position.y)
+            root.openMapContextMenu(request.position.x, request.position.y)
         }
     }
 
@@ -373,8 +435,17 @@ Item {
             }
 
             mouse.accepted = true
-            root.mapContextMenuRequested(mouse.x, mouse.y)
+            root.openMapContextMenu(mouse.x, mouse.y)
         }
+    }
+
+    function openMapContextMenu(x, y) {
+        webView.runJavaScript("getCoordinateAt(" + x + "," + y + ")", function(result) {
+            if (result && isValidCoordinate(Number(result.latitude), Number(result.longitude)))
+                root.mapContextMenuRequested(x, y, Number(result.latitude), Number(result.longitude))
+            else
+                root.mapContextMenuRequested(x, y, NaN, NaN)
+        })
     }
 
     Button {

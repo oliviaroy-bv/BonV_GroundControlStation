@@ -3,7 +3,6 @@
 #include "storage/AppDataPaths.h"
 
 #include <QCryptographicHash>
-#include <QDateTime>
 #include <QDebug>
 #include <QDir>
 #include <QDirIterator>
@@ -23,6 +22,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <memory>
 
 namespace {
 constexpr qint64 kMegabyte = 1024LL * 1024LL;
@@ -81,6 +81,13 @@ void collectTileJsonUrls(const QJsonValue &value, QStringList *urls)
 TileCacheManager::TileCacheManager(QObject *parent)
     : QObject(parent)
 {
+    _cacheMaintenanceTimer.setSingleShot(true);
+    _cacheMaintenanceTimer.setInterval(500);
+    connect(&_cacheMaintenanceTimer, &QTimer::timeout, this, [this]() {
+        refreshCacheSize();
+        enforceCacheLimit();
+    });
+
     QSettings settings;
     _offlineMode = settings.value(QStringLiteral("OfflineMaps/offlineMode"), false).toBool();
     _maximumCacheSizeBytes = qMax(64LL * kMegabyte,
@@ -131,8 +138,6 @@ bool TileCacheManager::readCached(const QUrl &url, QByteArray *data, QByteArray 
     if (contents.isEmpty()) {
         return false;
     }
-    file.setFileTime(QDateTime::currentDateTimeUtc(), QFileDevice::FileModificationTime);
-
     QFile mimeFile(mimeFilePath(url));
     QByteArray cachedMime = QByteArrayLiteral("application/octet-stream");
     if (mimeFile.open(QIODevice::ReadOnly)) {
@@ -162,8 +167,18 @@ void TileCacheManager::storeCached(const QUrl &url, const QByteArray &data, cons
         mimeFile.write(mimeType.isEmpty() ? QByteArrayLiteral("application/octet-stream") : mimeType);
         mimeFile.commit();
     }
-    refreshCacheSize();
-    enforceCacheLimit();
+    // File writes are intentionally kept small and immediate so a tile is
+    // available as soon as its network reply completes. Cache directory
+    // scanning and eviction are coalesced to avoid doing an O(n) scan for
+    // every tile during map loading.
+    scheduleCacheMaintenance();
+}
+
+void TileCacheManager::scheduleCacheMaintenance()
+{
+    if (!_cacheMaintenanceTimer.isActive()) {
+        _cacheMaintenanceTimer.start();
+    }
 }
 
 void TileCacheManager::fetch(const QUrl &url, FetchCallback callback)
@@ -181,8 +196,27 @@ void TileCacheManager::fetch(const QUrl &url, FetchCallback callback)
         return;
     }
 
-    auto *reply = _network.get(QNetworkRequest(url));
-    connect(reply, &QNetworkReply::finished, this, [this, reply, url, callback = std::move(callback)]() mutable {
+    const QString requestKey = url.toString(QUrl::FullyEncoded);
+    if (_inFlightFetches.contains(requestKey)) {
+        _inFlightFetches[requestKey].append(std::move(callback));
+        return;
+    }
+    _inFlightFetches.insert(requestKey, {std::move(callback)});
+
+    auto startRequest = std::make_shared<std::function<void(int)>>();
+    *startRequest = [this, url, requestKey, startRequest](int attempt) {
+        QNetworkRequest request(url);
+        request.setAttribute(QNetworkRequest::Http2AllowedAttribute, false);
+        request.setHeader(QNetworkRequest::UserAgentHeader,
+                          QStringLiteral("BonV-GCS map tile client"));
+        auto *reply = _network.get(request);
+        connect(reply, &QNetworkReply::finished, this, [this, reply, url, requestKey, attempt, startRequest]() mutable {
+        auto callbacks = _inFlightFetches.value(requestKey);
+        auto finish = [&callbacks](const QByteArray &data, const QByteArray &mimeType, bool ok) {
+            for (auto &callback : callbacks) {
+                if (callback) callback(data, mimeType, ok);
+            }
+        };
         const int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
         const bool success = reply->error() == QNetworkReply::NoError
             && (statusCode == 0 || (statusCode >= 200 && statusCode < 300));
@@ -196,22 +230,31 @@ void TileCacheManager::fetch(const QUrl &url, FetchCallback callback)
         // it, but let MapLibre receive the empty response instead of reporting a
         // failed resource and leaving the map in an error state.
         const bool emptyTile = success && statusCode == 204;
+        if ((!success || (data.isEmpty() && !emptyTile)) && attempt < 2) {
+            QTimer::singleShot(250 * (attempt + 1), this, [startRequest, attempt]() {
+                (*startRequest)(attempt + 1);
+            });
+            return;
+        }
+        _inFlightFetches.remove(requestKey);
         if (!success || (data.isEmpty() && !emptyTile)) {
             QUrl logUrl(url);
             logUrl.setQuery(QString());
             qWarning().noquote() << QStringLiteral("Map request failed: %1 (HTTP %2, %3)")
                                       .arg(logUrl.toString(), QString::number(statusCode), error);
-            callback({}, {}, false);
+            finish({}, {}, false);
             return;
         }
         if (emptyTile) {
-            callback({}, mimeType, true);
+            finish({}, mimeType, true);
             return;
         }
         if (mimeType.isEmpty()) mimeType = QMimeDatabase().mimeTypeForData(data).name().toLatin1();
         storeCached(url, data, mimeType);
-        callback(data, mimeType, true);
-    });
+        finish(data, mimeType, true);
+        });
+    };
+    (*startRequest)(0);
 }
 
 void TileCacheManager::refreshCacheSize()
@@ -249,6 +292,7 @@ void TileCacheManager::enforceCacheLimit()
 
 void TileCacheManager::clearCache()
 {
+    _cacheMaintenanceTimer.stop();
     QDir directory(cacheDirectory());
     directory.removeRecursively();
     AppDataPaths::ensureDirectory(cacheDirectory());

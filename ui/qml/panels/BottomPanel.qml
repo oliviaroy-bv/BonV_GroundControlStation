@@ -14,10 +14,12 @@ Rectangle {
     property bool darkTheme: true
     property bool payloadButtonVisible: false
     property bool vpsModuleEnabled: false
+    property bool vpsAidingEnabled: false
     readonly property bool vpsConnected: root.vehicleConnected && root.mavlinkObject.vpsConnected
     property real payloadPanelRightInset: 0
     property int tacticalPayloadSpacing: 12
     readonly property int tacticalPayloadActionCount: 7
+    readonly property int tacticalPayloadTimerLineHeight: 18
     readonly property int tacticalPayloadActionHeight: 36
     readonly property int tacticalPayloadActionSpacing: 6
     readonly property int tacticalPayloadContentSpacing: 8
@@ -42,6 +44,14 @@ Rectangle {
     property string armConfirmationAction: "arm"
     property bool flightModeExpanded: false
     property int tacticalPayloadStep: 0
+    // Each step must be followed by the next within this window, otherwise the
+    // sequence falls back to Activate. Set by the user via "Watchdog timer set..."
+    // and sent to the payload as its watchdog preset.
+    property int tacticalPayloadWatchdogMinutes: 5
+    // Activate -> Check 1 -> Check 2 -> Check 3 -> LED Active run in order; the
+    // buttons after them (Watchdog, Deactivate) are standalone and always available.
+    readonly property int tacticalPayloadSequenceLength: 5
+    readonly property int tacticalPayloadDeactivateStep: 6
     signal generateMissionRequested()
     signal graphRequested()
     signal statusMessageRequested(string message)
@@ -109,7 +119,6 @@ Rectangle {
 
     function openTacticalPayloadPanel() {
         vpsPanel.close()
-        tacticalPayloadStep = 0
         tacticalPayloadPanel.open()
     }
 
@@ -118,25 +127,101 @@ Rectangle {
         vpsPanel.open()
     }
 
-    function requestVpsStart(action, label) {
-        if (!root.vpsConnected || !root.mavlinkObject.startVpsAction(action)) {
+    function requestVpsToggle(action, label, enabled) {
+        if (!root.vpsConnected || !root.mavlinkObject.setVpsAction(action, enabled)) {
             root.statusMessageRequested("VPS command could not be sent")
             return
         }
-        root.statusMessageRequested(label + " start requested")
+        if (action === 4)
+            root.vpsAidingEnabled = enabled
+        root.statusMessageRequested(label + (enabled ? " ON" : " OFF") + " requested")
+    }
+
+    function vpsProcessIsOn(value) {
+        var status = String(value || "").toLowerCase()
+        return status === "on" || status === "running" || status === "starting"
+                || status === "1" || status === "2"
     }
 
     onVpsModuleEnabledChanged: if (!vpsModuleEnabled) vpsPanel.close()
-    onVehicleConnectedChanged: if (!vehicleConnected) vpsPanel.close()
+    onVehicleConnectedChanged: if (!vehicleConnected) { vpsPanel.close(); resetTacticalPayloadSequence() }
 
     function advanceTacticalPayloadStep(step) {
         if (step === tacticalPayloadStep)
             tacticalPayloadStep += 1
+        tacticalPayloadTimeout.restart()
+        root.tacticalPayloadNowMs = Date.now()
+        root.tacticalPayloadDeadline = root.tacticalPayloadNowMs + tacticalPayloadTimeout.interval
     }
+
+    function requestTacticalWatchdogSet(step, label) {
+        watchdogMinutesField.text = String(root.tacticalPayloadWatchdogMinutes)
+        watchdogDialog.pendingStep = step
+        watchdogDialog.pendingLabel = label
+        watchdogDialog.open()
+        watchdogMinutesField.forceActiveFocus()
+        watchdogMinutesField.selectAll()
+    }
+
+    function confirmTacticalWatchdog() {
+        var minutes = Math.round(Number(watchdogMinutesField.text))
+        if (!isFinite(minutes) || minutes < 1 || minutes > 255)
+            return
+
+        watchdogDialog.close()
+        root.sendTacticalPayloadCommand(watchdogDialog.pendingStep, watchdogDialog.pendingLabel, 0x0B, minutes)
+    }
+
+    function resetTacticalPayloadSequence() {
+        tacticalPayloadTimeout.stop()
+        tacticalPayloadDeadline = 0
+        tacticalPayloadStep = 0
+    }
+
+    // Wall-clock deadline of the running sequence timeout (0 = not running),
+    // and a 1 s ticker that drives the on-screen countdown.
+    property real tacticalPayloadDeadline: 0
+    property real tacticalPayloadNowMs: Date.now()
+
+    function formatTacticalCountdown(ms) {
+        var total = Math.max(0, Math.ceil(ms / 1000))
+        var m = Math.floor(total / 60)
+        var sec = total % 60
+        return (m < 10 ? "0" : "") + m + ":" + (sec < 10 ? "0" : "") + sec
+    }
+
+    Timer {
+        interval: 1000
+        repeat: true
+        running: root.tacticalPayloadDeadline > 0
+        onTriggered: root.tacticalPayloadNowMs = Date.now()
+    }
+
+    Timer {
+        id: tacticalPayloadTimeout
+        interval: root.tacticalPayloadWatchdogMinutes * 60 * 1000
+        repeat: false
+        onTriggered: {
+            root.tacticalPayloadDeadline = 0
+            if (root.tacticalPayloadStep > 0) {
+                root.tacticalPayloadStep = 0
+                root.statusMessageRequested("Payload sequence timed out - start again from Activate")
+            }
+        }
+    }
+
+    // Command awaiting its acknowledgement; every payload button stays disabled
+    // until it is acked, rejected or times out.
+    property var pendingPayloadCommand: null
 
     function sendTacticalPayloadCommand(step, label, commandId, watchdogMinutes) {
         if (!root.mavlinkObject || !root.vehicleConnected) {
             root.statusMessageRequested("Connect a vehicle before sending a payload command")
+            return
+        }
+
+        if (root.pendingPayloadCommand) {
+            root.statusMessageRequested("Waiting for acknowledgement of " + root.pendingPayloadCommand.label)
             return
         }
 
@@ -145,8 +230,42 @@ Rectangle {
             return
         }
 
-        root.advanceTacticalPayloadStep(step)
-        root.statusMessageRequested(label + " payload command sent")
+        root.pendingPayloadCommand = { step: step, label: label, commandId: commandId, watchdogMinutes: watchdogMinutes }
+        root.statusMessageRequested(label + " sent - waiting for acknowledgement")
+    }
+
+    function handlePayloadCommandAcknowledged(commandId, watchdogMinutes) {
+        var pending = root.pendingPayloadCommand
+        if (!pending || pending.commandId !== commandId)
+            return
+        root.pendingPayloadCommand = null
+
+        if (commandId === 0x0B)
+            root.tacticalPayloadWatchdogMinutes = watchdogMinutes
+        if (pending.step === root.tacticalPayloadDeactivateStep)
+            root.resetTacticalPayloadSequence()
+        else if (pending.step < root.tacticalPayloadSequenceLength)
+            root.advanceTacticalPayloadStep(pending.step)
+        root.statusMessageRequested(pending.label + " acknowledged")
+    }
+
+    function handlePayloadCommandFailed(commandId, reason) {
+        var pending = root.pendingPayloadCommand
+        if (!pending || pending.commandId !== commandId)
+            return
+        root.pendingPayloadCommand = null
+        root.statusMessageRequested(pending.label + " failed: " + reason)
+    }
+
+    Connections {
+        target: root.mavlinkObject
+        ignoreUnknownSignals: true
+        function onPayloadCommandAcknowledged(commandId, watchdogMinutes) {
+            root.handlePayloadCommandAcknowledged(commandId, watchdogMinutes)
+        }
+        function onPayloadCommandFailed(commandId, reason) {
+            root.handlePayloadCommandFailed(commandId, reason)
+        }
     }
 
     onVehicleArmedChanged: {
@@ -465,10 +584,15 @@ Rectangle {
                     width: parent.width
                     height: 36
                     flat: true
+                    checkable: true
+                    checked: toggleEnabled
                     padding: 0
                     hoverEnabled: true
                     enabled: root.vpsConnected
-                    onClicked: root.requestVpsStart(index, modelData.label)
+                    property bool toggleEnabled: modelData.key.length > 0
+                            ? root.vpsProcessIsOn(root.mavlinkObject.vpsStatus[modelData.key])
+                            : root.vpsAidingEnabled
+                    onToggled: root.requestVpsToggle(index, modelData.label, checked)
 
                     contentItem: RowLayout {
                         spacing: 8
@@ -482,17 +606,20 @@ Rectangle {
                         }
                         Text {
                             Layout.rightMargin: 10
-                            text: root.vpsConnected && modelData.key.length > 0
-                                  ? (root.mavlinkObject.vpsStatus[modelData.key] || "Unknown") : ""
-                            color: root.mutedColor
+                            text: modelData.key.length > 0
+                                  ? (root.mavlinkObject.vpsStatus[modelData.key] || (vpsActionButton.toggleEnabled ? "ON" : "OFF"))
+                                  : (vpsActionButton.toggleEnabled ? "ON" : "OFF")
+                            color: vpsActionButton.checked ? "#35dc79" : "#ff6964"
                             font.pixelSize: 10
                         }
                     }
 
                     background: Rectangle {
-                        color: vpsActionButton.down ? root.downColor
+                        color: vpsActionButton.checked ? "#145d3a"
+                              : vpsActionButton.down ? "#7d2525"
                               : vpsActionButton.hovered ? root.hoverColor : root.panelColor
-                        border.color: vpsActionButton.enabled ? "#00aeca" : root.borderColor
+                        border.color: vpsActionButton.checked ? "#35dc79"
+                              : vpsActionButton.enabled ? "#ff6964" : root.borderColor
                         border.width: 1
                         radius: 3
                     }
@@ -511,6 +638,7 @@ Rectangle {
         height: root.tacticalPayloadHeaderHeight
                 + 1
                 + root.tacticalPayloadActionCount * root.tacticalPayloadActionHeight
+                + root.tacticalPayloadTimerLineHeight
                 + (root.tacticalPayloadActionCount - 1) * root.tacticalPayloadActionSpacing
                 + 2 * root.tacticalPayloadContentSpacing
                 + 2 * root.tacticalPayloadPadding
@@ -594,6 +722,7 @@ Rectangle {
                 width: parent.width
                 spacing: root.tacticalPayloadActionSpacing
                 height: root.tacticalPayloadActionCount * root.tacticalPayloadActionHeight
+                        + root.tacticalPayloadTimerLineHeight
                         + (root.tacticalPayloadActionCount - 1) * spacing
 
                 Repeater {
@@ -602,25 +731,32 @@ Rectangle {
                     { label: "Arm 1", icon: "⌁", accent: "#f4a62a" },
                     { label: "Arm 2", icon: "⌁", accent: "#f4a62a" },
                     { label: "Arm 3", icon: "⌁", accent: "#f4a62a" },
-                    { label: "Wait", icon: "◷", accent: "#36aeea" },
-                    { label: "Deactivate", icon: "⏻", accent: "#fa4a59" },
-                    { label: "Watchdog timer set...", icon: "⚙", accent: "#bd54e7" }
+                    { label: "Detnote", icon: "✦", accent: "#f2d93a" },
+                    { label: "Watchdog timer set...", icon: "⚙", accent: "#bd54e7" },
+                    { label: "Deactivate", icon: "⏻", accent: "#fa4a59" }
                 ]
 
-                delegate: Button {
+                delegate: Column {
+                  width: parent.width
+                  spacing: 0
+                  Button {
                     id: payloadStepButton
                     readonly property int step: index
-                    readonly property int commandId: [ 0x02, 0x03, 0x04, 0x05, 0x06, 0x08, 0x0B ][index]
-                    readonly property int watchdogMinutes: step === 6 ? 5 : 0
-                    readonly property bool completed: root.tacticalPayloadStep > step
-                    enabled: root.tacticalPayloadStep >= step
+                    readonly property int commandId: [ 0x02, 0x03, 0x04, 0x05, 0x07, 0x0B, 0x08 ][index]
+                    readonly property bool completed: step < root.tacticalPayloadSequenceLength && root.tacticalPayloadStep > step
+                    enabled: !root.pendingPayloadCommand
+                             && (step >= root.tacticalPayloadSequenceLength || root.tacticalPayloadStep >= step)
                     width: parent.width
                     height: root.tacticalPayloadActionHeight
                     flat: true
                     padding: 0
                     hoverEnabled: true
-                    onClicked: root.sendTacticalPayloadCommand(
-                                   step, modelData.label, commandId, watchdogMinutes)
+                    onClicked: {
+                        if (commandId === 0x0B)
+                            root.requestTacticalWatchdogSet(step, modelData.label)
+                        else
+                            root.sendTacticalPayloadCommand(step, modelData.label, commandId, 0)
+                    }
 
                     contentItem: RowLayout {
                         spacing: 8
@@ -658,6 +794,19 @@ Rectangle {
                         border.width: 1
                         radius: 3
                     }
+                  }
+                  Text {
+                    visible: payloadStepButton.commandId === 0x0B
+                    width: parent.width
+                    height: visible ? root.tacticalPayloadTimerLineHeight : 0
+                    text: root.tacticalPayloadDeadline > 0
+                          ? "Sequence timeout  " + root.formatTacticalCountdown(root.tacticalPayloadDeadline - root.tacticalPayloadNowMs)
+                          : "Watchdog " + root.tacticalPayloadWatchdogMinutes + " min - timer idle"
+                    color: root.tacticalPayloadDeadline > 0 ? "#bd54e7" : root.mutedColor
+                    font.pixelSize: 11
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                  }
                 }
             }
             }
@@ -736,6 +885,69 @@ Rectangle {
                 Item { Layout.fillWidth: true }
                 DialogButton { text: "CANCEL"; onClicked: takeoffAltitudeDialog.close() }
                 DialogButton { text: "TAKEOFF"; accent: "#00c7df"; onClicked: root.confirmTakeoffAltitude() }
+            }
+        }
+    }
+
+    Popup {
+        id: watchdogDialog
+        parent: Overlay.overlay
+        modal: true
+        focus: true
+        width: 320
+        height: watchdogContent.implicitHeight + 36
+        padding: 18
+        closePolicy: Popup.CloseOnEscape | Popup.CloseOnReleaseOutside
+        property int pendingStep: 0
+        property string pendingLabel: ""
+
+        onAboutToShow: {
+            x = Math.round((parent.width - width) / 2)
+            y = Math.round((parent.height - height) / 2)
+        }
+
+        background: Rectangle {
+            color: root.darkTheme ? "#f20b1018" : "#ffffff"
+            border.color: "#bd54e7"
+            border.width: 1
+        }
+
+        contentItem: ColumnLayout {
+            id: watchdogContent
+            width: watchdogDialog.width - 36
+            spacing: 12
+            Text {
+                Layout.fillWidth: true
+                text: "Set watchdog (minutes)"
+                color: root.textColor
+                font.pixelSize: 14
+                font.bold: true
+            }
+            TextField {
+                id: watchdogMinutesField
+                Layout.fillWidth: true
+                Layout.preferredHeight: 36
+                validator: IntValidator { bottom: 1; top: 255 }
+                inputMethodHints: Qt.ImhDigitsOnly
+                color: root.textColor
+                font.pixelSize: 13
+                selectByMouse: true
+                placeholderText: "1 - 255 minutes"
+                placeholderTextColor: root.mutedColor
+                background: Rectangle {
+                    color: root.darkTheme ? "#070c13" : "#f8fbff"
+                    border.color: watchdogMinutesField.activeFocus ? "#bd54e7" : root.borderColor
+                    border.width: 1
+                }
+                Keys.onReturnPressed: root.confirmTacticalWatchdog()
+                Keys.onEnterPressed: root.confirmTacticalWatchdog()
+            }
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 8
+                Item { Layout.fillWidth: true }
+                DialogButton { text: "CANCEL"; onClicked: watchdogDialog.close() }
+                DialogButton { text: "SET"; accent: "#bd54e7"; onClicked: root.confirmTacticalWatchdog() }
             }
         }
     }

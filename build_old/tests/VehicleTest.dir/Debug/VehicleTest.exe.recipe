@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <ProjectOutputs>
+    <ProjectOutput>
+      <FullPath>C:\GCS\BonV_GroundControlStation\build\x64\Debug\ZERO_CHECK</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>C:\GCS\BonV_GroundControlStation\build\tests\x64\Debug\VehicleTest_qmlimportscan</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>C:\GCS\BonV_GroundControlStation\build\tests\Debug\VehicleTest.exe</FullPath>
+    </ProjectOutput>
+  </ProjectOutputs>
+  <ContentFiles />
+  <SatelliteDlls />
+  <NonRecipeFileRefs />
+</Project>

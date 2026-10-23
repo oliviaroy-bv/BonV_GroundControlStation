@@ -1,0 +1,549 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+  </PropertyGroup>
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="MinSizeRel|x64">
+      <Configuration>MinSizeRel</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="RelWithDebInfo|x64">
+      <Configuration>RelWithDebInfo</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{B454D471-4828-378E-AC2C-33959626E8C0}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>10.0.28000.0</WindowsTargetPlatformVersion>
+    <Platform>x64</Platform>
+    <ProjectName>MavlinkInspectorModelTest</ProjectName>
+    <VCProjectUpgraderObjectName>NoUpgrade</VCProjectUpgraderObjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v145</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v145</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v145</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v145</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\GCS\BonV_GroundControlStation\build\tests\Debug\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">MavlinkInspectorModelTest.dir\Debug\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">MavlinkInspectorModelTest</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.exe</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</GenerateManifest>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\GCS\BonV_GroundControlStation\build\tests\Release\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MavlinkInspectorModelTest.dir\Release\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MavlinkInspectorModelTest</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.exe</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</GenerateManifest>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\GCS\BonV_GroundControlStation\build\tests\MinSizeRel\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">MavlinkInspectorModelTest.dir\MinSizeRel\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">MavlinkInspectorModelTest</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">.exe</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</GenerateManifest>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\GCS\BonV_GroundControlStation\build\tests\RelWithDebInfo\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">MavlinkInspectorModelTest.dir\RelWithDebInfo\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">MavlinkInspectorModelTest</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">.exe</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">true</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">false</GenerateManifest>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\GCS\BonV_GroundControlStation\build\tests\MavlinkInspectorModelTest_autogen\include_Debug;C:\GCS\BonV_GroundControlStation\app;C:\GCS\BonV_GroundControlStation\common;C:\GCS\BonV_GroundControlStation\comms;C:\GCS\BonV_GroundControlStation\comms\transport;C:\GCS\BonV_GroundControlStation\comms\transport\tcp;C:\GCS\BonV_GroundControlStation\comms\transport\udp;C:\GCS\BonV_GroundControlStation\comms\transport\serial;C:\GCS\BonV_GroundControlStation\comms\mavlink;C:\GCS\BonV_GroundControlStation\core;C:\GCS\BonV_GroundControlStation\core\gimbal;C:\GCS\BonV_GroundControlStation\core\mission;C:\GCS\BonV_GroundControlStation\core\map;C:\GCS\BonV_GroundControlStation\core\storage;C:\GCS\BonV_GroundControlStation\core\terrain;C:\GCS\BonV_GroundControlStation\core\vehicle;C:\GCS\BonV_GroundControlStation\core\video;C:\GCS\BonV_GroundControlStation\integrations\gstreamer;C:\GCS\BonV_GroundControlStation\integrations\Offline-3DMaps\src;C:\GCS\BonV_GroundControlStation\integrations\map_provider;C:\GCS\BonV_GroundControlStation\integrations\mavlink_provider\c_library_v2;C:\GCS\BonV_GroundControlStation\integrations\SkyRouteX_New;C:\GCS\BonV_GroundControlStation\integrations\SkyRouteX_New\include;C:\GCS\BonV_GroundControlStation\media\icons;C:\GCS\BonV_GroundControlStation\media\logo;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtCore" /external:I "C:/Qt/6.12.0/msvc2022_64/include" /external:I "C:/Qt/6.12.0/msvc2022_64/mkspecs/win32-msvc" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtConcurrent" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtGui" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtNetwork" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtQml" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtQmlIntegration" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtQuick" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtOpenGL" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtQuick3D" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtQuick3DRuntimeRender" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtQuick3DUtils" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtShaderTools" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtSerialPort" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtWebEngineCore" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtWebChannel" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtPositioning" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtZlib" /external:I "C:/gstreamer/1.0/msvc_x86_64/include/gstreamer-1.0" /external:I "C:/gstreamer/1.0/msvc_x86_64/include" /external:I "C:/gstreamer/1.0/msvc_x86_64/include/glib-2.0" /external:I "C:/gstreamer/1.0/msvc_x86_64/lib/glib-2.0/include" /external:I "C:/gstreamer/1.0/msvc_x86_64/include/orc-0.4" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtTest" /FS -Zc:__cplusplus -utf-8</AdditionalOptions>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <BufferSecurityCheck></BufferSecurityCheck>
+      <CallingConvention></CallingConvention>
+      <ConformanceMode>true</ConformanceMode>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel>
+      <FloatingPointModel></FloatingPointModel>
+      <ForceConformanceInForLoopScope></ForceConformanceInForLoopScope>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <MinimalRebuild></MinimalRebuild>
+      <Optimization>Disabled</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RemoveUnreferencedCodeData></RemoveUnreferencedCodeData>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <SupportJustMyCode></SupportJustMyCode>
+      <TreatWChar_tAsBuiltInType></TreatWChar_tAsBuiltInType>
+      <UseFullPaths>false</UseFullPaths>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;QT_CORE_LIB;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;_WIN64;UNICODE;_UNICODE;HAVE_GSTREAMER;BONV_HAS_ZLIB;QT_CONCURRENT_LIB;QT_GUI_LIB;QT_NETWORK_LIB;QT_QML_LIB;QT_QMLINTEGRATION_LIB;QT_QUICK_LIB;QT_OPENGL_LIB;QT_QUICK3D_LIB;QT_QUICK3DRUNTIMERENDER_LIB;QT_QUICK3DUTILS_LIB;QT_SHADERTOOLS_LIB;QT_SERIALPORT_LIB;QT_WEBENGINECORE_LIB;QT_WEBCHANNEL_LIB;QT_POSITIONING_LIB;QT_ZLIB_LIB;QT_TESTLIB_LIB;QT_TESTCASE_BUILDDIR="C:/GCS/BonV_GroundControlStation/build/tests";QT_TESTCASE_SOURCEDIR="C:/GCS/BonV_GroundControlStation/tests";CMAKE_INTDIR="Debug"</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_DEBUG;_WINDOWS;QT_CORE_LIB;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;_WIN64;UNICODE;_UNICODE;HAVE_GSTREAMER;BONV_HAS_ZLIB;QT_CONCURRENT_LIB;QT_GUI_LIB;QT_NETWORK_LIB;QT_QML_LIB;QT_QMLINTEGRATION_LIB;QT_QUICK_LIB;QT_OPENGL_LIB;QT_QUICK3D_LIB;QT_QUICK3DRUNTIMERENDER_LIB;QT_QUICK3DUTILS_LIB;QT_SHADERTOOLS_LIB;QT_SERIALPORT_LIB;QT_WEBENGINECORE_LIB;QT_WEBCHANNEL_LIB;QT_POSITIONING_LIB;QT_ZLIB_LIB;QT_TESTLIB_LIB;QT_TESTCASE_BUILDDIR=\"C:/GCS/BonV_GroundControlStation/build/tests\";QT_TESTCASE_SOURCEDIR=\"C:/GCS/BonV_GroundControlStation/tests\";CMAKE_INTDIR=\"Debug\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\GCS\BonV_GroundControlStation\build\tests\MavlinkInspectorModelTest_autogen\include_Debug;C:\GCS\BonV_GroundControlStation\app;C:\GCS\BonV_GroundControlStation\common;C:\GCS\BonV_GroundControlStation\comms;C:\GCS\BonV_GroundControlStation\comms\transport;C:\GCS\BonV_GroundControlStation\comms\transport\tcp;C:\GCS\BonV_GroundControlStation\comms\transport\udp;C:\GCS\BonV_GroundControlStation\comms\transport\serial;C:\GCS\BonV_GroundControlStation\comms\mavlink;C:\GCS\BonV_GroundControlStation\core;C:\GCS\BonV_GroundControlStation\core\gimbal;C:\GCS\BonV_GroundControlStation\core\mission;C:\GCS\BonV_GroundControlStation\core\map;C:\GCS\BonV_GroundControlStation\core\storage;C:\GCS\BonV_GroundControlStation\core\terrain;C:\GCS\BonV_GroundControlStation\core\vehicle;C:\GCS\BonV_GroundControlStation\core\video;C:\GCS\BonV_GroundControlStation\integrations\gstreamer;C:\GCS\BonV_GroundControlStation\integrations\Offline-3DMaps\src;C:\GCS\BonV_GroundControlStation\integrations\map_provider;C:\GCS\BonV_GroundControlStation\integrations\mavlink_provider\c_library_v2;C:\GCS\BonV_GroundControlStation\integrations\SkyRouteX_New;C:\GCS\BonV_GroundControlStation\integrations\SkyRouteX_New\include;C:\GCS\BonV_GroundControlStation\media\icons;C:\GCS\BonV_GroundControlStation\media\logo;C:\Qt\6.12.0\msvc2022_64\include\QtCore;C:\Qt\6.12.0\msvc2022_64\include;C:\Qt\6.12.0\msvc2022_64\mkspecs\win32-msvc;C:\Qt\6.12.0\msvc2022_64\include\QtConcurrent;C:\Qt\6.12.0\msvc2022_64\include\QtGui;C:\Qt\6.12.0\msvc2022_64\include\QtNetwork;C:\Qt\6.12.0\msvc2022_64\include\QtQml;C:\Qt\6.12.0\msvc2022_64\include\QtQmlIntegration;C:\Qt\6.12.0\msvc2022_64\include\QtQuick;C:\Qt\6.12.0\msvc2022_64\include\QtOpenGL;C:\Qt\6.12.0\msvc2022_64\include\QtQuick3D;C:\Qt\6.12.0\msvc2022_64\include\QtQuick3DRuntimeRender;C:\Qt\6.12.0\msvc2022_64\include\QtQuick3DUtils;C:\Qt\6.12.0\msvc2022_64\include\QtShaderTools;C:\Qt\6.12.0\msvc2022_64\include\QtSerialPort;C:\Qt\6.12.0\msvc2022_64\include\QtWebEngineCore;C:\Qt\6.12.0\msvc2022_64\include\QtWebChannel;C:\Qt\6.12.0\msvc2022_64\include\QtPositioning;C:\Qt\6.12.0\msvc2022_64\include\QtZlib;C:\gstreamer\1.0\msvc_x86_64\include\gstreamer-1.0;C:\gstreamer\1.0\msvc_x86_64\include;C:\gstreamer\1.0\msvc_x86_64\include\glib-2.0;C:\gstreamer\1.0\msvc_x86_64\lib\glib-2.0\include;C:\gstreamer\1.0\msvc_x86_64\include\orc-0.4;C:\Qt\6.12.0\msvc2022_64\include\QtTest;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\GCS\BonV_GroundControlStation\build\tests\MavlinkInspectorModelTest_autogen\include_Debug;C:\GCS\BonV_GroundControlStation\app;C:\GCS\BonV_GroundControlStation\common;C:\GCS\BonV_GroundControlStation\comms;C:\GCS\BonV_GroundControlStation\comms\transport;C:\GCS\BonV_GroundControlStation\comms\transport\tcp;C:\GCS\BonV_GroundControlStation\comms\transport\udp;C:\GCS\BonV_GroundControlStation\comms\transport\serial;C:\GCS\BonV_GroundControlStation\comms\mavlink;C:\GCS\BonV_GroundControlStation\core;C:\GCS\BonV_GroundControlStation\core\gimbal;C:\GCS\BonV_GroundControlStation\core\mission;C:\GCS\BonV_GroundControlStation\core\map;C:\GCS\BonV_GroundControlStation\core\storage;C:\GCS\BonV_GroundControlStation\core\terrain;C:\GCS\BonV_GroundControlStation\core\vehicle;C:\GCS\BonV_GroundControlStation\core\video;C:\GCS\BonV_GroundControlStation\integrations\gstreamer;C:\GCS\BonV_GroundControlStation\integrations\Offline-3DMaps\src;C:\GCS\BonV_GroundControlStation\integrations\map_provider;C:\GCS\BonV_GroundControlStation\integrations\mavlink_provider\c_library_v2;C:\GCS\BonV_GroundControlStation\integrations\SkyRouteX_New;C:\GCS\BonV_GroundControlStation\integrations\SkyRouteX_New\include;C:\GCS\BonV_GroundControlStation\media\icons;C:\GCS\BonV_GroundControlStation\media\logo;C:\Qt\6.12.0\msvc2022_64\include\QtCore;C:\Qt\6.12.0\msvc2022_64\include;C:\Qt\6.12.0\msvc2022_64\mkspecs\win32-msvc;C:\Qt\6.12.0\msvc2022_64\include\QtConcurrent;C:\Qt\6.12.0\msvc2022_64\include\QtGui;C:\Qt\6.12.0\msvc2022_64\include\QtNetwork;C:\Qt\6.12.0\msvc2022_64\include\QtQml;C:\Qt\6.12.0\msvc2022_64\include\QtQmlIntegration;C:\Qt\6.12.0\msvc2022_64\include\QtQuick;C:\Qt\6.12.0\msvc2022_64\include\QtOpenGL;C:\Qt\6.12.0\msvc2022_64\include\QtQuick3D;C:\Qt\6.12.0\msvc2022_64\include\QtQuick3DRuntimeRender;C:\Qt\6.12.0\msvc2022_64\include\QtQuick3DUtils;C:\Qt\6.12.0\msvc2022_64\include\QtShaderTools;C:\Qt\6.12.0\msvc2022_64\include\QtSerialPort;C:\Qt\6.12.0\msvc2022_64\include\QtWebEngineCore;C:\Qt\6.12.0\msvc2022_64\include\QtWebChannel;C:\Qt\6.12.0\msvc2022_64\include\QtPositioning;C:\Qt\6.12.0\msvc2022_64\include\QtZlib;C:\gstreamer\1.0\msvc_x86_64\include\gstreamer-1.0;C:\gstreamer\1.0\msvc_x86_64\include;C:\gstreamer\1.0\msvc_x86_64\include\glib-2.0;C:\gstreamer\1.0\msvc_x86_64\lib\glib-2.0\include;C:\gstreamer\1.0\msvc_x86_64\include\orc-0.4;C:\Qt\6.12.0\msvc2022_64\include\QtTest;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalDependencies>..\Debug\MavlinkPOCCore.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6Testd.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6Quick3Dd.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6Quick3DRuntimeRenderd.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6Concurrentd.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6Quick3DUtilsd.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6ShaderToolsd.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6SerialPortd.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6WebEngineCored.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6Quickd.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6OpenGLd.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6Guid.lib;d3d11.lib;dxgi.lib;dxguid.lib;d3d12.lib;user32.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6WebChanneld.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6Qmld.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6Networkd.lib;ws2_32.lib;shell32.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6Positioningd.lib;C:\gstreamer\1.0\msvc_x86_64\lib\gstapp-1.0.lib;C:\gstreamer\1.0\msvc_x86_64\lib\gstvideo-1.0.lib;C:\gstreamer\1.0\msvc_x86_64\lib\gstbase-1.0.lib;C:\gstreamer\1.0\msvc_x86_64\lib\gstreamer-1.0.lib;C:\gstreamer\1.0\msvc_x86_64\lib\gobject-2.0.lib;C:\gstreamer\1.0\msvc_x86_64\lib\glib-2.0.lib;C:\gstreamer\1.0\msvc_x86_64\lib\intl.lib;C:\gstreamer\1.0\msvc_x86_64\lib\z.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6Cored.lib;mpr.lib;userenv.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+      <DataExecutionPrevention></DataExecutionPrevention>
+      <EnableUAC>false</EnableUAC>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImageHasSafeExceptionHandlers></ImageHasSafeExceptionHandlers>
+      <ImportLibrary>C:/GCS/BonV_GroundControlStation/build/tests/Debug/MavlinkInspectorModelTest.lib</ImportLibrary>
+      <LinkErrorReporting></LinkErrorReporting>
+      <ProgramDataBaseFile>C:/GCS/BonV_GroundControlStation/build/tests/Debug/MavlinkInspectorModelTest.pdb</ProgramDataBaseFile>
+      <RandomizedBaseAddress></RandomizedBaseAddress>
+      <SubSystem>Console</SubSystem>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+    <Manifest>
+      <AdditionalManifestFiles>C:\GCS\BonV_GroundControlStation\build\tests\MavlinkInspectorModelTest.exe.manifest;</AdditionalManifestFiles>
+    </Manifest>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\GCS\BonV_GroundControlStation\build\tests\MavlinkInspectorModelTest_autogen\include_Release;C:\GCS\BonV_GroundControlStation\app;C:\GCS\BonV_GroundControlStation\common;C:\GCS\BonV_GroundControlStation\comms;C:\GCS\BonV_GroundControlStation\comms\transport;C:\GCS\BonV_GroundControlStation\comms\transport\tcp;C:\GCS\BonV_GroundControlStation\comms\transport\udp;C:\GCS\BonV_GroundControlStation\comms\transport\serial;C:\GCS\BonV_GroundControlStation\comms\mavlink;C:\GCS\BonV_GroundControlStation\core;C:\GCS\BonV_GroundControlStation\core\gimbal;C:\GCS\BonV_GroundControlStation\core\mission;C:\GCS\BonV_GroundControlStation\core\map;C:\GCS\BonV_GroundControlStation\core\storage;C:\GCS\BonV_GroundControlStation\core\terrain;C:\GCS\BonV_GroundControlStation\core\vehicle;C:\GCS\BonV_GroundControlStation\core\video;C:\GCS\BonV_GroundControlStation\integrations\gstreamer;C:\GCS\BonV_GroundControlStation\integrations\Offline-3DMaps\src;C:\GCS\BonV_GroundControlStation\integrations\map_provider;C:\GCS\BonV_GroundControlStation\integrations\mavlink_provider\c_library_v2;C:\GCS\BonV_GroundControlStation\integrations\SkyRouteX_New;C:\GCS\BonV_GroundControlStation\integrations\SkyRouteX_New\include;C:\GCS\BonV_GroundControlStation\media\icons;C:\GCS\BonV_GroundControlStation\media\logo;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtCore" /external:I "C:/Qt/6.12.0/msvc2022_64/include" /external:I "C:/Qt/6.12.0/msvc2022_64/mkspecs/win32-msvc" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtConcurrent" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtGui" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtNetwork" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtQml" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtQmlIntegration" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtQuick" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtOpenGL" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtQuick3D" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtQuick3DRuntimeRender" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtQuick3DUtils" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtShaderTools" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtSerialPort" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtWebEngineCore" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtWebChannel" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtPositioning" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtZlib" /external:I "C:/gstreamer/1.0/msvc_x86_64/include/gstreamer-1.0" /external:I "C:/gstreamer/1.0/msvc_x86_64/include" /external:I "C:/gstreamer/1.0/msvc_x86_64/include/glib-2.0" /external:I "C:/gstreamer/1.0/msvc_x86_64/lib/glib-2.0/include" /external:I "C:/gstreamer/1.0/msvc_x86_64/include/orc-0.4" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtTest" /FS -Zc:__cplusplus -utf-8</AdditionalOptions>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <BufferSecurityCheck></BufferSecurityCheck>
+      <CallingConvention></CallingConvention>
+      <ConformanceMode>true</ConformanceMode>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel>
+      <FloatingPointModel></FloatingPointModel>
+      <ForceConformanceInForLoopScope></ForceConformanceInForLoopScope>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <MinimalRebuild></MinimalRebuild>
+      <Optimization>MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RemoveUnreferencedCodeData></RemoveUnreferencedCodeData>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <SupportJustMyCode></SupportJustMyCode>
+      <TreatWChar_tAsBuiltInType></TreatWChar_tAsBuiltInType>
+      <UseFullPaths>false</UseFullPaths>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;QT_CORE_LIB;QT_NO_DEBUG;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;_WIN64;UNICODE;_UNICODE;HAVE_GSTREAMER;BONV_HAS_ZLIB;QT_CONCURRENT_LIB;QT_GUI_LIB;QT_NETWORK_LIB;QT_QML_LIB;QT_QMLINTEGRATION_LIB;QT_QUICK_LIB;QT_OPENGL_LIB;QT_QUICK3D_LIB;QT_QUICK3DRUNTIMERENDER_LIB;QT_QUICK3DUTILS_LIB;QT_SHADERTOOLS_LIB;QT_SERIALPORT_LIB;QT_WEBENGINECORE_LIB;QT_WEBCHANNEL_LIB;QT_POSITIONING_LIB;QT_ZLIB_LIB;QT_TESTLIB_LIB;QT_TESTCASE_BUILDDIR="C:/GCS/BonV_GroundControlStation/build/tests";QT_TESTCASE_SOURCEDIR="C:/GCS/BonV_GroundControlStation/tests";CMAKE_INTDIR="Release"</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+      <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;QT_CORE_LIB;QT_NO_DEBUG;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;_WIN64;UNICODE;_UNICODE;HAVE_GSTREAMER;BONV_HAS_ZLIB;QT_CONCURRENT_LIB;QT_GUI_LIB;QT_NETWORK_LIB;QT_QML_LIB;QT_QMLINTEGRATION_LIB;QT_QUICK_LIB;QT_OPENGL_LIB;QT_QUICK3D_LIB;QT_QUICK3DRUNTIMERENDER_LIB;QT_QUICK3DUTILS_LIB;QT_SHADERTOOLS_LIB;QT_SERIALPORT_LIB;QT_WEBENGINECORE_LIB;QT_WEBCHANNEL_LIB;QT_POSITIONING_LIB;QT_ZLIB_LIB;QT_TESTLIB_LIB;QT_TESTCASE_BUILDDIR=\"C:/GCS/BonV_GroundControlStation/build/tests\";QT_TESTCASE_SOURCEDIR=\"C:/GCS/BonV_GroundControlStation/tests\";CMAKE_INTDIR=\"Release\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\GCS\BonV_GroundControlStation\build\tests\MavlinkInspectorModelTest_autogen\include_Release;C:\GCS\BonV_GroundControlStation\app;C:\GCS\BonV_GroundControlStation\common;C:\GCS\BonV_GroundControlStation\comms;C:\GCS\BonV_GroundControlStation\comms\transport;C:\GCS\BonV_GroundControlStation\comms\transport\tcp;C:\GCS\BonV_GroundControlStation\comms\transport\udp;C:\GCS\BonV_GroundControlStation\comms\transport\serial;C:\GCS\BonV_GroundControlStation\comms\mavlink;C:\GCS\BonV_GroundControlStation\core;C:\GCS\BonV_GroundControlStation\core\gimbal;C:\GCS\BonV_GroundControlStation\core\mission;C:\GCS\BonV_GroundControlStation\core\map;C:\GCS\BonV_GroundControlStation\core\storage;C:\GCS\BonV_GroundControlStation\core\terrain;C:\GCS\BonV_GroundControlStation\core\vehicle;C:\GCS\BonV_GroundControlStation\core\video;C:\GCS\BonV_GroundControlStation\integrations\gstreamer;C:\GCS\BonV_GroundControlStation\integrations\Offline-3DMaps\src;C:\GCS\BonV_GroundControlStation\integrations\map_provider;C:\GCS\BonV_GroundControlStation\integrations\mavlink_provider\c_library_v2;C:\GCS\BonV_GroundControlStation\integrations\SkyRouteX_New;C:\GCS\BonV_GroundControlStation\integrations\SkyRouteX_New\include;C:\GCS\BonV_GroundControlStation\media\icons;C:\GCS\BonV_GroundControlStation\media\logo;C:\Qt\6.12.0\msvc2022_64\include\QtCore;C:\Qt\6.12.0\msvc2022_64\include;C:\Qt\6.12.0\msvc2022_64\mkspecs\win32-msvc;C:\Qt\6.12.0\msvc2022_64\include\QtConcurrent;C:\Qt\6.12.0\msvc2022_64\include\QtGui;C:\Qt\6.12.0\msvc2022_64\include\QtNetwork;C:\Qt\6.12.0\msvc2022_64\include\QtQml;C:\Qt\6.12.0\msvc2022_64\include\QtQmlIntegration;C:\Qt\6.12.0\msvc2022_64\include\QtQuick;C:\Qt\6.12.0\msvc2022_64\include\QtOpenGL;C:\Qt\6.12.0\msvc2022_64\include\QtQuick3D;C:\Qt\6.12.0\msvc2022_64\include\QtQuick3DRuntimeRender;C:\Qt\6.12.0\msvc2022_64\include\QtQuick3DUtils;C:\Qt\6.12.0\msvc2022_64\include\QtShaderTools;C:\Qt\6.12.0\msvc2022_64\include\QtSerialPort;C:\Qt\6.12.0\msvc2022_64\include\QtWebEngineCore;C:\Qt\6.12.0\msvc2022_64\include\QtWebChannel;C:\Qt\6.12.0\msvc2022_64\include\QtPositioning;C:\Qt\6.12.0\msvc2022_64\include\QtZlib;C:\gstreamer\1.0\msvc_x86_64\include\gstreamer-1.0;C:\gstreamer\1.0\msvc_x86_64\include;C:\gstreamer\1.0\msvc_x86_64\include\glib-2.0;C:\gstreamer\1.0\msvc_x86_64\lib\glib-2.0\include;C:\gstreamer\1.0\msvc_x86_64\include\orc-0.4;C:\Qt\6.12.0\msvc2022_64\include\QtTest;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\GCS\BonV_GroundControlStation\build\tests\MavlinkInspectorModelTest_autogen\include_Release;C:\GCS\BonV_GroundControlStation\app;C:\GCS\BonV_GroundControlStation\common;C:\GCS\BonV_GroundControlStation\comms;C:\GCS\BonV_GroundControlStation\comms\transport;C:\GCS\BonV_GroundControlStation\comms\transport\tcp;C:\GCS\BonV_GroundControlStation\comms\transport\udp;C:\GCS\BonV_GroundControlStation\comms\transport\serial;C:\GCS\BonV_GroundControlStation\comms\mavlink;C:\GCS\BonV_GroundControlStation\core;C:\GCS\BonV_GroundControlStation\core\gimbal;C:\GCS\BonV_GroundControlStation\core\mission;C:\GCS\BonV_GroundControlStation\core\map;C:\GCS\BonV_GroundControlStation\core\storage;C:\GCS\BonV_GroundControlStation\core\terrain;C:\GCS\BonV_GroundControlStation\core\vehicle;C:\GCS\BonV_GroundControlStation\core\video;C:\GCS\BonV_GroundControlStation\integrations\gstreamer;C:\GCS\BonV_GroundControlStation\integrations\Offline-3DMaps\src;C:\GCS\BonV_GroundControlStation\integrations\map_provider;C:\GCS\BonV_GroundControlStation\integrations\mavlink_provider\c_library_v2;C:\GCS\BonV_GroundControlStation\integrations\SkyRouteX_New;C:\GCS\BonV_GroundControlStation\integrations\SkyRouteX_New\include;C:\GCS\BonV_GroundControlStation\media\icons;C:\GCS\BonV_GroundControlStation\media\logo;C:\Qt\6.12.0\msvc2022_64\include\QtCore;C:\Qt\6.12.0\msvc2022_64\include;C:\Qt\6.12.0\msvc2022_64\mkspecs\win32-msvc;C:\Qt\6.12.0\msvc2022_64\include\QtConcurrent;C:\Qt\6.12.0\msvc2022_64\include\QtGui;C:\Qt\6.12.0\msvc2022_64\include\QtNetwork;C:\Qt\6.12.0\msvc2022_64\include\QtQml;C:\Qt\6.12.0\msvc2022_64\include\QtQmlIntegration;C:\Qt\6.12.0\msvc2022_64\include\QtQuick;C:\Qt\6.12.0\msvc2022_64\include\QtOpenGL;C:\Qt\6.12.0\msvc2022_64\include\QtQuick3D;C:\Qt\6.12.0\msvc2022_64\include\QtQuick3DRuntimeRender;C:\Qt\6.12.0\msvc2022_64\include\QtQuick3DUtils;C:\Qt\6.12.0\msvc2022_64\include\QtShaderTools;C:\Qt\6.12.0\msvc2022_64\include\QtSerialPort;C:\Qt\6.12.0\msvc2022_64\include\QtWebEngineCore;C:\Qt\6.12.0\msvc2022_64\include\QtWebChannel;C:\Qt\6.12.0\msvc2022_64\include\QtPositioning;C:\Qt\6.12.0\msvc2022_64\include\QtZlib;C:\gstreamer\1.0\msvc_x86_64\include\gstreamer-1.0;C:\gstreamer\1.0\msvc_x86_64\include;C:\gstreamer\1.0\msvc_x86_64\include\glib-2.0;C:\gstreamer\1.0\msvc_x86_64\lib\glib-2.0\include;C:\gstreamer\1.0\msvc_x86_64\include\orc-0.4;C:\Qt\6.12.0\msvc2022_64\include\QtTest;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalDependencies>..\Release\MavlinkPOCCore.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6Test.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6Quick3D.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6Quick3DRuntimeRender.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6Concurrent.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6Quick3DUtils.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6ShaderTools.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6SerialPort.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6WebEngineCore.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6Quick.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6OpenGL.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6Gui.lib;d3d11.lib;dxgi.lib;dxguid.lib;d3d12.lib;user32.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6WebChannel.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6Qml.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6Network.lib;ws2_32.lib;shell32.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6Positioning.lib;C:\gstreamer\1.0\msvc_x86_64\lib\gstapp-1.0.lib;C:\gstreamer\1.0\msvc_x86_64\lib\gstvideo-1.0.lib;C:\gstreamer\1.0\msvc_x86_64\lib\gstbase-1.0.lib;C:\gstreamer\1.0\msvc_x86_64\lib\gstreamer-1.0.lib;C:\gstreamer\1.0\msvc_x86_64\lib\gobject-2.0.lib;C:\gstreamer\1.0\msvc_x86_64\lib\glib-2.0.lib;C:\gstreamer\1.0\msvc_x86_64\lib\intl.lib;C:\gstreamer\1.0\msvc_x86_64\lib\z.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6Core.lib;mpr.lib;userenv.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+      <DataExecutionPrevention></DataExecutionPrevention>
+      <EnableUAC>false</EnableUAC>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImageHasSafeExceptionHandlers></ImageHasSafeExceptionHandlers>
+      <ImportLibrary>C:/GCS/BonV_GroundControlStation/build/tests/Release/MavlinkInspectorModelTest.lib</ImportLibrary>
+      <LinkErrorReporting></LinkErrorReporting>
+      <ProgramDataBaseFile>C:/GCS/BonV_GroundControlStation/build/tests/Release/MavlinkInspectorModelTest.pdb</ProgramDataBaseFile>
+      <RandomizedBaseAddress></RandomizedBaseAddress>
+      <SubSystem>Console</SubSystem>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+    <Manifest>
+      <AdditionalManifestFiles>C:\GCS\BonV_GroundControlStation\build\tests\MavlinkInspectorModelTest.exe.manifest;</AdditionalManifestFiles>
+    </Manifest>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\GCS\BonV_GroundControlStation\build\tests\MavlinkInspectorModelTest_autogen\include_MinSizeRel;C:\GCS\BonV_GroundControlStation\app;C:\GCS\BonV_GroundControlStation\common;C:\GCS\BonV_GroundControlStation\comms;C:\GCS\BonV_GroundControlStation\comms\transport;C:\GCS\BonV_GroundControlStation\comms\transport\tcp;C:\GCS\BonV_GroundControlStation\comms\transport\udp;C:\GCS\BonV_GroundControlStation\comms\transport\serial;C:\GCS\BonV_GroundControlStation\comms\mavlink;C:\GCS\BonV_GroundControlStation\core;C:\GCS\BonV_GroundControlStation\core\gimbal;C:\GCS\BonV_GroundControlStation\core\mission;C:\GCS\BonV_GroundControlStation\core\map;C:\GCS\BonV_GroundControlStation\core\storage;C:\GCS\BonV_GroundControlStation\core\terrain;C:\GCS\BonV_GroundControlStation\core\vehicle;C:\GCS\BonV_GroundControlStation\core\video;C:\GCS\BonV_GroundControlStation\integrations\gstreamer;C:\GCS\BonV_GroundControlStation\integrations\Offline-3DMaps\src;C:\GCS\BonV_GroundControlStation\integrations\map_provider;C:\GCS\BonV_GroundControlStation\integrations\mavlink_provider\c_library_v2;C:\GCS\BonV_GroundControlStation\integrations\SkyRouteX_New;C:\GCS\BonV_GroundControlStation\integrations\SkyRouteX_New\include;C:\GCS\BonV_GroundControlStation\media\icons;C:\GCS\BonV_GroundControlStation\media\logo;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtCore" /external:I "C:/Qt/6.12.0/msvc2022_64/include" /external:I "C:/Qt/6.12.0/msvc2022_64/mkspecs/win32-msvc" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtConcurrent" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtGui" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtNetwork" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtQml" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtQmlIntegration" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtQuick" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtOpenGL" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtQuick3D" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtQuick3DRuntimeRender" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtQuick3DUtils" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtShaderTools" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtSerialPort" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtWebEngineCore" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtWebChannel" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtPositioning" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtZlib" /external:I "C:/gstreamer/1.0/msvc_x86_64/include/gstreamer-1.0" /external:I "C:/gstreamer/1.0/msvc_x86_64/include" /external:I "C:/gstreamer/1.0/msvc_x86_64/include/glib-2.0" /external:I "C:/gstreamer/1.0/msvc_x86_64/lib/glib-2.0/include" /external:I "C:/gstreamer/1.0/msvc_x86_64/include/orc-0.4" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtTest" /FS -Zc:__cplusplus -utf-8</AdditionalOptions>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <BufferSecurityCheck></BufferSecurityCheck>
+      <CallingConvention></CallingConvention>
+      <ConformanceMode>true</ConformanceMode>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel>
+      <FloatingPointModel></FloatingPointModel>
+      <ForceConformanceInForLoopScope></ForceConformanceInForLoopScope>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <MinimalRebuild></MinimalRebuild>
+      <Optimization>MinSpace</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RemoveUnreferencedCodeData></RemoveUnreferencedCodeData>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <SupportJustMyCode></SupportJustMyCode>
+      <TreatWChar_tAsBuiltInType></TreatWChar_tAsBuiltInType>
+      <UseFullPaths>false</UseFullPaths>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;QT_CORE_LIB;QT_NO_DEBUG;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;_WIN64;UNICODE;_UNICODE;HAVE_GSTREAMER;BONV_HAS_ZLIB;QT_CONCURRENT_LIB;QT_GUI_LIB;QT_NETWORK_LIB;QT_QML_LIB;QT_QMLINTEGRATION_LIB;QT_QUICK_LIB;QT_OPENGL_LIB;QT_QUICK3D_LIB;QT_QUICK3DRUNTIMERENDER_LIB;QT_QUICK3DUTILS_LIB;QT_SHADERTOOLS_LIB;QT_SERIALPORT_LIB;QT_WEBENGINECORE_LIB;QT_WEBCHANNEL_LIB;QT_POSITIONING_LIB;QT_ZLIB_LIB;QT_TESTLIB_LIB;QT_TESTCASE_BUILDDIR="C:/GCS/BonV_GroundControlStation/build/tests";QT_TESTCASE_SOURCEDIR="C:/GCS/BonV_GroundControlStation/tests";CMAKE_INTDIR="MinSizeRel"</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+      <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;QT_CORE_LIB;QT_NO_DEBUG;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;_WIN64;UNICODE;_UNICODE;HAVE_GSTREAMER;BONV_HAS_ZLIB;QT_CONCURRENT_LIB;QT_GUI_LIB;QT_NETWORK_LIB;QT_QML_LIB;QT_QMLINTEGRATION_LIB;QT_QUICK_LIB;QT_OPENGL_LIB;QT_QUICK3D_LIB;QT_QUICK3DRUNTIMERENDER_LIB;QT_QUICK3DUTILS_LIB;QT_SHADERTOOLS_LIB;QT_SERIALPORT_LIB;QT_WEBENGINECORE_LIB;QT_WEBCHANNEL_LIB;QT_POSITIONING_LIB;QT_ZLIB_LIB;QT_TESTLIB_LIB;QT_TESTCASE_BUILDDIR=\"C:/GCS/BonV_GroundControlStation/build/tests\";QT_TESTCASE_SOURCEDIR=\"C:/GCS/BonV_GroundControlStation/tests\";CMAKE_INTDIR=\"MinSizeRel\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\GCS\BonV_GroundControlStation\build\tests\MavlinkInspectorModelTest_autogen\include_MinSizeRel;C:\GCS\BonV_GroundControlStation\app;C:\GCS\BonV_GroundControlStation\common;C:\GCS\BonV_GroundControlStation\comms;C:\GCS\BonV_GroundControlStation\comms\transport;C:\GCS\BonV_GroundControlStation\comms\transport\tcp;C:\GCS\BonV_GroundControlStation\comms\transport\udp;C:\GCS\BonV_GroundControlStation\comms\transport\serial;C:\GCS\BonV_GroundControlStation\comms\mavlink;C:\GCS\BonV_GroundControlStation\core;C:\GCS\BonV_GroundControlStation\core\gimbal;C:\GCS\BonV_GroundControlStation\core\mission;C:\GCS\BonV_GroundControlStation\core\map;C:\GCS\BonV_GroundControlStation\core\storage;C:\GCS\BonV_GroundControlStation\core\terrain;C:\GCS\BonV_GroundControlStation\core\vehicle;C:\GCS\BonV_GroundControlStation\core\video;C:\GCS\BonV_GroundControlStation\integrations\gstreamer;C:\GCS\BonV_GroundControlStation\integrations\Offline-3DMaps\src;C:\GCS\BonV_GroundControlStation\integrations\map_provider;C:\GCS\BonV_GroundControlStation\integrations\mavlink_provider\c_library_v2;C:\GCS\BonV_GroundControlStation\integrations\SkyRouteX_New;C:\GCS\BonV_GroundControlStation\integrations\SkyRouteX_New\include;C:\GCS\BonV_GroundControlStation\media\icons;C:\GCS\BonV_GroundControlStation\media\logo;C:\Qt\6.12.0\msvc2022_64\include\QtCore;C:\Qt\6.12.0\msvc2022_64\include;C:\Qt\6.12.0\msvc2022_64\mkspecs\win32-msvc;C:\Qt\6.12.0\msvc2022_64\include\QtConcurrent;C:\Qt\6.12.0\msvc2022_64\include\QtGui;C:\Qt\6.12.0\msvc2022_64\include\QtNetwork;C:\Qt\6.12.0\msvc2022_64\include\QtQml;C:\Qt\6.12.0\msvc2022_64\include\QtQmlIntegration;C:\Qt\6.12.0\msvc2022_64\include\QtQuick;C:\Qt\6.12.0\msvc2022_64\include\QtOpenGL;C:\Qt\6.12.0\msvc2022_64\include\QtQuick3D;C:\Qt\6.12.0\msvc2022_64\include\QtQuick3DRuntimeRender;C:\Qt\6.12.0\msvc2022_64\include\QtQuick3DUtils;C:\Qt\6.12.0\msvc2022_64\include\QtShaderTools;C:\Qt\6.12.0\msvc2022_64\include\QtSerialPort;C:\Qt\6.12.0\msvc2022_64\include\QtWebEngineCore;C:\Qt\6.12.0\msvc2022_64\include\QtWebChannel;C:\Qt\6.12.0\msvc2022_64\include\QtPositioning;C:\Qt\6.12.0\msvc2022_64\include\QtZlib;C:\gstreamer\1.0\msvc_x86_64\include\gstreamer-1.0;C:\gstreamer\1.0\msvc_x86_64\include;C:\gstreamer\1.0\msvc_x86_64\include\glib-2.0;C:\gstreamer\1.0\msvc_x86_64\lib\glib-2.0\include;C:\gstreamer\1.0\msvc_x86_64\include\orc-0.4;C:\Qt\6.12.0\msvc2022_64\include\QtTest;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\GCS\BonV_GroundControlStation\build\tests\MavlinkInspectorModelTest_autogen\include_MinSizeRel;C:\GCS\BonV_GroundControlStation\app;C:\GCS\BonV_GroundControlStation\common;C:\GCS\BonV_GroundControlStation\comms;C:\GCS\BonV_GroundControlStation\comms\transport;C:\GCS\BonV_GroundControlStation\comms\transport\tcp;C:\GCS\BonV_GroundControlStation\comms\transport\udp;C:\GCS\BonV_GroundControlStation\comms\transport\serial;C:\GCS\BonV_GroundControlStation\comms\mavlink;C:\GCS\BonV_GroundControlStation\core;C:\GCS\BonV_GroundControlStation\core\gimbal;C:\GCS\BonV_GroundControlStation\core\mission;C:\GCS\BonV_GroundControlStation\core\map;C:\GCS\BonV_GroundControlStation\core\storage;C:\GCS\BonV_GroundControlStation\core\terrain;C:\GCS\BonV_GroundControlStation\core\vehicle;C:\GCS\BonV_GroundControlStation\core\video;C:\GCS\BonV_GroundControlStation\integrations\gstreamer;C:\GCS\BonV_GroundControlStation\integrations\Offline-3DMaps\src;C:\GCS\BonV_GroundControlStation\integrations\map_provider;C:\GCS\BonV_GroundControlStation\integrations\mavlink_provider\c_library_v2;C:\GCS\BonV_GroundControlStation\integrations\SkyRouteX_New;C:\GCS\BonV_GroundControlStation\integrations\SkyRouteX_New\include;C:\GCS\BonV_GroundControlStation\media\icons;C:\GCS\BonV_GroundControlStation\media\logo;C:\Qt\6.12.0\msvc2022_64\include\QtCore;C:\Qt\6.12.0\msvc2022_64\include;C:\Qt\6.12.0\msvc2022_64\mkspecs\win32-msvc;C:\Qt\6.12.0\msvc2022_64\include\QtConcurrent;C:\Qt\6.12.0\msvc2022_64\include\QtGui;C:\Qt\6.12.0\msvc2022_64\include\QtNetwork;C:\Qt\6.12.0\msvc2022_64\include\QtQml;C:\Qt\6.12.0\msvc2022_64\include\QtQmlIntegration;C:\Qt\6.12.0\msvc2022_64\include\QtQuick;C:\Qt\6.12.0\msvc2022_64\include\QtOpenGL;C:\Qt\6.12.0\msvc2022_64\include\QtQuick3D;C:\Qt\6.12.0\msvc2022_64\include\QtQuick3DRuntimeRender;C:\Qt\6.12.0\msvc2022_64\include\QtQuick3DUtils;C:\Qt\6.12.0\msvc2022_64\include\QtShaderTools;C:\Qt\6.12.0\msvc2022_64\include\QtSerialPort;C:\Qt\6.12.0\msvc2022_64\include\QtWebEngineCore;C:\Qt\6.12.0\msvc2022_64\include\QtWebChannel;C:\Qt\6.12.0\msvc2022_64\include\QtPositioning;C:\Qt\6.12.0\msvc2022_64\include\QtZlib;C:\gstreamer\1.0\msvc_x86_64\include\gstreamer-1.0;C:\gstreamer\1.0\msvc_x86_64\include;C:\gstreamer\1.0\msvc_x86_64\include\glib-2.0;C:\gstreamer\1.0\msvc_x86_64\lib\glib-2.0\include;C:\gstreamer\1.0\msvc_x86_64\include\orc-0.4;C:\Qt\6.12.0\msvc2022_64\include\QtTest;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalDependencies>..\MinSizeRel\MavlinkPOCCore.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6Test.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6Quick3D.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6Quick3DRuntimeRender.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6Concurrent.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6Quick3DUtils.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6ShaderTools.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6SerialPort.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6WebEngineCore.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6Quick.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6OpenGL.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6Gui.lib;d3d11.lib;dxgi.lib;dxguid.lib;d3d12.lib;user32.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6WebChannel.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6Qml.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6Network.lib;ws2_32.lib;shell32.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6Positioning.lib;C:\gstreamer\1.0\msvc_x86_64\lib\gstapp-1.0.lib;C:\gstreamer\1.0\msvc_x86_64\lib\gstvideo-1.0.lib;C:\gstreamer\1.0\msvc_x86_64\lib\gstbase-1.0.lib;C:\gstreamer\1.0\msvc_x86_64\lib\gstreamer-1.0.lib;C:\gstreamer\1.0\msvc_x86_64\lib\gobject-2.0.lib;C:\gstreamer\1.0\msvc_x86_64\lib\glib-2.0.lib;C:\gstreamer\1.0\msvc_x86_64\lib\intl.lib;C:\gstreamer\1.0\msvc_x86_64\lib\z.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6Core.lib;mpr.lib;userenv.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+      <DataExecutionPrevention></DataExecutionPrevention>
+      <EnableUAC>false</EnableUAC>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImageHasSafeExceptionHandlers></ImageHasSafeExceptionHandlers>
+      <ImportLibrary>C:/GCS/BonV_GroundControlStation/build/tests/MinSizeRel/MavlinkInspectorModelTest.lib</ImportLibrary>
+      <LinkErrorReporting></LinkErrorReporting>
+      <ProgramDataBaseFile>C:/GCS/BonV_GroundControlStation/build/tests/MinSizeRel/MavlinkInspectorModelTest.pdb</ProgramDataBaseFile>
+      <RandomizedBaseAddress></RandomizedBaseAddress>
+      <SubSystem>Console</SubSystem>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+    <Manifest>
+      <AdditionalManifestFiles>C:\GCS\BonV_GroundControlStation\build\tests\MavlinkInspectorModelTest.exe.manifest;</AdditionalManifestFiles>
+    </Manifest>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\GCS\BonV_GroundControlStation\build\tests\MavlinkInspectorModelTest_autogen\include_RelWithDebInfo;C:\GCS\BonV_GroundControlStation\app;C:\GCS\BonV_GroundControlStation\common;C:\GCS\BonV_GroundControlStation\comms;C:\GCS\BonV_GroundControlStation\comms\transport;C:\GCS\BonV_GroundControlStation\comms\transport\tcp;C:\GCS\BonV_GroundControlStation\comms\transport\udp;C:\GCS\BonV_GroundControlStation\comms\transport\serial;C:\GCS\BonV_GroundControlStation\comms\mavlink;C:\GCS\BonV_GroundControlStation\core;C:\GCS\BonV_GroundControlStation\core\gimbal;C:\GCS\BonV_GroundControlStation\core\mission;C:\GCS\BonV_GroundControlStation\core\map;C:\GCS\BonV_GroundControlStation\core\storage;C:\GCS\BonV_GroundControlStation\core\terrain;C:\GCS\BonV_GroundControlStation\core\vehicle;C:\GCS\BonV_GroundControlStation\core\video;C:\GCS\BonV_GroundControlStation\integrations\gstreamer;C:\GCS\BonV_GroundControlStation\integrations\Offline-3DMaps\src;C:\GCS\BonV_GroundControlStation\integrations\map_provider;C:\GCS\BonV_GroundControlStation\integrations\mavlink_provider\c_library_v2;C:\GCS\BonV_GroundControlStation\integrations\SkyRouteX_New;C:\GCS\BonV_GroundControlStation\integrations\SkyRouteX_New\include;C:\GCS\BonV_GroundControlStation\media\icons;C:\GCS\BonV_GroundControlStation\media\logo;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtCore" /external:I "C:/Qt/6.12.0/msvc2022_64/include" /external:I "C:/Qt/6.12.0/msvc2022_64/mkspecs/win32-msvc" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtConcurrent" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtGui" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtNetwork" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtQml" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtQmlIntegration" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtQuick" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtOpenGL" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtQuick3D" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtQuick3DRuntimeRender" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtQuick3DUtils" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtShaderTools" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtSerialPort" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtWebEngineCore" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtWebChannel" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtPositioning" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtZlib" /external:I "C:/gstreamer/1.0/msvc_x86_64/include/gstreamer-1.0" /external:I "C:/gstreamer/1.0/msvc_x86_64/include" /external:I "C:/gstreamer/1.0/msvc_x86_64/include/glib-2.0" /external:I "C:/gstreamer/1.0/msvc_x86_64/lib/glib-2.0/include" /external:I "C:/gstreamer/1.0/msvc_x86_64/include/orc-0.4" /external:I "C:/Qt/6.12.0/msvc2022_64/include/QtTest" /FS -Zc:__cplusplus -utf-8</AdditionalOptions>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <BufferSecurityCheck></BufferSecurityCheck>
+      <CallingConvention></CallingConvention>
+      <ConformanceMode>true</ConformanceMode>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel>
+      <FloatingPointModel></FloatingPointModel>
+      <ForceConformanceInForLoopScope></ForceConformanceInForLoopScope>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <MinimalRebuild></MinimalRebuild>
+      <Optimization>MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RemoveUnreferencedCodeData></RemoveUnreferencedCodeData>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <SupportJustMyCode></SupportJustMyCode>
+      <TreatWChar_tAsBuiltInType></TreatWChar_tAsBuiltInType>
+      <UseFullPaths>false</UseFullPaths>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;QT_CORE_LIB;QT_NO_DEBUG;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;_WIN64;UNICODE;_UNICODE;HAVE_GSTREAMER;BONV_HAS_ZLIB;QT_CONCURRENT_LIB;QT_GUI_LIB;QT_NETWORK_LIB;QT_QML_LIB;QT_QMLINTEGRATION_LIB;QT_QUICK_LIB;QT_OPENGL_LIB;QT_QUICK3D_LIB;QT_QUICK3DRUNTIMERENDER_LIB;QT_QUICK3DUTILS_LIB;QT_SHADERTOOLS_LIB;QT_SERIALPORT_LIB;QT_WEBENGINECORE_LIB;QT_WEBCHANNEL_LIB;QT_POSITIONING_LIB;QT_ZLIB_LIB;QT_TESTLIB_LIB;QT_TESTCASE_BUILDDIR="C:/GCS/BonV_GroundControlStation/build/tests";QT_TESTCASE_SOURCEDIR="C:/GCS/BonV_GroundControlStation/tests";CMAKE_INTDIR="RelWithDebInfo"</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;QT_CORE_LIB;QT_NO_DEBUG;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;_WIN64;UNICODE;_UNICODE;HAVE_GSTREAMER;BONV_HAS_ZLIB;QT_CONCURRENT_LIB;QT_GUI_LIB;QT_NETWORK_LIB;QT_QML_LIB;QT_QMLINTEGRATION_LIB;QT_QUICK_LIB;QT_OPENGL_LIB;QT_QUICK3D_LIB;QT_QUICK3DRUNTIMERENDER_LIB;QT_QUICK3DUTILS_LIB;QT_SHADERTOOLS_LIB;QT_SERIALPORT_LIB;QT_WEBENGINECORE_LIB;QT_WEBCHANNEL_LIB;QT_POSITIONING_LIB;QT_ZLIB_LIB;QT_TESTLIB_LIB;QT_TESTCASE_BUILDDIR=\"C:/GCS/BonV_GroundControlStation/build/tests\";QT_TESTCASE_SOURCEDIR=\"C:/GCS/BonV_GroundControlStation/tests\";CMAKE_INTDIR=\"RelWithDebInfo\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\GCS\BonV_GroundControlStation\build\tests\MavlinkInspectorModelTest_autogen\include_RelWithDebInfo;C:\GCS\BonV_GroundControlStation\app;C:\GCS\BonV_GroundControlStation\common;C:\GCS\BonV_GroundControlStation\comms;C:\GCS\BonV_GroundControlStation\comms\transport;C:\GCS\BonV_GroundControlStation\comms\transport\tcp;C:\GCS\BonV_GroundControlStation\comms\transport\udp;C:\GCS\BonV_GroundControlStation\comms\transport\serial;C:\GCS\BonV_GroundControlStation\comms\mavlink;C:\GCS\BonV_GroundControlStation\core;C:\GCS\BonV_GroundControlStation\core\gimbal;C:\GCS\BonV_GroundControlStation\core\mission;C:\GCS\BonV_GroundControlStation\core\map;C:\GCS\BonV_GroundControlStation\core\storage;C:\GCS\BonV_GroundControlStation\core\terrain;C:\GCS\BonV_GroundControlStation\core\vehicle;C:\GCS\BonV_GroundControlStation\core\video;C:\GCS\BonV_GroundControlStation\integrations\gstreamer;C:\GCS\BonV_GroundControlStation\integrations\Offline-3DMaps\src;C:\GCS\BonV_GroundControlStation\integrations\map_provider;C:\GCS\BonV_GroundControlStation\integrations\mavlink_provider\c_library_v2;C:\GCS\BonV_GroundControlStation\integrations\SkyRouteX_New;C:\GCS\BonV_GroundControlStation\integrations\SkyRouteX_New\include;C:\GCS\BonV_GroundControlStation\media\icons;C:\GCS\BonV_GroundControlStation\media\logo;C:\Qt\6.12.0\msvc2022_64\include\QtCore;C:\Qt\6.12.0\msvc2022_64\include;C:\Qt\6.12.0\msvc2022_64\mkspecs\win32-msvc;C:\Qt\6.12.0\msvc2022_64\include\QtConcurrent;C:\Qt\6.12.0\msvc2022_64\include\QtGui;C:\Qt\6.12.0\msvc2022_64\include\QtNetwork;C:\Qt\6.12.0\msvc2022_64\include\QtQml;C:\Qt\6.12.0\msvc2022_64\include\QtQmlIntegration;C:\Qt\6.12.0\msvc2022_64\include\QtQuick;C:\Qt\6.12.0\msvc2022_64\include\QtOpenGL;C:\Qt\6.12.0\msvc2022_64\include\QtQuick3D;C:\Qt\6.12.0\msvc2022_64\include\QtQuick3DRuntimeRender;C:\Qt\6.12.0\msvc2022_64\include\QtQuick3DUtils;C:\Qt\6.12.0\msvc2022_64\include\QtShaderTools;C:\Qt\6.12.0\msvc2022_64\include\QtSerialPort;C:\Qt\6.12.0\msvc2022_64\include\QtWebEngineCore;C:\Qt\6.12.0\msvc2022_64\include\QtWebChannel;C:\Qt\6.12.0\msvc2022_64\include\QtPositioning;C:\Qt\6.12.0\msvc2022_64\include\QtZlib;C:\gstreamer\1.0\msvc_x86_64\include\gstreamer-1.0;C:\gstreamer\1.0\msvc_x86_64\include;C:\gstreamer\1.0\msvc_x86_64\include\glib-2.0;C:\gstreamer\1.0\msvc_x86_64\lib\glib-2.0\include;C:\gstreamer\1.0\msvc_x86_64\include\orc-0.4;C:\Qt\6.12.0\msvc2022_64\include\QtTest;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\GCS\BonV_GroundControlStation\build\tests\MavlinkInspectorModelTest_autogen\include_RelWithDebInfo;C:\GCS\BonV_GroundControlStation\app;C:\GCS\BonV_GroundControlStation\common;C:\GCS\BonV_GroundControlStation\comms;C:\GCS\BonV_GroundControlStation\comms\transport;C:\GCS\BonV_GroundControlStation\comms\transport\tcp;C:\GCS\BonV_GroundControlStation\comms\transport\udp;C:\GCS\BonV_GroundControlStation\comms\transport\serial;C:\GCS\BonV_GroundControlStation\comms\mavlink;C:\GCS\BonV_GroundControlStation\core;C:\GCS\BonV_GroundControlStation\core\gimbal;C:\GCS\BonV_GroundControlStation\core\mission;C:\GCS\BonV_GroundControlStation\core\map;C:\GCS\BonV_GroundControlStation\core\storage;C:\GCS\BonV_GroundControlStation\core\terrain;C:\GCS\BonV_GroundControlStation\core\vehicle;C:\GCS\BonV_GroundControlStation\core\video;C:\GCS\BonV_GroundControlStation\integrations\gstreamer;C:\GCS\BonV_GroundControlStation\integrations\Offline-3DMaps\src;C:\GCS\BonV_GroundControlStation\integrations\map_provider;C:\GCS\BonV_GroundControlStation\integrations\mavlink_provider\c_library_v2;C:\GCS\BonV_GroundControlStation\integrations\SkyRouteX_New;C:\GCS\BonV_GroundControlStation\integrations\SkyRouteX_New\include;C:\GCS\BonV_GroundControlStation\media\icons;C:\GCS\BonV_GroundControlStation\media\logo;C:\Qt\6.12.0\msvc2022_64\include\QtCore;C:\Qt\6.12.0\msvc2022_64\include;C:\Qt\6.12.0\msvc2022_64\mkspecs\win32-msvc;C:\Qt\6.12.0\msvc2022_64\include\QtConcurrent;C:\Qt\6.12.0\msvc2022_64\include\QtGui;C:\Qt\6.12.0\msvc2022_64\include\QtNetwork;C:\Qt\6.12.0\msvc2022_64\include\QtQml;C:\Qt\6.12.0\msvc2022_64\include\QtQmlIntegration;C:\Qt\6.12.0\msvc2022_64\include\QtQuick;C:\Qt\6.12.0\msvc2022_64\include\QtOpenGL;C:\Qt\6.12.0\msvc2022_64\include\QtQuick3D;C:\Qt\6.12.0\msvc2022_64\include\QtQuick3DRuntimeRender;C:\Qt\6.12.0\msvc2022_64\include\QtQuick3DUtils;C:\Qt\6.12.0\msvc2022_64\include\QtShaderTools;C:\Qt\6.12.0\msvc2022_64\include\QtSerialPort;C:\Qt\6.12.0\msvc2022_64\include\QtWebEngineCore;C:\Qt\6.12.0\msvc2022_64\include\QtWebChannel;C:\Qt\6.12.0\msvc2022_64\include\QtPositioning;C:\Qt\6.12.0\msvc2022_64\include\QtZlib;C:\gstreamer\1.0\msvc_x86_64\include\gstreamer-1.0;C:\gstreamer\1.0\msvc_x86_64\include;C:\gstreamer\1.0\msvc_x86_64\include\glib-2.0;C:\gstreamer\1.0\msvc_x86_64\lib\glib-2.0\include;C:\gstreamer\1.0\msvc_x86_64\include\orc-0.4;C:\Qt\6.12.0\msvc2022_64\include\QtTest;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalDependencies>..\RelWithDebInfo\MavlinkPOCCore.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6Test.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6Quick3D.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6Quick3DRuntimeRender.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6Concurrent.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6Quick3DUtils.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6ShaderTools.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6SerialPort.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6WebEngineCore.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6Quick.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6OpenGL.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6Gui.lib;d3d11.lib;dxgi.lib;dxguid.lib;d3d12.lib;user32.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6WebChannel.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6Qml.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6Network.lib;ws2_32.lib;shell32.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6Positioning.lib;C:\gstreamer\1.0\msvc_x86_64\lib\gstapp-1.0.lib;C:\gstreamer\1.0\msvc_x86_64\lib\gstvideo-1.0.lib;C:\gstreamer\1.0\msvc_x86_64\lib\gstbase-1.0.lib;C:\gstreamer\1.0\msvc_x86_64\lib\gstreamer-1.0.lib;C:\gstreamer\1.0\msvc_x86_64\lib\gobject-2.0.lib;C:\gstreamer\1.0\msvc_x86_64\lib\glib-2.0.lib;C:\gstreamer\1.0\msvc_x86_64\lib\intl.lib;C:\gstreamer\1.0\msvc_x86_64\lib\z.lib;C:\Qt\6.12.0\msvc2022_64\lib\Qt6Core.lib;mpr.lib;userenv.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+      <DataExecutionPrevention></DataExecutionPrevention>
+      <EnableUAC>false</EnableUAC>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImageHasSafeExceptionHandlers></ImageHasSafeExceptionHandlers>
+      <ImportLibrary>C:/GCS/BonV_GroundControlStation/build/tests/RelWithDebInfo/MavlinkInspectorModelTest.lib</ImportLibrary>
+      <LinkErrorReporting></LinkErrorReporting>
+      <ProgramDataBaseFile>C:/GCS/BonV_GroundControlStation/build/tests/RelWithDebInfo/MavlinkInspectorModelTest.pdb</ProgramDataBaseFile>
+      <RandomizedBaseAddress></RandomizedBaseAddress>
+      <SubSystem>Console</SubSystem>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+    <Manifest>
+      <AdditionalManifestFiles>C:\GCS\BonV_GroundControlStation\build\tests\MavlinkInspectorModelTest.exe.manifest;</AdditionalManifestFiles>
+    </Manifest>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\GCS\BonV_GroundControlStation\build\CMakeFiles\2d27890629d926df65eac97c16fcf256\timestamp_(CONFIG).rule">
+      <UseUtf8Encoding>Always</UseUtf8Encoding>
+      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</BuildInParallel>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Automatic MOC for target MavlinkInspectorModelTest</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd C:\GCS\BonV_GroundControlStation\build\tests
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E cmake_autogen C:/GCS/BonV_GroundControlStation/build/tests/CMakeFiles/MavlinkInspectorModelTest_autogen.dir/AutogenInfo.json Debug
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/GCS/BonV_GroundControlStation/build/tests/MavlinkInspectorModelTest_autogen/timestamp_Debug
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E cmake_transform_depfile "Visual Studio 18 2026" MSBuildAdditionalInputs C:/GCS/BonV_GroundControlStation C:/GCS/BonV_GroundControlStation/tests C:/GCS/BonV_GroundControlStation/build C:/GCS/BonV_GroundControlStation/build/tests C:/GCS/BonV_GroundControlStation/build/tests/MavlinkInspectorModelTest_autogen/deps_Debug C:/GCS/BonV_GroundControlStation/build/CMakeFiles/d/76d08cf9cf5c14e5efac31b1fd548f56fa12d66019258d14fc2d618942a9cc19.AdditionalInputs
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Qt\6.12.0\msvc2022_64\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\GCS\BonV_GroundControlStation\build\tests\MavlinkInspectorModelTest_autogen\timestamp_Debug</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <DepFileAdditionalInputsFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\GCS\BonV_GroundControlStation\build\CMakeFiles\d\76d08cf9cf5c14e5efac31b1fd548f56fa12d66019258d14fc2d618942a9cc19.AdditionalInputs</DepFileAdditionalInputsFile>
+      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</BuildInParallel>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Automatic MOC for target MavlinkInspectorModelTest</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd C:\GCS\BonV_GroundControlStation\build\tests
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E cmake_autogen C:/GCS/BonV_GroundControlStation/build/tests/CMakeFiles/MavlinkInspectorModelTest_autogen.dir/AutogenInfo.json Release
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/GCS/BonV_GroundControlStation/build/tests/MavlinkInspectorModelTest_autogen/timestamp_Release
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E cmake_transform_depfile "Visual Studio 18 2026" MSBuildAdditionalInputs C:/GCS/BonV_GroundControlStation C:/GCS/BonV_GroundControlStation/tests C:/GCS/BonV_GroundControlStation/build C:/GCS/BonV_GroundControlStation/build/tests C:/GCS/BonV_GroundControlStation/build/tests/MavlinkInspectorModelTest_autogen/deps_Release C:/GCS/BonV_GroundControlStation/build/CMakeFiles/d/481465f53885c926efd33fe03553a4b6736cbf4e61d3e7eec185b3a23b1ade2b.AdditionalInputs
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Qt\6.12.0\msvc2022_64\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\GCS\BonV_GroundControlStation\build\tests\MavlinkInspectorModelTest_autogen\timestamp_Release</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+      <DepFileAdditionalInputsFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\GCS\BonV_GroundControlStation\build\CMakeFiles\d\481465f53885c926efd33fe03553a4b6736cbf4e61d3e7eec185b3a23b1ade2b.AdditionalInputs</DepFileAdditionalInputsFile>
+      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">true</BuildInParallel>
+      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">Automatic MOC for target MavlinkInspectorModelTest</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">setlocal
+cd C:\GCS\BonV_GroundControlStation\build\tests
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E cmake_autogen C:/GCS/BonV_GroundControlStation/build/tests/CMakeFiles/MavlinkInspectorModelTest_autogen.dir/AutogenInfo.json MinSizeRel
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/GCS/BonV_GroundControlStation/build/tests/MavlinkInspectorModelTest_autogen/timestamp_MinSizeRel
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E cmake_transform_depfile "Visual Studio 18 2026" MSBuildAdditionalInputs C:/GCS/BonV_GroundControlStation C:/GCS/BonV_GroundControlStation/tests C:/GCS/BonV_GroundControlStation/build C:/GCS/BonV_GroundControlStation/build/tests C:/GCS/BonV_GroundControlStation/build/tests/MavlinkInspectorModelTest_autogen/deps_MinSizeRel C:/GCS/BonV_GroundControlStation/build/CMakeFiles/d/bcad87488b01adba286ba9d7f349a25e0b11ee1bf5171b2cc8e0a44468c653c5.AdditionalInputs
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Qt\6.12.0\msvc2022_64\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\GCS\BonV_GroundControlStation\build\tests\MavlinkInspectorModelTest_autogen\timestamp_MinSizeRel</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkObjects>
+      <DepFileAdditionalInputsFile Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\GCS\BonV_GroundControlStation\build\CMakeFiles\d\bcad87488b01adba286ba9d7f349a25e0b11ee1bf5171b2cc8e0a44468c653c5.AdditionalInputs</DepFileAdditionalInputsFile>
+      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">true</BuildInParallel>
+      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">Automatic MOC for target MavlinkInspectorModelTest</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">setlocal
+cd C:\GCS\BonV_GroundControlStation\build\tests
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E cmake_autogen C:/GCS/BonV_GroundControlStation/build/tests/CMakeFiles/MavlinkInspectorModelTest_autogen.dir/AutogenInfo.json RelWithDebInfo
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/GCS/BonV_GroundControlStation/build/tests/MavlinkInspectorModelTest_autogen/timestamp_RelWithDebInfo
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E cmake_transform_depfile "Visual Studio 18 2026" MSBuildAdditionalInputs C:/GCS/BonV_GroundControlStation C:/GCS/BonV_GroundControlStation/tests C:/GCS/BonV_GroundControlStation/build C:/GCS/BonV_GroundControlStation/build/tests C:/GCS/BonV_GroundControlStation/build/tests/MavlinkInspectorModelTest_autogen/deps_RelWithDebInfo C:/GCS/BonV_GroundControlStation/build/CMakeFiles/d/ea46e4af8ce9f084d5ec9b4cfa648658d5173d54041d65387c3bc35ac498bcef.AdditionalInputs
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Qt\6.12.0\msvc2022_64\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\GCS\BonV_GroundControlStation\build\tests\MavlinkInspectorModelTest_autogen\timestamp_RelWithDebInfo</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">false</LinkObjects>
+      <DepFileAdditionalInputsFile Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\GCS\BonV_GroundControlStation\build\CMakeFiles\d\ea46e4af8ce9f084d5ec9b4cfa648658d5173d54041d65387c3bc35ac498bcef.AdditionalInputs</DepFileAdditionalInputsFile>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\GCS\BonV_GroundControlStation\tests\CMakeLists.txt">
+      <UseUtf8Encoding>Always</UseUtf8Encoding>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Building Custom Rule C:/GCS/BonV_GroundControlStation/tests/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/GCS/BonV_GroundControlStation -BC:/GCS/BonV_GroundControlStation/build --check-stamp-file C:/GCS/BonV_GroundControlStation/build/tests/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\GCS\BonV_GroundControlStation\build\tests\.qt\qml_imports\MavlinkForwarderTest_conf.cmake;C:\GCS\BonV_GroundControlStation\build\tests\.qt\qml_imports\MavlinkInspectorModelTest_conf.cmake;C:\GCS\BonV_GroundControlStation\build\tests\.qt\qml_imports\MavlinkTest_conf.cmake;C:\GCS\BonV_GroundControlStation\build\tests\.qt\qml_imports\TerrainProviderTest_conf.cmake;C:\GCS\BonV_GroundControlStation\build\tests\.qt\qml_imports\VehicleManagerTest_conf.cmake;C:\GCS\BonV_GroundControlStation\build\tests\.qt\qml_imports\VehicleTest_conf.cmake;C:\GCS\BonV_GroundControlStation\build\tests\.qt\qml_imports\VideoTest_conf.cmake;C:\Qt\6.12.0\msvc2022_64\lib\cmake\Qt6\windows\app.exe.manifest.in;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\GCS\BonV_GroundControlStation\build\tests\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Building Custom Rule C:/GCS/BonV_GroundControlStation/tests/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/GCS/BonV_GroundControlStation -BC:/GCS/BonV_GroundControlStation/build --check-stamp-file C:/GCS/BonV_GroundControlStation/build/tests/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\GCS\BonV_GroundControlStation\build\tests\.qt\qml_imports\MavlinkForwarderTest_conf.cmake;C:\GCS\BonV_GroundControlStation\build\tests\.qt\qml_imports\MavlinkInspectorModelTest_conf.cmake;C:\GCS\BonV_GroundControlStation\build\tests\.qt\qml_imports\MavlinkTest_conf.cmake;C:\GCS\BonV_GroundControlStation\build\tests\.qt\qml_imports\TerrainProviderTest_conf.cmake;C:\GCS\BonV_GroundControlStation\build\tests\.qt\qml_imports\VehicleManagerTest_conf.cmake;C:\GCS\BonV_GroundControlStation\build\tests\.qt\qml_imports\VehicleTest_conf.cmake;C:\GCS\BonV_GroundControlStation\build\tests\.qt\qml_imports\VideoTest_conf.cmake;C:\Qt\6.12.0\msvc2022_64\lib\cmake\Qt6\windows\app.exe.manifest.in;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\GCS\BonV_GroundControlStation\build\tests\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">Building Custom Rule C:/GCS/BonV_GroundControlStation/tests/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/GCS/BonV_GroundControlStation -BC:/GCS/BonV_GroundControlStation/build --check-stamp-file C:/GCS/BonV_GroundControlStation/build/tests/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\GCS\BonV_GroundControlStation\build\tests\.qt\qml_imports\MavlinkForwarderTest_conf.cmake;C:\GCS\BonV_GroundControlStation\build\tests\.qt\qml_imports\MavlinkInspectorModelTest_conf.cmake;C:\GCS\BonV_GroundControlStation\build\tests\.qt\qml_imports\MavlinkTest_conf.cmake;C:\GCS\BonV_GroundControlStation\build\tests\.qt\qml_imports\TerrainProviderTest_conf.cmake;C:\GCS\BonV_GroundControlStation\build\tests\.qt\qml_imports\VehicleManagerTest_conf.cmake;C:\GCS\BonV_GroundControlStation\build\tests\.qt\qml_imports\VehicleTest_conf.cmake;C:\GCS\BonV_GroundControlStation\build\tests\.qt\qml_imports\VideoTest_conf.cmake;C:\Qt\6.12.0\msvc2022_64\lib\cmake\Qt6\windows\app.exe.manifest.in;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\GCS\BonV_GroundControlStation\build\tests\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">Building Custom Rule C:/GCS/BonV_GroundControlStation/tests/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/GCS/BonV_GroundControlStation -BC:/GCS/BonV_GroundControlStation/build --check-stamp-file C:/GCS/BonV_GroundControlStation/build/tests/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\GCS\BonV_GroundControlStation\build\tests\.qt\qml_imports\MavlinkForwarderTest_conf.cmake;C:\GCS\BonV_GroundControlStation\build\tests\.qt\qml_imports\MavlinkInspectorModelTest_conf.cmake;C:\GCS\BonV_GroundControlStation\build\tests\.qt\qml_imports\MavlinkTest_conf.cmake;C:\GCS\BonV_GroundControlStation\build\tests\.qt\qml_imports\TerrainProviderTest_conf.cmake;C:\GCS\BonV_GroundControlStation\build\tests\.qt\qml_imports\VehicleManagerTest_conf.cmake;C:\GCS\BonV_GroundControlStation\build\tests\.qt\qml_imports\VehicleTest_conf.cmake;C:\GCS\BonV_GroundControlStation\build\tests\.qt\qml_imports\VideoTest_conf.cmake;C:\Qt\6.12.0\msvc2022_64\lib\cmake\Qt6\windows\app.exe.manifest.in;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\GCS\BonV_GroundControlStation\build\tests\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\build\tests\MavlinkInspectorModelTest_autogen\mocs_compilation_Debug.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\tests\MavlinkInspectorModelTest.cpp" />
+    <None Include="C:\GCS\BonV_GroundControlStation\build\tests\MavlinkInspectorModelTest_autogen\timestamp_Debug">
+    </None>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\build\tests\MavlinkInspectorModelTest_autogen\mocs_compilation_Release.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <None Include="C:\GCS\BonV_GroundControlStation\build\tests\MavlinkInspectorModelTest_autogen\timestamp_Release">
+    </None>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\build\tests\MavlinkInspectorModelTest_autogen\mocs_compilation_MinSizeRel.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <None Include="C:\GCS\BonV_GroundControlStation\build\tests\MavlinkInspectorModelTest_autogen\timestamp_MinSizeRel">
+    </None>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\build\tests\MavlinkInspectorModelTest_autogen\mocs_compilation_RelWithDebInfo.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <None Include="C:\GCS\BonV_GroundControlStation\build\tests\MavlinkInspectorModelTest_autogen\timestamp_RelWithDebInfo">
+    </None>
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="C:\GCS\BonV_GroundControlStation\build\ZERO_CHECK.vcxproj">
+      <Project>{2DC9C1CF-3EB8-36A6-AF4F-38CCA8B8427B}</Project>
+      <Name>ZERO_CHECK</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\GCS\BonV_GroundControlStation\build\tests\MavlinkInspectorModelTest_qmlimportscan.vcxproj">
+      <Project>{F11B3C83-ABAD-3B06-BF68-ED60BB390C86}</Project>
+      <Name>MavlinkInspectorModelTest_qmlimportscan</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\GCS\BonV_GroundControlStation\build\MavlinkPOCCore.vcxproj">
+      <Project>{F466ACD6-05FC-3617-B17E-ABC005EAD551}</Project>
+      <Name>MavlinkPOCCore</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+  <Import Project="C:\Program Files\CMake\share\cmake-4.4\Templates\MSBuild\CustomBuildDepFile.targets" />
+</Project>

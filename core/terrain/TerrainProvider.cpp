@@ -11,6 +11,7 @@
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QSaveFile>
+#include <QTimer>
 #include <QUrl>
 #include <QVariantMap>
 #include <QtEndian>
@@ -503,6 +504,10 @@ void TerrainProvider::requestTileDownload(int baseLatitude, int baseLongitude)
     connect(reply, &QNetworkReply::finished, this, [this, reply, baseLatitude, baseLongitude]() {
         handleTileDownloadFinished(reply, baseLatitude, baseLongitude);
     });
+    QTimer::singleShot(10000, reply, [reply]() {
+        if (reply->isRunning())
+            reply->abort();
+    });
 
     qDebug() << "Downloading missing terrain tile" << tileName(baseLatitude, baseLongitude)
              << "from" << request.url();
@@ -516,9 +521,11 @@ void TerrainProvider::handleTileDownloadFinished(QNetworkReply *reply, int baseL
     reply->deleteLater();
 
     if (reply->error() != QNetworkReply::NoError) {
-        if (reply->error() == QNetworkReply::ContentNotFoundError) {
+        // Only a 404 is permanent. Transient failures (timeout, network
+        // error) stay retryable; downloadingTiles guards against concurrent
+        // duplicate downloads in the meantime.
+        if (reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt() == 404)
             failedTileDownloads.insert(cacheKey);
-        }
         const QString reason = reply->errorString();
         qWarning() << "Terrain tile download failed for" << tileName(baseLatitude, baseLongitude)
                    << reason;

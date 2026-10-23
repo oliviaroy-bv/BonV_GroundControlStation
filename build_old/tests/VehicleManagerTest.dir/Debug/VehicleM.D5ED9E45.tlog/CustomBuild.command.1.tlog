@@ -1,0 +1,28 @@
+^C:\GCS\BONV_GROUNDCONTROLSTATION\BUILD\CMAKEFILES\5FCF6EF1BA88C5A9A67258B462DC09C2\TIMESTAMP_(CONFIG).RULE
+setlocal
+cd C:\GCS\BonV_GroundControlStation\build\tests
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E cmake_autogen C:/GCS/BonV_GroundControlStation/build/tests/CMakeFiles/VehicleManagerTest_autogen.dir/AutogenInfo.json Debug
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/GCS/BonV_GroundControlStation/build/tests/VehicleManagerTest_autogen/timestamp_Debug
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E cmake_transform_depfile "Visual Studio 18 2026" MSBuildAdditionalInputs C:/GCS/BonV_GroundControlStation C:/GCS/BonV_GroundControlStation/tests C:/GCS/BonV_GroundControlStation/build C:/GCS/BonV_GroundControlStation/build/tests C:/GCS/BonV_GroundControlStation/build/tests/VehicleManagerTest_autogen/deps_Debug C:/GCS/BonV_GroundControlStation/build/CMakeFiles/d/8e8f05ac4d5ff8186f1275cf2089cde3af190841bc82b832c0aaf080b34cb235.AdditionalInputs
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\GCS\BONV_GROUNDCONTROLSTATION\TESTS\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/GCS/BonV_GroundControlStation -BC:/GCS/BonV_GroundControlStation/build --check-stamp-file C:/GCS/BonV_GroundControlStation/build/tests/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

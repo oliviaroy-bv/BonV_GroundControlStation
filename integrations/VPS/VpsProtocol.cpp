@@ -23,7 +23,7 @@ template <typename T> void wr(QByteArray &b, int off, T v)
 QString processStatusText(quint8 v)
 {
     switch (v) {
-    case 0: return "Not Running";
+    case 0: return "Not-Started";
     case 1: return "Starting";
     case 2: return "Running";
     case 3: return "Stopping";

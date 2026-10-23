@@ -1,0 +1,7 @@
+C:\GCS\BonV_GroundControlStation\app\main.cpp;C:\GCS\BonV_GroundControlStation\build\BonVGroundStation.dir\Release\main.obj
+C:\GCS\BonV_GroundControlStation\app\AppBackend.cpp;C:\GCS\BonV_GroundControlStation\build\BonVGroundStation.dir\Release\AppBackend.obj
+C:\GCS\BonV_GroundControlStation\app\JoystickController.cpp;C:\GCS\BonV_GroundControlStation\build\BonVGroundStation.dir\Release\JoystickController.obj
+C:\GCS\BonV_GroundControlStation\app\KeyManager.cpp;C:\GCS\BonV_GroundControlStation\build\BonVGroundStation.dir\Release\KeyManager.obj
+C:\GCS\BonV_GroundControlStation\app\ScreenRecorder.cpp;C:\GCS\BonV_GroundControlStation\build\BonVGroundStation.dir\Release\ScreenRecorder.obj
+C:\GCS\BonV_GroundControlStation\build\BonVGroundStation_autogen\mocs_compilation_Release.cpp;C:\GCS\BonV_GroundControlStation\build\BonVGroundStation.dir\Release\mocs_compilation_Release.obj
+C:\GCS\BonV_GroundControlStation\build\BonVGroundStation_autogen\EWIEGA46WW\qrc_resources_Release.cpp;C:\GCS\BonV_GroundControlStation\build\BonVGroundStation.dir\Release\qrc_resources_Release.obj

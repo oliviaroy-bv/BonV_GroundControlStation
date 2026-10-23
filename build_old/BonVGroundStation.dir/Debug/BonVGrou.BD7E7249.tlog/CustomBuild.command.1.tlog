@@ -1,0 +1,42 @@
+^C:\GCS\BONV_GROUNDCONTROLSTATION\BUILD\CMAKEFILES\60AEA2E0E2F03DBD8F22191A1706C500\TIMESTAMP_(CONFIG).RULE
+setlocal
+cd C:\GCS\BonV_GroundControlStation\build
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E cmake_autogen C:/GCS/BonV_GroundControlStation/build/CMakeFiles/BonVGroundStation_autogen.dir/AutogenInfo.json Debug
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/GCS/BonV_GroundControlStation/build/BonVGroundStation_autogen/timestamp_Debug
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E cmake_transform_depfile "Visual Studio 18 2026" MSBuildAdditionalInputs C:/GCS/BonV_GroundControlStation C:/GCS/BonV_GroundControlStation C:/GCS/BonV_GroundControlStation/build C:/GCS/BonV_GroundControlStation/build C:/GCS/BonV_GroundControlStation/build/BonVGroundStation_autogen/deps_Debug C:/GCS/BonV_GroundControlStation/build/CMakeFiles/d/09e0b9a3957035d16e2fe66c7c6d2eb1a5b9bb7987e3c2310188115c8a99dc6b.AdditionalInputs
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\GCS\BONV_GROUNDCONTROLSTATION\BUILD\CMAKEFILES\1B97914F115624464D4C438466172DC1\QRC_RESOURCES_(CONFIG).CPP.RULE
+setlocal
+cd C:\GCS\BonV_GroundControlStation\build
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E cmake_autorcc C:/GCS/BonV_GroundControlStation/build/CMakeFiles/BonVGroundStation_autogen.dir/AutoRcc_resources_EWIEGA46WW_Info.json Debug
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\GCS\BONV_GROUNDCONTROLSTATION\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/GCS/BonV_GroundControlStation -BC:/GCS/BonV_GroundControlStation/build --check-stamp-file C:/GCS/BonV_GroundControlStation/build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

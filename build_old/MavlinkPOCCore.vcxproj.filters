@@ -1,0 +1,249 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\build\MavlinkPOCCore_autogen\mocs_compilation_Debug.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\comms\transport\tcp\TcpLink.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\comms\transport\udp\UdpLink.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\comms\transport\serial\SerialLink.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\comms\mavlink\Mavlink.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\core\mavlink\MavlinkFrame.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\core\mavlink\MavlinkForwarder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\core\mavlink\MavlinkInspectorController.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\core\mavlink\MavlinkInspectorFilterModel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\core\mavlink\MavlinkInspectorGraphModel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\core\mavlink\MavlinkInspectorModel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\core\mavlink\MavlinkMessageMetadata.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\core\gimbal\GimbalController.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\core\mission\MissionFileWriter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\core\map\RasterOverlayManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\core\map\RasterOverlaySchemeHandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\core\map\RasterOverlayStorage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\core\map\TileCacheManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\core\map\TileCacheRequestInterceptor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\core\map\TileCacheSchemeHandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\core\storage\AppDataPaths.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\core\terrain\TerrainProvider.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\core\vehicle\Vehicle.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\core\vehicle\VehicleManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\core\video\Video.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\core\video\VideoItem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\integrations\Offline-3DMaps\src\elevationprovider.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\integrations\Offline-3DMaps\src\imagerytileprovider.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\integrations\Offline-3DMaps\src\srtmdownloader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\integrations\Offline-3DMaps\src\terrainmanager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\integrations\Offline-3DMaps\src\terraintilegeometry.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\integrations\VPS\VpsProtocol.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\integrations\SkyRouteX_New\src\path_planner.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\integrations\SkyRouteX_New\src\waypoint_writer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\build\MavlinkPOCCore_autogen\mocs_compilation_Release.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\build\MavlinkPOCCore_autogen\mocs_compilation_MinSizeRel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\build\MavlinkPOCCore_autogen\mocs_compilation_RelWithDebInfo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="C:\GCS\BonV_GroundControlStation\comms\transport\ILink.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\GCS\BonV_GroundControlStation\comms\transport\tcp\TcpLink.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\GCS\BonV_GroundControlStation\comms\transport\udp\UdpLink.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\GCS\BonV_GroundControlStation\comms\transport\serial\SerialLink.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\GCS\BonV_GroundControlStation\comms\mavlink\Mavlink.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\GCS\BonV_GroundControlStation\core\mavlink\MavlinkFrame.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\GCS\BonV_GroundControlStation\core\mavlink\MavlinkForwarder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\GCS\BonV_GroundControlStation\core\mavlink\MavlinkInspectorController.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\GCS\BonV_GroundControlStation\core\mavlink\MavlinkInspectorFilterModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\GCS\BonV_GroundControlStation\core\mavlink\MavlinkInspectorGraphModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\GCS\BonV_GroundControlStation\core\mavlink\MavlinkInspectorModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\GCS\BonV_GroundControlStation\core\mavlink\MavlinkMessageMetadata.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\GCS\BonV_GroundControlStation\core\gimbal\GimbalController.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\GCS\BonV_GroundControlStation\core\mission\MissionFileWriter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\GCS\BonV_GroundControlStation\core\map\RasterOverlayManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\GCS\BonV_GroundControlStation\core\map\RasterOverlaySchemeHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\GCS\BonV_GroundControlStation\core\map\RasterOverlayStorage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\GCS\BonV_GroundControlStation\core\map\TileCacheManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\GCS\BonV_GroundControlStation\core\map\TileCacheRequestInterceptor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\GCS\BonV_GroundControlStation\core\map\TileCacheSchemeHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\GCS\BonV_GroundControlStation\core\storage\AppDataPaths.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\GCS\BonV_GroundControlStation\core\terrain\TerrainProvider.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\GCS\BonV_GroundControlStation\core\vehicle\Vehicle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\GCS\BonV_GroundControlStation\core\vehicle\VehicleManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\GCS\BonV_GroundControlStation\core\video\Video.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\GCS\BonV_GroundControlStation\core\video\VideoItem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\GCS\BonV_GroundControlStation\integrations\Offline-3DMaps\src\elevationprovider.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\GCS\BonV_GroundControlStation\integrations\Offline-3DMaps\src\geomath.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\GCS\BonV_GroundControlStation\integrations\Offline-3DMaps\src\imagerytileprovider.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\GCS\BonV_GroundControlStation\integrations\Offline-3DMaps\src\srtmdownloader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\GCS\BonV_GroundControlStation\integrations\Offline-3DMaps\src\terrainmanager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\GCS\BonV_GroundControlStation\integrations\Offline-3DMaps\src\terraintilegeometry.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\GCS\BonV_GroundControlStation\integrations\VPS\VpsProtocol.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\GCS\BonV_GroundControlStation\integrations\SkyRouteX_New\include\drone_models.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\GCS\BonV_GroundControlStation\integrations\SkyRouteX_New\include\path_planner.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\GCS\BonV_GroundControlStation\integrations\SkyRouteX_New\include\waypoint_writer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\GCS\BonV_GroundControlStation\build\CMakeFiles\48a5e262fdcfbfcc9b5b996e2f2572b9\timestamp_(CONFIG).rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\GCS\BonV_GroundControlStation\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="C:\GCS\BonV_GroundControlStation\build\MavlinkPOCCore_autogen\timestamp_Debug" />
+    <None Include="C:\GCS\BonV_GroundControlStation\build\MavlinkPOCCore_autogen\timestamp_Release" />
+    <None Include="C:\GCS\BonV_GroundControlStation\build\MavlinkPOCCore_autogen\timestamp_MinSizeRel" />
+    <None Include="C:\GCS\BonV_GroundControlStation\build\MavlinkPOCCore_autogen\timestamp_RelWithDebInfo" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{174E0B12-BA23-3BBB-BC82-21DBFA9B18D5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{A749880F-E9B1-3B11-8CD2-9A1A97D13701}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{990205B7-27C4-3FEB-AC15-82DB30124EE7}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

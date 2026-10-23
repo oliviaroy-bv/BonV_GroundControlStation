@@ -1,0 +1,9 @@
+-rootPath
+C:/GCS/BonV_GroundControlStation
+-cmake-output
+-output-file
+C:/GCS/BonV_GroundControlStation/build/.qt/qml_imports/BonVGroundStation_build.cmake
+-importPath
+C:/GCS/BonV_GroundControlStation/build
+-importPath
+C:/Qt/6.12.0/msvc2022_64/qml

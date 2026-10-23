@@ -35,6 +35,7 @@ Window {
     onVpsModuleEnabledChanged: if (!vpsModuleEnabled && activeCategory === "vps") activeCategory = "comm"
     property var videoObject: null
     property string pendingCommAddress: ""
+    property int activeCommLinkIndex: -1
     property string pendingCameraAddress: ""
     readonly property var serialPortOptions: root.mavlinkObject && root.mavlinkObject.serialPorts.length > 0 ? root.mavlinkObject.serialPorts : ["None available"]
     readonly property bool serialPortsAvailable: root.mavlinkObject && root.mavlinkObject.serialPorts.length > 0
@@ -68,6 +69,18 @@ Window {
     signal preflightChecklistEnabledChanged(bool enabled)
     property var cameraLinks: []
     property var commLinks: []
+
+    Timer {
+        id: commReconnectTimer
+        interval: 2000
+        repeat: false
+        onTriggered: {
+            if (root.activeCommLinkIndex >= 0 && root.activeCommLinkIndex < root.commLinks.length
+                    && root.mavlinkObject && !root.mavlinkObject.connected) {
+                root.connectLink(root.activeCommLinkIndex)
+            }
+        }
+    }
 
     Settings {
         id: persistedMapSettings
@@ -227,14 +240,14 @@ Window {
         root.commLinksSaved(root.commLinks)
     }
 
-    function setCommLinkConnectionState(address, connected) {
-        commLinks = commLinks.map(function(link) {
+    function setCommLinkConnectionState(linkIndex, connected) {
+        commLinks = commLinks.map(function(link, index) {
             return {
                 name: link.name,
                 address: link.address,
                 protocol: link.protocol || "UDP",
                 baudRate: link.baudRate || 57600,
-                connected: connected && link.address === address
+                connected: connected && index === linkIndex
             }
         })
     }
@@ -354,6 +367,10 @@ Window {
                 var serialIndex = root.serialPortOptions.indexOf(commLink.address)
                 commSerialPortBox.currentIndex = serialIndex >= 0 ? serialIndex : 0
                 commBaudRateBox.currentIndex = baudRateIndex(commLink.baudRate || 57600)
+            } else if ((commLink.protocol || "UDP") === "UDP") {
+                var linkAddress = commLink.address.indexOf("://") >= 0 ? commLink.address.split("://")[1] : commLink.address
+                var udpAddressParts = linkAddress.split(":")
+                commPortField.text = udpAddressParts[udpAddressParts.length - 1]
             } else {
                 var linkAddress = commLink.address.indexOf("://") >= 0 ? commLink.address.split("://")[1] : commLink.address
                 var addressParts = linkAddress.split(":")
@@ -394,6 +411,8 @@ Window {
         if (!commLink || !root.mavlinkObject)
             return
         if (commLink.connected) {
+            activeCommLinkIndex = -1
+            commReconnectTimer.stop()
             commLinks = markSelectedLink(commLinks, -1)
             saveCommLinks()
             if (root.mavlinkObject.connected)
@@ -401,6 +420,8 @@ Window {
             return
         }
 
+        activeCommLinkIndex = linkIndex
+        commReconnectTimer.stop()
         var protocol = commLink.protocol || "UDP"
         if (protocol === "Serial") {
             refreshSerialPorts()
@@ -412,11 +433,27 @@ Window {
             var serialConnectionStarted = root.mavlinkObject.connectToVehicleProtocol("Serial", commLink.address, 0, commLink.baudRate || 57600)
             if (!serialConnectionStarted)
                 pendingCommAddress = ""
+            if (!serialConnectionStarted)
+                commReconnectTimer.start()
             return
         }
 
         var linkAddress = commLink.address.indexOf("://") >= 0 ? commLink.address.split("://")[1] : commLink.address
         var addressParts = linkAddress.split(":")
+        if (protocol === "UDP") {
+            var udpPort = parseInt(linkAddress)
+            if (isNaN(udpPort))
+                return
+            if (root.mavlinkObject.connected)
+                root.mavlinkObject.disconnectFromVehicle()
+            pendingCommAddress = commLink.address
+            var udpConnectionStarted = root.mavlinkObject.connectToVehicleProtocol(protocol, "", udpPort, 0)
+            if (!udpConnectionStarted)
+                pendingCommAddress = ""
+            if (!udpConnectionStarted)
+                commReconnectTimer.start()
+            return
+        }
         if (addressParts.length < 2)
             return
         var port = parseInt(addressParts[addressParts.length - 1])
@@ -431,6 +468,8 @@ Window {
         var networkConnectionStarted = root.mavlinkObject.connectToVehicleProtocol(protocol, host, port, 0)
         if (!networkConnectionStarted)
             pendingCommAddress = ""
+        if (!networkConnectionStarted)
+            commReconnectTimer.start()
     }
 
     function cancelPendingConnection() {
@@ -445,8 +484,10 @@ Window {
 
         if (pendingCommAddress.length === 0)
             return
+        activeCommLinkIndex = -1
+        commReconnectTimer.stop()
         pendingCommAddress = ""
-        setCommLinkConnectionState("", false)
+            setCommLinkConnectionState(-1, false)
         if (root.mavlinkObject)
             root.mavlinkObject.disconnectFromVehicle()
     }
@@ -498,6 +539,11 @@ Window {
                 return
             address = commSerialPortBox.currentText
             baudRate = parseInt(commBaudRateBox.currentText)
+        } else if (protocol === "UDP") {
+            var udpPort = commPortField.text.trim()
+            if (udpPort.length === 0)
+                return
+            address = udpPort
         } else {
             var ipAddress = commIpField.text.trim()
             var port = commPortField.text.trim()
@@ -1253,7 +1299,7 @@ Window {
                     }
                 }
 
-                FormField { id: commIpField; visible: root.commAddModalOpen && commProtocolBox.currentText !== "Serial"; label: "IP ADDRESS"; placeholder: "192.168.1.100" }
+                FormField { id: commIpField; visible: root.commAddModalOpen && commProtocolBox.currentText === "TCP"; label: "IP ADDRESS"; placeholder: "192.168.1.100" }
                 FormField { id: commPortField; visible: root.commAddModalOpen && commProtocolBox.currentText !== "Serial"; label: "PORT"; placeholder: "14550" }
 
                 ColumnLayout {
@@ -1334,11 +1380,14 @@ Window {
         function onConnectionStatusChanged(connected) {
             if (!connected) {
                 root.pendingCommAddress = ""
-                root.setCommLinkConnectionState("", false)
+                root.setCommLinkConnectionState(-1, false)
+                if (root.activeCommLinkIndex >= 0)
+                    commReconnectTimer.start()
                 return
             }
 
-            root.setCommLinkConnectionState(root.pendingCommAddress, true)
+            commReconnectTimer.stop()
+            root.setCommLinkConnectionState(root.activeCommLinkIndex, true)
             root.pendingCommAddress = ""
         }
     }

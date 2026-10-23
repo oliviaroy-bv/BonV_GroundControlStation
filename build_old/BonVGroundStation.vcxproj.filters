@@ -1,0 +1,165 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\build\BonVGroundStation_autogen\mocs_compilation_Debug.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\app\main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\app\AppBackend.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\app\JoystickController.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\app\KeyManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\app\ScreenRecorder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\build\BonVGroundStation_autogen\EWIEGA46WW\qrc_resources_Debug.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\build\BonVGroundStation_autogen\mocs_compilation_Release.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\build\BonVGroundStation_autogen\EWIEGA46WW\qrc_resources_Release.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\build\BonVGroundStation_autogen\mocs_compilation_MinSizeRel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\build\BonVGroundStation_autogen\EWIEGA46WW\qrc_resources_MinSizeRel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\build\BonVGroundStation_autogen\mocs_compilation_RelWithDebInfo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\GCS\BonV_GroundControlStation\build\BonVGroundStation_autogen\EWIEGA46WW\qrc_resources_RelWithDebInfo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="C:\GCS\BonV_GroundControlStation\app\AppBackend.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\GCS\BonV_GroundControlStation\app\JoystickController.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\GCS\BonV_GroundControlStation\app\KeyManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\GCS\BonV_GroundControlStation\app\ScreenRecorder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\GCS\BonV_GroundControlStation\build\CMakeFiles\60aea2e0e2f03dbd8f22191a1706c500\timestamp_(CONFIG).rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\GCS\BonV_GroundControlStation\build\CMakeFiles\1b97914f115624464d4c438466172dc1\qrc_resources_(CONFIG).cpp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\GCS\BonV_GroundControlStation\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="C:\GCS\BonV_GroundControlStation\ui\qml\accessories\Palette.qml">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="C:\GCS\BonV_GroundControlStation\ui\qml\accessories\StateText.qml">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="C:\GCS\BonV_GroundControlStation\ui\qml\accessories\TelemetryIcon.qml">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="C:\GCS\BonV_GroundControlStation\ui\qml\accessories\TelemetryText.qml">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="C:\GCS\BonV_GroundControlStation\ui\qml\activation\ActivationWindow.qml">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="C:\GCS\BonV_GroundControlStation\ui\qml\activation\LoginWindow.qml">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="C:\GCS\BonV_GroundControlStation\ui\qml\buttons\CommandButton.qml">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="C:\GCS\BonV_GroundControlStation\ui\qml\core\App.qml">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="C:\GCS\BonV_GroundControlStation\ui\qml\core\FlyView.qml">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="C:\GCS\BonV_GroundControlStation\ui\qml\core\MainPage.qml">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="C:\GCS\BonV_GroundControlStation\ui\qml\map\FlyMap.qml">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="C:\GCS\BonV_GroundControlStation\ui\qml\map\OfflineTerrainMap.qml">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="C:\GCS\BonV_GroundControlStation\ui\qml\panels\BottomPanel.qml">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="C:\GCS\BonV_GroundControlStation\ui\qml\panels\BottomTelemetryText.qml">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="C:\GCS\BonV_GroundControlStation\ui\qml\panels\LeftSidePanel.qml">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="C:\GCS\BonV_GroundControlStation\ui\qml\panels\MissionBuilderPanel.qml">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="C:\GCS\BonV_GroundControlStation\ui\qml\panels\MotorTestPanel.qml">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="C:\GCS\BonV_GroundControlStation\ui\qml\panels\ServoPanel.qml">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="C:\GCS\BonV_GroundControlStation\ui\qml\panels\TopPanel.qml">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="C:\GCS\BonV_GroundControlStation\ui\qml\panels\VerticalTelemetryPanel.qml">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="C:\GCS\BonV_GroundControlStation\ui\qml\settings\OemSettingsPage.qml">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="C:\GCS\BonV_GroundControlStation\ui\qml\settings\MavlinkInspectorPage.qml">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="C:\GCS\BonV_GroundControlStation\ui\qml\settings\MavlinkForwardingPage.qml">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="C:\GCS\BonV_GroundControlStation\ui\qml\settings\SettingsWindow.qml">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="C:\GCS\BonV_GroundControlStation\ui\qml\video\Video.qml">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="C:\GCS\BonV_GroundControlStation\resources.qrc" />
+    <None Include="C:\GCS\BonV_GroundControlStation\build\BonVGroundStation_autogen\timestamp_Debug" />
+    <None Include="C:\GCS\BonV_GroundControlStation\build\BonVGroundStation_autogen\timestamp_Release" />
+    <None Include="C:\GCS\BonV_GroundControlStation\build\BonVGroundStation_autogen\timestamp_MinSizeRel" />
+    <None Include="C:\GCS\BonV_GroundControlStation\build\BonVGroundStation_autogen\timestamp_RelWithDebInfo" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="C:\GCS\BonV_GroundControlStation\appicon.rc">
+      <Filter>Source Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{174E0B12-BA23-3BBB-BC82-21DBFA9B18D5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{A749880F-E9B1-3B11-8CD2-9A1A97D13701}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{990205B7-27C4-3FEB-AC15-82DB30124EE7}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

@@ -4,8 +4,11 @@
 #include <QNetworkAccessManager>
 #include <QPointer>
 #include <QStringList>
+#include <QHash>
+#include <QVector>
 #include <QUrl>
 #include <QVariantList>
+#include <QTimer>
 
 #include <functional>
 
@@ -63,6 +66,7 @@ private:
     void beginPrefetchTiles(const QStringList &templates, const QUrl &baseUrl,
                             const QVariantList &waypoints, int minimumZoom,
                             int maximumZoom, double bufferMeters);
+    void scheduleCacheMaintenance();
 
     QNetworkAccessManager _network;
     bool _offlineMode = false;
@@ -76,4 +80,6 @@ private:
     int _prefetchTotal = 0;
     bool _prefetchActive = false;
     QString _prefetchStatus;
+    QHash<QString, QVector<FetchCallback>> _inFlightFetches;
+    QTimer _cacheMaintenanceTimer;
 };

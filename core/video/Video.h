@@ -98,8 +98,11 @@ private:
     QString rtspLinkValue;
     QString cameraNameValue;
     GimbalController *gimbalController = nullptr;
-    TransportMode transportModeValue = TransportMode::Tcp;
-    int latencyMsValue = 50;
+    // Let rtspsrc negotiate UDP/TCP like QGroundControl. Some cameras send
+    // clean RTP over UDP but produce incomplete H.264 access units when
+    // forced through TCP.
+    TransportMode transportModeValue = TransportMode::Auto;
+    int latencyMsValue = 200;
     int connectionTimeoutMsValue = 60000;
     bool streamingState = false;
     bool recordingState = false;

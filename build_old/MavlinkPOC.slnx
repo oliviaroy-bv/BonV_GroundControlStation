@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Solution>
+	<Configurations>
+		<BuildType Name="Debug"/>
+		<BuildType Name="Release"/>
+		<BuildType Name="MinSizeRel"/>
+		<BuildType Name="RelWithDebInfo"/>
+		<Platform Name="x64"/>
+	</Configurations>
+	<Project Path="ALL_BUILD.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="8575548c-b14b-343f-850c-c63a04c5297d" DefaultStartup="true">
+		<BuildDependency Project="BonVGroundStation.vcxproj"/>
+		<BuildDependency Project="tests/MavlinkForwarderTest.vcxproj"/>
+		<BuildDependency Project="tests/MavlinkInspectorModelTest.vcxproj"/>
+		<BuildDependency Project="MavlinkPOCCore.vcxproj"/>
+		<BuildDependency Project="tests/MavlinkTest.vcxproj"/>
+		<BuildDependency Project="tests/TerrainProviderTest.vcxproj"/>
+		<BuildDependency Project="tests/VehicleManagerTest.vcxproj"/>
+		<BuildDependency Project="tests/VehicleTest.vcxproj"/>
+		<BuildDependency Project="tests/VideoTest.vcxproj"/>
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<Build Solution="Debug|*" Project="false"/>
+		<Build Solution="Release|*" Project="false"/>
+		<Build Solution="MinSizeRel|*" Project="false"/>
+		<Build Solution="RelWithDebInfo|*" Project="false"/>
+	</Project>
+	<Project Path="BonVGroundStation.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="bd7e7249-7b45-3334-813f-60c048eabf76">
+		<BuildDependency Project="BonVGroundStation_qmlimportscan.vcxproj"/>
+		<BuildDependency Project="MavlinkPOCCore.vcxproj"/>
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+	</Project>
+	<Project Path="BonVGroundStation_qmlimportscan.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="3d928bc6-ba95-39cf-8374-4217d94d35af">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+	</Project>
+	<Project Path="Continuous.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="2534f443-6014-38b0-84f7-8c6257bbbb91">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<Build Solution="Debug|*" Project="false"/>
+		<Build Solution="Release|*" Project="false"/>
+		<Build Solution="MinSizeRel|*" Project="false"/>
+		<Build Solution="RelWithDebInfo|*" Project="false"/>
+	</Project>
+	<Project Path="Experimental.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="59542f92-fddd-395d-adc8-b7ea9d37e4b0">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<Build Solution="Debug|*" Project="false"/>
+		<Build Solution="Release|*" Project="false"/>
+		<Build Solution="MinSizeRel|*" Project="false"/>
+		<Build Solution="RelWithDebInfo|*" Project="false"/>
+	</Project>
+	<Project Path="tests/MavlinkForwarderTest.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="e7d7f66e-79c0-3540-84ea-685f08b22a10">
+		<BuildDependency Project="tests/MavlinkForwarderTest_qmlimportscan.vcxproj"/>
+		<BuildDependency Project="MavlinkPOCCore.vcxproj"/>
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+	</Project>
+	<Project Path="tests/MavlinkForwarderTest_qmlimportscan.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="9adc8092-6250-3a04-9af0-cd137f42acfa">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+	</Project>
+	<Project Path="tests/MavlinkInspectorModelTest.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="b454d471-4828-378e-ac2c-33959626e8c0">
+		<BuildDependency Project="tests/MavlinkInspectorModelTest_qmlimportscan.vcxproj"/>
+		<BuildDependency Project="MavlinkPOCCore.vcxproj"/>
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+	</Project>
+	<Project Path="tests/MavlinkInspectorModelTest_qmlimportscan.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="f11b3c83-abad-3b06-bf68-ed60bb390c86">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+	</Project>
+	<Project Path="MavlinkPOCCore.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="f466acd6-05fc-3617-b17e-abc005ead551">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+	</Project>
+	<Project Path="tests/MavlinkTest.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="6da8b097-4e9f-34ae-b231-7dd1b7dc3916">
+		<BuildDependency Project="MavlinkPOCCore.vcxproj"/>
+		<BuildDependency Project="tests/MavlinkTest_qmlimportscan.vcxproj"/>
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+	</Project>
+	<Project Path="tests/MavlinkTest_qmlimportscan.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="7434698b-f391-3789-9975-f71644694b8a">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+	</Project>
+	<Project Path="Nightly.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="52be18b4-7a00-3c8a-84d2-128408f2dc61">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<Build Solution="Debug|*" Project="false"/>
+		<Build Solution="Release|*" Project="false"/>
+		<Build Solution="MinSizeRel|*" Project="false"/>
+		<Build Solution="RelWithDebInfo|*" Project="false"/>
+	</Project>
+	<Project Path="NightlyMemoryCheck.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="eef95a00-f1ce-3469-a260-61e6ec9b18f6">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<Build Solution="Debug|*" Project="false"/>
+		<Build Solution="Release|*" Project="false"/>
+		<Build Solution="MinSizeRel|*" Project="false"/>
+		<Build Solution="RelWithDebInfo|*" Project="false"/>
+	</Project>
+	<Project Path="RUN_TESTS.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="6f53a56a-71b2-3200-a926-4f3573910be8">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		<Build Solution="Debug|*" Project="false"/>
+		<Build Solution="Release|*" Project="false"/>
+		<Build Solution="MinSizeRel|*" Project="false"/>
+		<Build Solution="RelWithDebInfo|*" Project="false"/>
+	</Project>
+	<Project Path="tests/TerrainProviderTest.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="7e50c33f-5704-3855-8bf9-3b8988817752">
+		<BuildDependency Project="MavlinkPOCCore.vcxproj"/>
+		<BuildDependency Project="tests/TerrainProviderTest_qmlimportscan.vcxproj"/>
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+	</Project>
+	<Project Path="tests/TerrainProviderTest_qmlimportscan.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="c2332abd-ab80-3c70-b47c-6174d6b069df">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+	</Project>
+	<Project Path="tests/VehicleManagerTest.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="d5ed9e45-561b-3ca3-b3cf-70096c388b7c">
+		<BuildDependency Project="MavlinkPOCCore.vcxproj"/>
+		<BuildDependency Project="tests/VehicleManagerTest_qmlimportscan.vcxproj"/>
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+	</Project>
+	<Project Path="tests/VehicleManagerTest_qmlimportscan.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="7457369a-8f1d-36d1-a0b1-03d907c619ba">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+	</Project>
+	<Project Path="tests/VehicleTest.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="2c19c849-e35c-3ab5-a303-54745c4d1cca">
+		<BuildDependency Project="MavlinkPOCCore.vcxproj"/>
+		<BuildDependency Project="tests/VehicleTest_qmlimportscan.vcxproj"/>
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+	</Project>
+	<Project Path="tests/VehicleTest_qmlimportscan.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="5089a1f1-78a3-3b9e-9437-19971208bf89">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+	</Project>
+	<Project Path="tests/VideoTest.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="af08e8bf-52b6-3f78-9b82-1bebe31a9d41">
+		<BuildDependency Project="MavlinkPOCCore.vcxproj"/>
+		<BuildDependency Project="tests/VideoTest_qmlimportscan.vcxproj"/>
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+	</Project>
+	<Project Path="tests/VideoTest_qmlimportscan.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="4c9e824d-1f01-3a12-a24f-dc05cb72de94">
+		<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+	</Project>
+	<Project Path="ZERO_CHECK.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="2dc9c1cf-3eb8-36a6-af4f-38cca8b8427b"/>
+</Solution>
