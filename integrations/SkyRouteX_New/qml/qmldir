@@ -1,0 +1,27 @@
+module FlightPlanner
+
+singleton Theme 1.0 Theme.qml
+
+ActivityLog    1.0 ActivityLog.qml
+CoordGroup     1.0 CoordGroup.qml
+DistanceBadge  1.0 DistanceBadge.qml
+FpButton       1.0 FpButton.qml
+FpComboBox     1.0 FpComboBox.qml
+FpInput        1.0 FpInput.qml
+FpSectionTitle 1.0 FpSectionTitle.qml
+FpSpinBox      1.0 FpSpinBox.qml
+FormRow        1.0 FormRow.qml
+LegendDot      1.0 LegendDot.qml
+MainView       1.0 MainView.qml
+MapView        1.0 MapView.qml
+NavButton      1.0 NavButton.qml
+DroneFleetPanel 1.0 DroneFleetPanel.qml
+PinGate        1.0 PinGate.qml
+View3D         1.0 View3D.qml
+SectionBlock   1.0 SectionBlock.qml
+SideNav        1.0 SideNav.qml
+TerrainProfile 1.0 TerrainProfile.qml
+TooltipRow     1.0 TooltipRow.qml
+StatusBar      1.0 StatusBar.qml
+TitleBar       1.0 TitleBar.qml
+TripToggle     1.0 TripToggle.qml

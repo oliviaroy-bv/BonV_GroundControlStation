@@ -1,0 +1,8 @@
+/build*/
+/verification.png
+/.qt/
+*.user
+cache/imagery/**
+cache/dem/*.hgt
+cache/stitched/*.png
+!cache/**/.gitkeep

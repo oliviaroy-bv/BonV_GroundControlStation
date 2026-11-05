@@ -1,0 +1,74 @@
+{
+    "drones": [
+        {
+            "active": true,
+            "capabilities": [
+                "Delivery",
+                "Drop",
+                "Paradrop"
+            ],
+            "cruiseAlt": 120,
+            "displayName": "Air-Orca",
+            "id": "AIR_ORCA",
+            "landAlt": 5,
+            "maxRangeM": 8000,
+            "maxSpeedMs": 5,
+            "nearHomeAlt": 60,
+            "rcCount": 3,
+            "rcSwitch": 2,
+            "takeoffAlt": 30
+        },
+        {
+            "active": true,
+            "capabilities": [
+                "Delivery"
+            ],
+            "cruiseAlt": 120,
+            "displayName": "Pelican",
+            "id": "PELICAN",
+            "landAlt": 5,
+            "maxRangeM": 4000,
+            "maxSpeedMs": 5,
+            "nearHomeAlt": 60,
+            "rcCount": 0,
+            "rcSwitch": 0,
+            "takeoffAlt": 30
+        },
+        {
+            "active": true,
+            "capabilities": [
+                "Delivery",
+                "Drop",
+                "Paradrop"
+            ],
+            "cruiseAlt": 150,
+            "displayName": "Uttam",
+            "id": "UTTAM",
+            "landAlt": 5,
+            "maxRangeM": 20000,
+            "maxSpeedMs": 7,
+            "nearHomeAlt": 80,
+            "rcCount": 1,
+            "rcSwitch": 3,
+            "takeoffAlt": 40
+        },
+        {
+            "active": true,
+            "capabilities": [
+                "Delivery",
+                "Drop",
+                "Paradrop"
+            ],
+            "cruiseAlt": 150,
+            "displayName": "Sarv-Uttam",
+            "id": "SARV_UTTAM",
+            "landAlt": 5,
+            "maxRangeM": 20000,
+            "maxSpeedMs": 7,
+            "nearHomeAlt": 80,
+            "rcCount": 1,
+            "rcSwitch": 3,
+            "takeoffAlt": 40
+        }
+    ]
+}
