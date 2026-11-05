@@ -362,12 +362,24 @@ Item {
 
         var wasRecording = backend.screenRecording
         if (backend.toggleScreenRecording(root.Window.window)) {
-            root.showActionStatus(wasRecording ? "Screen recording saved" : "Screen recording started")
+            root.showActionStatus(wasRecording ? "Finishing screen recording…" : "Starting screen recording…")
         } else {
             var errorMessage = backend.screenRecordingError && backend.screenRecordingError.length > 0
                     ? backend.screenRecordingError
                     : "Screen recording failed"
             root.showActionStatus(errorMessage)
+        }
+    }
+
+    Connections {
+        target: typeof backend !== "undefined" ? backend : null
+        function onScreenRecordingChanged() {
+            if (backend.screenRecording)
+                root.showActionStatus("Screen recording started")
+        }
+        function onScreenRecordingErrorChanged() {
+            if (backend.screenRecordingError.length > 0)
+                root.showActionStatus(backend.screenRecordingError)
         }
     }
 

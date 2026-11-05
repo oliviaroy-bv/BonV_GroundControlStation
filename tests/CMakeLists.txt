@@ -30,6 +30,17 @@ addGcsTest(VideoTest
     VideoTest.cpp
 )
 
+addGcsTest(ScreenRecorderTest
+    ScreenRecorderTest.cpp
+    ../app/ScreenRecorder.cpp
+    ../app/ScreenRecorder.h
+)
+if(BONV_GSTREAMER_ROOT)
+    set_tests_properties(ScreenRecorderTest PROPERTIES ENVIRONMENT
+        "QT_QPA_PLATFORM=offscreen;GST_PLUGIN_PATH=${BONV_GSTREAMER_ROOT}/lib/gstreamer-1.0;GST_PLUGIN_SCANNER=${BONV_GSTREAMER_ROOT}/libexec/gstreamer-1.0/gst-plugin-scanner.exe"
+    )
+endif()
+
 addGcsTest(MavlinkTest
     MavlinkTest.cpp
 )

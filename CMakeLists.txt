@@ -488,26 +488,34 @@ if(WIN32)
 
     # FindOpenSSL exposes .lib import libraries through TARGET_FILE on Windows.
     # Qt's OpenSSL TLS backend must instead receive the runtime DLLs.
-    # get_filename_component(OPENSSL_LIBRARY_DIR "${SSL_EAY_RELEASE}" DIRECTORY)
-    # get_filename_component(OPENSSL_INSTALL_DIR "${OPENSSL_LIBRARY_DIR}" DIRECTORY)
-    # file(GLOB OPENSSL_RUNTIME_DLLS
-    #     "${OPENSSL_INSTALL_DIR}/bin/libssl-*.dll"
-    #     "${OPENSSL_INSTALL_DIR}/bin/libcrypto-*.dll"
-    # )
-    set(OPENSSL_INSTALL_DIR "C:/Users/Olivia-BV0054/Desktop/New_GCS/BonV_GroundControlStation/build/Desktop_Qt_6_10_1_MSVC2022_64bit-Debug/vcpkg_installed/x64-windows")
-
-    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-        set(OPENSSL_RUNTIME_DIR "${OPENSSL_INSTALL_DIR}/debug/bin")
+    set(BONV_OPENSSL_RUNTIME_DIR "" CACHE PATH
+        "Directory containing OpenSSL runtime DLLs; empty discovers them from the selected OpenSSL installation")
+    get_filename_component(_openssl_prefix "${OPENSSL_INCLUDE_DIR}" DIRECTORY)
+    if(BONV_OPENSSL_RUNTIME_DIR)
+        set(_openssl_runtime_candidates "${BONV_OPENSSL_RUNTIME_DIR}")
     else()
-        set(OPENSSL_RUNTIME_DIR "${OPENSSL_INSTALL_DIR}/bin")
+        set(_openssl_runtime_candidates "${_openssl_prefix}/bin")
+        if(OPENSSL_ROOT_DIR)
+            list(APPEND _openssl_runtime_candidates "${OPENSSL_ROOT_DIR}/bin")
+        endif()
     endif()
 
-    file(GLOB OPENSSL_RUNTIME_DLLS
-        "${OPENSSL_RUNTIME_DIR}/libssl-*.dll"
-        "${OPENSSL_RUNTIME_DIR}/libcrypto-*.dll"
-    )
+    # The TLS backend plugins copied below are Release plugins, including for
+    # multi-configuration generators where CMAKE_BUILD_TYPE is empty.
+    set(OPENSSL_RUNTIME_DLLS "")
+    foreach(_openssl_runtime_dir IN LISTS _openssl_runtime_candidates)
+        file(GLOB _openssl_ssl_dlls "${_openssl_runtime_dir}/libssl-*.dll")
+        file(GLOB _openssl_crypto_dlls "${_openssl_runtime_dir}/libcrypto-*.dll")
+        if(_openssl_ssl_dlls AND _openssl_crypto_dlls)
+            set(OPENSSL_RUNTIME_DLLS ${_openssl_ssl_dlls} ${_openssl_crypto_dlls})
+            message(STATUS "Using OpenSSL runtime DLLs: ${_openssl_runtime_dir}")
+            break()
+        endif()
+    endforeach()
     if(NOT OPENSSL_RUNTIME_DLLS)
-        message(FATAL_ERROR "OpenSSL runtime DLLs were not found in: ${OPENSSL_INSTALL_DIR}/bin")
+        message(FATAL_ERROR
+            "OpenSSL SSL and Crypto runtime DLLs were not found in: ${_openssl_runtime_candidates}. "
+            "Set BONV_OPENSSL_RUNTIME_DIR to the bin directory of the matching shared OpenSSL installation.")
     endif()
 
     file(GLOB QT_TLS_BACKEND_PLUGINS "${QT_BIN_DIR}/../plugins/tls/q*backend.dll")

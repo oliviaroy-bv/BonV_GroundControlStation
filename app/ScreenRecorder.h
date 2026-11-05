@@ -4,6 +4,10 @@
 #include <QSize>
 #include <QString>
 #include <QTimer>
+#include <QThread>
+#include <QPointer>
+#include <QImage>
+#include <QElapsedTimer>
 
 class QWindow;
 
@@ -32,6 +36,8 @@ signals:
     void recordingChanged();
     void recordingFilePathChanged();
     void errorStringChanged();
+    void workerStatus(bool active, const QString &path, const QString &error);
+    void workerIdle();
 
 private slots:
     void captureFrame();
@@ -39,6 +45,11 @@ private slots:
     void forcePipelineFinalize();
 
 private:
+    friend class ScreenRecorderTest;
+    explicit ScreenRecorder(bool worker);
+    void queueStart(const QImage &frame, const QString &path);
+    bool startCaptured(const QImage &frame, const QString &path);
+    void publishWorkerStatus();
     void setRecording(bool recording);
     void setRecordingFilePath(const QString &filePath);
     void setErrorString(const QString &errorString);
@@ -50,7 +61,13 @@ private:
     void requestPipelineStop();
     void clearPipeline(bool sendEos = true);
 
-    QWindow *recordingWindow = nullptr;
+    QPointer<QWindow> recordingWindow;
+    bool workerMode = false;
+    bool startPending = false;
+    bool framePending = false;
+    quint64 generation = 0;
+    QThread encodingThread;
+    ScreenRecorder *encoder = nullptr;
     bool recordingState = false;
     bool finalizingRecording = false;
     QString recordingFilePathValue;
@@ -60,6 +77,7 @@ private:
     QTimer finalizeTimer;
     QSize frameSize;
     quint64 frameIndex = 0;
+    QElapsedTimer recordingClock;
 
 #ifdef HAVE_GSTREAMER
     GstElement *recordingPipeline = nullptr;

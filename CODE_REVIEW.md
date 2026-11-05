@@ -1,0 +1,62 @@
+﻿# Repository failure-risk review â€” 4 November 2026
+
+This is a source-based review of the main application, transport/MAVLink paths, vehicle model, mission generation and transfer, map cache/raster import, video recording, activation, and build/deployment definitions. It is not an exhaustive proof of correctness of every file or bundled dependency. No vehicle or camera hardware was exercised and no fresh build was completed. Third-party SDKs, generated code, and packaged binaries were not audited line by line. Existing changes to CMakeLists.txt were left intact.
+
+Validation: `ctest --test-dir build -C Release --output-on-failure` ran the existing binaries: six suites passed; MavlinkTest failed. A direct repeat of MavlinkTest reported 9 passed and 11 failed; all 11 failures were in its connection helper. Detailed output: `build/mavlink-review-results.txt`. Existing binaries may differ from current source.
+
+Priority meanings: P1 = address before operational use/release; P2 = significant reliability or security problem; P3 = portability/maintenance issue. Findings below are confirmed source behaviors; crashes and operational consequences described as possibilities have not been reproduced on hardware.
+
+## P1: Vehicle identity and connection state
+
+1. **UDP reply destination changes on every datagram.** `comms/transport/udp/UdpLink.cpp:15,58,76`. The configured host is ignored, the socket binds AnyIPv4, and every datagram overwrites peerAddress/peerPort before MAVLink validation. A second sender, including one sending malformed bytes, redirects subsequent commands. Multiple senders also share a concatenated byte stream. Pin and validate the intended endpoint; retain sender identity through parsing.
+
+2. **Any autopilot heartbeat can replace the command target; telemetry is not isolated by vehicle.** `comms/mavlink/Mavlink.cpp:1747` overwrites targetSystemId/targetComponentId on every qualifying heartbeat. `:1782` sends all parsed messages to Vehicle, whose `core/vehicle/Vehicle.cpp:172` handler has no system-ID filter. Parameter and mission handlers likewise lack an outer source filter. Two vehicles on one transport can mix position, battery, parameters and mission state, and move commands between targets. Select a vehicle explicitly and filter operational messages and acknowledgements by source and destination.
+
+3. **No heartbeat-expiry watchdog.** `comms/mavlink/Mavlink.cpp:1747,1795,1820`; connection state becomes true after a heartbeat and is cleared on transport disconnection, but no heartbeat deadline clears it. A silent UDP vehicle leaves the socket open indefinitely; a silent TCP peer can also retain its connection. The UI can show connected with stale telemetry and continue accepting commands. Track last valid heartbeat and telemetry age separately from socket state.
+
+4. **Initial requests can address the previous/default system.** `comms/mavlink/Mavlink.cpp:1755`. setConnected(true) calls requestDataStreams and emits connectionStatusChanged before the heartbeat's system/component are assigned. For a vehicle whose ID is not the default 1/1, initial requests, and commands issued synchronously by connection listeners, can address the wrong target. Assign validated identity before publishing connection state.
+
+## P1: Mission and command handling
+
+5. **Transfers can stall forever after packet loss.** `comms/mavlink/Mavlink.cpp:1349,2673,2764,2796`. Mission list/count/item exchanges have no transaction deadline or retransmission timer. A lost response leaves missionDownloadActive or missionUploadActive set and can block later writes. Add bounded retries, overall deadlines, cancellation and explicit failure signals.
+
+6. **Clear-before-upload accepts rejected clears and creates an ACK ambiguity.** `comms/mavlink/Mavlink.cpp:1252,1257,3042`. The clear ACK branch starts upload without checking ack.type. The 750 ms fallback also starts upload without an ACK; a late successful clear ACK can then be treated as the final upload ACK and report success prematurely. ACK source, destination and mission type are not checked here. Use an explicit transfer state machine, validate ACKs and fail a rejected clear. Avoid destructive pre-clearing where the supported upload protocol can replace the mission directly.
+
+7. **Loading a second mission can mutate an active upload.** `comms/mavlink/Mavlink.cpp:1216,1231`. uploadMissionFile replaces pendingMissionItems and resets transfer state without the busy guard present in writeLoadedMissionToVehicle. Existing requests/timers can then operate on the new plan while the controller is still transferring the old one. Reject concurrent changes or explicitly cancel and restart a transaction with a generation identifier.
+
+8. **Delayed takeoff/start commands survive a connection change.** `comms/mavlink/Mavlink.cpp:606,625`. Timers capture this and only check connectedState. Disconnect and reconnect to another vehicle before the timer fires and the delayed command uses the new target. Capture a connection generation and cancel stale actions. Also wait for confirmed mode changes instead of assuming the fixed 1200/900 ms delays suffice.
+
+9. **Send failures and parameter acceptance are hidden.** `comms/mavlink/Mavlink.cpp:2232,2273`. sendMavlinkMessage discards negative/short write results. sendParameterSet returns true and updates the displayed cache immediately, without waiting for the vehicle's echoed value. A failed write or rejected/clamped setting can look successful. Return transport results, track pending operations and confirm settings from the controller.
+
+10. **Mission numeric validation is insufficient before integer conversion.** `comms/mavlink/Mavlink.cpp:3160,2693`. Parsing checks numeric conversion but does not reject invalid global coordinates/altitudes before appending mission items; coordinate validation only controls display. Byte fields silently narrow values, and mission counts narrow to uint16_t. sendMissionItem scales every INT item's x/y by 1e7 without distinguishing local frames. Invalid input can yield truncated fields, overflow, or incorrect local-frame coordinates. Validate every transmitted item, field range, frame and count; use frame-specific conversion.
+
+## P1: Crashes, freezes and build failures
+
+11. **Video recording has unsynchronized access across threads.** `core/video/Video.cpp:382,646,687,846`. The GStreamer sample callback calls pushRecordingFrame while the UI can stop recording and unref/null recordingAppSrc. recordingState, the pointer and frame index are not consistently synchronized; the frame-image mutex does not protect recording teardown. This creates a data race and potential use-after-free when stopping/toggling recording. Serialize recording operations and hold a valid reference for in-flight pushes. Crash not reproduced.
+
+12. **GeoTIFF import blocks the GUI and telemetry event loop.** `core/map/RasterOverlayManager.cpp:73,106,111`; `ui/qml/settings/SettingsWindow.qml:117`. QML directly invokes a function that waits synchronously up to 5 seconds for startup and 120 seconds for completion. During import the GUI, MAVLink socket processing and application timers can stop responding. Run the worker asynchronously and report progress/completion through signals.
+
+13. **GDAL-enabled builds reference a missing source, and the import worker is not deployed.** `CMakeLists.txt:381` names tools/RasterImportWorker.cpp, which is absent from this checkout. If GDAL is found, generation/build cannot complete that target. The worker's output goes under the build configuration directory at :395, while application deployment uses build/deploy; no command copies the worker there. `core/map/RasterOverlayManager.cpp:90` requires it beside the installed executable. Restore the source and deploy the worker plus dependencies. Current CMake cache has GDAL not found, so this path is currently disabled.
+
+## P2: Memory, storage and access control
+
+14. **Each uncached map request leaks its retry closure.** `core/map/TileCacheManager.cpp:206`. The shared_ptr to a std::function is captured by the lambda assigned into that same function, creating a permanent ownership cycle. It also retains request URL data. Panning over many uncached tiles accumulates allocations. Break the cycle, use a weak_ptr, or put retry state in a QObject with bounded lifetime. This request path also has no explicit application transfer deadline.
+
+15. **Log writes can fail silently and buffering is unbounded.** `comms/mavlink/Mavlink.cpp:209,250`; `app/main.cpp:87,107`. BufferedLogWriter appends without a size limit and ignores write/flush results. A slow or full disk can grow memory or silently lose telemetry while logging remains reported active. runtime.log grows across sessions without rotation and synchronously flushes each log message. Add bounded queues, error reporting, rotation and disk-space handling.
+
+16. **Mission filenames can overwrite previous routes; write completion is not checked.** `integrations/SkyRouteX_New/src/waypoint_writer.cpp:1053,1108,1115`. Filenames use model/type/trip, distance rounded to 0.1 km and wait rounded to seconds, with no route coordinates or unique ID. Different routes can produce the same path and be overwritten. The writer returns true without checking QTextStream status or final file errors and closes the file while the stream remains alive. Use unique filenames or overwrite confirmation and QSaveFile with explicit flush/status/commit checks.
+
+17. **Authentication and license trust rely on embedded secrets.** `app/AppBackend.cpp:11,317`; `app/KeyManager.cpp:20,272` (generateSignature). Login uses one compiled-in password. License validation uses a secret shipped in the client and a truncated hash; the client can generate the same signatures it verifies. Validation logs expected and supplied signatures on mismatch and trusts the local clock for expiry. Anyone who extracts the client secret can forge licenses; clock changes affect expiry. Use per-user credentials appropriate to the deployment and public-key license verification, with signing keys kept outside the application. Do not log expected signatures.
+
+18. **Mission generation accepts non-finite flight parameters.** `core/mission/MissionFileWriter.cpp:152`. Coordinates use isfinite, but altitude/speed validation only compares against zero, and delay/hover times are not validated here. NaN bypasses these comparisons and infinity can propagate into planner arithmetic and output. Validate finiteness and supported limits for all inputs at the C++ boundary.
+
+## P2/P3: Validation and compatibility gaps
+
+19. **The main communication test fixture no longer matches the connection contract.** `tests/MavlinkTest.cpp:89`. connectTestMavlink waits for mavlink.connected() before accepting the TCP socket or supplying a heartbeat, but production now requires a heartbeat to become connected. This accounts for the observed 11 connection-helper failures. Update the fixture to accept the socket and send a valid heartbeat; retain separate transport-open and vehicle-connected assertions. Add regression coverage for the packet-loss, multi-sender, stale-command and recording-race cases above. The passing suites do not establish that those cases work.
+
+20. **Firmware/vehicle compatibility is assumed rather than negotiated.** `comms/mavlink/Mavlink.cpp:606,625`; `app/JoystickController.cpp:79`; `core/vehicle/Vehicle.cpp:236`. Mode numbers and their labels are fixed, while connection accepts any non-invalid autopilot. Different firmware or vehicle types may interpret modes differently. Gate unsupported vehicles and derive modes/parameter encoding from supported firmware capabilities. If the product intentionally supports only one specific copter firmware family, enforce that restriction at connection time.
+
+21. **Non-Windows targets fail at application compilation.** `app/main.cpp:1` unconditionally includes windows.h, io.h and fcntl.h despite Android branches elsewhere. Guard platform-specific headers and test each declared platform. This does not prevent the current Windows build.
+
+Recommended order: pin endpoint and vehicle identity; implement connection freshness and transfer/command state machines; fix recording synchronization and GUI blocking; restore and package the raster worker; repair the test fixture; then address storage, security and compatibility. Validate operational changes using a simulator and fault injection before hardware tests. No source fixes were made in this review.
+

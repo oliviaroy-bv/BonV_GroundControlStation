@@ -64,20 +64,44 @@ void configureBundledGStreamerRuntime()
 
 void ensureGStreamerInitialized()
 {
-    static bool initialized = false;
-    if (!initialized) {
+    static const bool initialized = []() {
         configureBundledGStreamerRuntime();
         gst_init(nullptr, nullptr);
-        initialized = true;
-    }
+        return true;
+    }();
+    Q_UNUSED(initialized);
 }
 #endif
 
 } // namespace
 
 ScreenRecorder::ScreenRecorder(QObject *parent)
-    : QObject(parent)
+    : ScreenRecorder(false)
 {
+    setParent(parent);
+    encoder = new ScreenRecorder(true);
+    encoder->moveToThread(&encodingThread);
+    connect(&encodingThread, &QThread::finished, encoder, &QObject::deleteLater);
+    connect(encoder, &ScreenRecorder::workerStatus, this,
+            [this](bool active, const QString &path, const QString &error) {
+        setRecordingFilePath(path);
+        setErrorString(error);
+        // Ignore a startup notification that arrives after cancellation.
+        setRecording(active && recordingWindow && !finalizingRecording);
+        if (!active && !startPending) captureTimer.stop();
+    });
+    connect(encoder, &ScreenRecorder::workerIdle, this, [this]() {
+        finalizingRecording = false;
+    });
+    encodingThread.start();
+}
+
+ScreenRecorder::ScreenRecorder(bool worker)
+    : workerMode(worker)
+{
+    captureTimer.setParent(this);
+    busPollTimer.setParent(this);
+    finalizeTimer.setParent(this);
     captureTimer.setInterval(100);
     busPollTimer.setInterval(50);
     finalizeTimer.setInterval(3000);
@@ -89,6 +113,13 @@ ScreenRecorder::ScreenRecorder(QObject *parent)
 
 ScreenRecorder::~ScreenRecorder()
 {
+    if (encoder) {
+        captureTimer.stop();
+        QMetaObject::invokeMethod(encoder, [this]() { encoder->clearPipeline(false); },
+                                  Qt::BlockingQueuedConnection);
+        encodingThread.quit();
+        encodingThread.wait();
+    }
     captureTimer.stop();
     busPollTimer.stop();
     finalizeTimer.stop();
@@ -115,10 +146,10 @@ QString ScreenRecorder::errorString() const
 
 bool ScreenRecorder::start(QWindow *window, const QString &filePath)
 {
-    if (recordingState) {
+    if (recordingState || startPending) {
         return true;
     }
-    if (recordingPipeline || finalizingRecording) {
+    if (finalizingRecording) {
         setErrorString(QStringLiteral("Screen recording is still finalizing. Please try again in a moment."));
         return false;
     }
@@ -132,29 +163,55 @@ bool ScreenRecorder::start(QWindow *window, const QString &filePath)
     setErrorString(QStringLiteral("Screen recording failed: GStreamer support is not available in this build."));
     return false;
 #else
-    ensureGStreamerInitialized();
-
-    const QString outputPath = filePath.trimmed().isEmpty() ? defaultRecordingFilePath() : filePath.trimmed();
-    QFileInfo outputInfo(outputPath);
-    QDir outputDir = outputInfo.dir();
-    if (!outputDir.exists() && !outputDir.mkpath(QStringLiteral("."))) {
-        setErrorString(QStringLiteral("Could not create screen recording folder: %1").arg(outputDir.absolutePath()));
-        return false;
-    }
-
     const QImage firstFrame = captureWindowFrame(window);
     if (firstFrame.isNull()) {
         setErrorString(QStringLiteral("Screen recording failed: could not capture the application window."));
         return false;
     }
 
-    if (!startPipeline(outputInfo.absoluteFilePath(), firstFrame.width(), firstFrame.height())) {
+    recordingWindow = window;
+    queueStart(firstFrame, filePath);
+    // True means accepted; startup failures are reported asynchronously.
+    return true;
+#endif
+}
+
+void ScreenRecorder::queueStart(const QImage &firstFrame, const QString &filePath)
+{
+    setErrorString(QString());
+    startPending = true;
+    const quint64 session = ++generation;
+    QMetaObject::invokeMethod(encoder, [this, firstFrame, filePath, session]() {
+        const bool ok = encoder->startCaptured(firstFrame, filePath);
+        QMetaObject::invokeMethod(this, [this, ok, session]() {
+            if (session != generation) return;
+            startPending = false;
+            if (ok) captureTimer.start();
+        }, Qt::QueuedConnection);
+    }, Qt::QueuedConnection);
+}
+
+bool ScreenRecorder::startCaptured(const QImage &firstFrame, const QString &filePath)
+{
+#ifndef HAVE_GSTREAMER
+    Q_UNUSED(firstFrame);
+    Q_UNUSED(filePath);
+    return false;
+#else
+    setErrorString(QString());
+    ensureGStreamerInitialized();
+    const QString outputPath = filePath.trimmed().isEmpty() ? defaultRecordingFilePath() : filePath.trimmed();
+    QFileInfo outputInfo(outputPath);
+    if (!outputInfo.dir().mkpath(QStringLiteral("."))) {
+        setErrorString(QStringLiteral("Could not create screen recording folder: %1").arg(outputInfo.absolutePath()));
         return false;
     }
-
-    recordingWindow = window;
     frameSize = firstFrame.size();
+    if (frameSize.width() > 1280) frameSize.scale(1280, frameSize.height(), Qt::KeepAspectRatio);
+    if (!startPipeline(outputInfo.absoluteFilePath(), frameSize.width(), frameSize.height())) return false;
     frameIndex = 0;
+    recordingClock.start();
+    setErrorString(QString());
     setRecordingFilePath(outputInfo.absoluteFilePath());
     setRecording(true);
     if (!pushFrame(firstFrame)) {
@@ -162,7 +219,6 @@ bool ScreenRecorder::start(QWindow *window, const QString &filePath)
         stop();
         return false;
     }
-    captureTimer.start();
     busPollTimer.start();
     qDebug() << "Recording screen to:" << recordingFilePathValue;
     return true;
@@ -171,6 +227,17 @@ bool ScreenRecorder::start(QWindow *window, const QString &filePath)
 
 void ScreenRecorder::stop()
 {
+    if (!workerMode) {
+        if (!recordingState && !startPending) return;
+        ++generation;
+        startPending = false;
+        captureTimer.stop();
+        recordingWindow = nullptr;
+        finalizingRecording = true;
+        setRecording(false);
+        QMetaObject::invokeMethod(encoder, [this]() { encoder->stop(); }, Qt::QueuedConnection);
+        return;
+    }
     captureTimer.stop();
     recordingWindow = nullptr;
     setRecording(false);
@@ -179,7 +246,7 @@ void ScreenRecorder::stop()
 
 bool ScreenRecorder::toggle(QWindow *window)
 {
-    if (recordingState) {
+    if (recordingState || startPending) {
         stop();
         return true;
     }
@@ -189,15 +256,30 @@ bool ScreenRecorder::toggle(QWindow *window)
 
 void ScreenRecorder::captureFrame()
 {
-    if (!recordingState || !recordingWindow) {
+    if (!recordingState) {
+        return;
+    }
+    if (!recordingWindow) {
+        stop();
         return;
     }
 
+    // Keep at most one frame queued to the encoder, even on slow storage.
+    if (framePending) return;
     const QImage frame = captureWindowFrame(recordingWindow);
-    if (frame.isNull() || !pushFrame(frame)) {
-        setErrorString(QStringLiteral("Screen recording stopped: failed to write a frame."));
+    if (frame.isNull()) {
+        setErrorString(QStringLiteral("Screen recording stopped: failed to capture a frame."));
         stop();
+        return;
     }
+    framePending = true;
+    QMetaObject::invokeMethod(encoder, [this, frame]() {
+        if (!encoder->pushFrame(frame)) {
+            encoder->setErrorString(QStringLiteral("Screen recording stopped: failed to write a frame."));
+            encoder->stop();
+        }
+        QMetaObject::invokeMethod(this, [this]() { framePending = false; }, Qt::QueuedConnection);
+    }, Qt::QueuedConnection);
 }
 
 void ScreenRecorder::pollBus()
@@ -268,6 +350,7 @@ void ScreenRecorder::setRecording(bool recording)
 
     recordingState = recording;
     emit recordingChanged();
+    publishWorkerStatus();
 }
 
 void ScreenRecorder::setRecordingFilePath(const QString &filePath)
@@ -278,6 +361,7 @@ void ScreenRecorder::setRecordingFilePath(const QString &filePath)
 
     recordingFilePathValue = filePath;
     emit recordingFilePathChanged();
+    publishWorkerStatus();
 }
 
 void ScreenRecorder::setErrorString(const QString &errorString)
@@ -288,6 +372,7 @@ void ScreenRecorder::setErrorString(const QString &errorString)
 
     errorStringValue = errorString;
     emit errorStringChanged();
+    publishWorkerStatus();
 }
 
 QString ScreenRecorder::defaultRecordingFilePath() const
@@ -308,19 +393,7 @@ QImage ScreenRecorder::captureWindowFrame(QWindow *window) const
     }
 
     const QRect geometry = screen->geometry();
-    QImage frame = screen->grabWindow(0, geometry.x(), geometry.y(), geometry.width(), geometry.height())
-            .toImage()
-            .convertToFormat(QImage::Format_RGB32);
-    if (frame.isNull()) {
-        return QImage();
-    }
-
-    const int maxWidth = 1280;
-    if (frame.width() > maxWidth) {
-        const int scaledHeight = std::max(1, qRound(frame.height() * (static_cast<double>(maxWidth) / frame.width())));
-        frame = frame.scaled(maxWidth, scaledHeight, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
-    }
-    return frame;
+    return screen->grabWindow(0, geometry.x(), geometry.y(), geometry.width(), geometry.height()).toImage();
 }
 
 bool ScreenRecorder::startPipeline(const QString &filePath, int width, int height)
@@ -371,7 +444,7 @@ bool ScreenRecorder::startPipeline(const QString &filePath, int width, int heigh
 QString ScreenRecorder::recordingPipelineDescription(const QString &filePath, int width, int height) const
 {
     return QStringLiteral(
-        "appsrc name=screenRecordSource is-live=true format=time do-timestamp=false block=false "
+        "appsrc name=screenRecordSource is-live=true format=time do-timestamp=false block=false max-buffers=2 leaky-type=downstream "
         "caps=video/x-raw,format=BGRx,width=%1,height=%2,framerate=10/1"
         " ! queue max-size-buffers=8 leaky=downstream max-size-time=0 max-size-bytes=0"
         " ! videoconvert n-threads=2"
@@ -415,7 +488,7 @@ bool ScreenRecorder::pushFrame(const QImage &frame)
     gst_buffer_unmap(buffer, &mapInfo);
 
     constexpr GstClockTime frameDuration = GST_SECOND / 10;
-    GST_BUFFER_PTS(buffer) = frameIndex * frameDuration;
+    GST_BUFFER_PTS(buffer) = static_cast<GstClockTime>(recordingClock.nsecsElapsed());
     GST_BUFFER_DTS(buffer) = GST_BUFFER_PTS(buffer);
     GST_BUFFER_DURATION(buffer) = frameDuration;
     ++frameIndex;
@@ -431,6 +504,7 @@ void ScreenRecorder::requestPipelineStop()
     if (!recordingPipeline) {
         finalizingRecording = false;
         busPollTimer.stop();
+        emit workerIdle();
         return;
     }
 
@@ -484,4 +558,10 @@ void ScreenRecorder::clearPipeline(bool sendEos)
     frameIndex = 0;
     frameSize = QSize();
     finalizingRecording = false;
+    if (workerMode) emit workerIdle();
+}
+
+void ScreenRecorder::publishWorkerStatus()
+{
+    if (workerMode) emit workerStatus(recordingState, recordingFilePathValue, errorStringValue);
 }
