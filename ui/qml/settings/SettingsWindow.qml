@@ -62,6 +62,7 @@ Window {
 
     signal cameraLinkRequested(string rtspLink, string cameraName)
     signal mapViewModeRequested(string mapViewMode)
+    signal consoleRequested()
     signal oemSettingsRequested()
     signal commLinksSaved(var commLinks)
     signal cameraLinksSaved(var cameraLinks)
@@ -829,6 +830,26 @@ Window {
                 anchors.fill: parent
                 spacing: 10
 
+                Text {
+                    Layout.fillWidth: true
+                    text: "MAVLINK SETTINGS"
+                    color: root.labelColor
+                    font.pixelSize: 11
+                    font.bold: true
+                }
+
+                MapSettingRow {
+                    title: "MAVLink Console"
+                    detail: "Open an interactive console to communicate with the connected autopilot."
+                    control: Component {
+                        SmallActionButton {
+                            objectName: "openMavlinkConsoleButton"
+                            text: "Open Console"
+                            active: true
+                            onClicked: { root.close(); root.consoleRequested() }
+                        }
+                    }
+                }
                 Rectangle {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 82

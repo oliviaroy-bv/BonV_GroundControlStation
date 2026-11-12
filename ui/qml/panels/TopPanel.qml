@@ -4,11 +4,15 @@ import QtQuick.Layouts
 import Qt.labs.settings
 import QtQuick.Window
 import "../settings"
+import "../accessories"
 
 Rectangle {
     id: root
 
     property var mavlinkObject: null
+    property real consoleRightInset: 300
+    property real consoleBottomInset: 100
+    property bool consoleArmingAllowed: false
     property var vehicle: null
     property var videoObject: null
     property string homeDistanceText: "-- m"
@@ -37,11 +41,18 @@ Rectangle {
     property string screenRecordingFilePath: ""
     readonly property bool vehicleConnected: root.mavlinkObject ? root.mavlinkObject.connected : false
     readonly property int commLinkQuality: root.vehicle ? root.vehicle.commLinkQuality : -1
-    readonly property string commStatusText: !root.vehicleConnected ? "NO LINK"
-                                                 : root.commLinkQuality < 0 ? "CONNECTED"
-                                                 : root.commLinkQuality >= 85 ? "STRONG " + root.commLinkQuality + "%"
-                                                 : root.commLinkQuality >= 55 ? "FAIR " + root.commLinkQuality + "%"
-                                                 : "WEAK " + root.commLinkQuality + "%"
+    readonly property string commStatusText: !root.vehicleConnected ? (root.mavlinkObject && root.mavlinkObject.connectionState === 1 ? "CONNECTING" : "NO LINK")
+        : root.commLinkQuality < 0 || !root.vehicle || !root.vehicle.commLinkCategory ? "CONNECTED" : root.vehicle.commLinkCategory
+    readonly property string commQualityDetails: {
+        var data = root.vehicle ? root.vehicle.commLinkDiagnostics : null
+        if (!data || data.qualityEstimate === undefined) return root.vehicleConnected ? "Connected - quality unavailable" : root.commStatusText
+        return "Estimated link quality: " + (data.qualityEstimate >= 0 ? data.qualityEstimate + "/100" : "unavailable")
+            + "\n" + (data.unknownReason || data.confidence)
+            + "\nFresh metrics: " + data.availableMetrics.join(", ")
+            + (data.staleMetrics.length ? "\nStale/unavailable: " + data.staleMetrics.join(", ") : "")
+            + "\nMedian RTT: " + (data.latencyMs >= 0 ? data.latencyMs + " ms" : "unavailable")
+            + "\nRaw RSSI: " + (data.rawRssi >= 0 ? data.rawRssi + " (uncalibrated)" : "unavailable")
+    }
     readonly property bool cameraConnected: root.videoObject && root.videoObject.streaming
     readonly property string camStatusText: root.cameraConnected ? "STRONG" : "NO LINK"
     readonly property int gpsFixType: root.vehicle ? root.vehicle.gpsFix : 0
@@ -60,6 +71,20 @@ Rectangle {
     readonly property color inactiveColor: root.darkTheme ? "#6f7c91" : "#75869d"
     readonly property color accentColor: root.darkTheme ? "#00c7df" : "#008fb8"
     readonly property color actionIconColor: root.darkTheme ? "#9bb3db" : "#486382"
+
+    property string lastCommandRejection: ""
+    onMavlinkObjectChanged: lastCommandRejection = ""
+    Connections {
+        target: root.mavlinkObject
+        ignoreUnknownSignals: true
+        function onConnectionLifecycleChanged() { root.lastCommandRejection = "" }
+        function onCommandPrerequisiteRejected(operation, reason, context) {
+            var key = operation + ":" + reason
+            if (key === root.lastCommandRejection) return
+            root.lastCommandRejection = key
+            root.statusMessageRequested(reason)
+        }
+    }
 
     signal cameraLinkRequested(string rtspLink, string cameraName)
     signal mapViewModeRequested(string mapViewMode)
@@ -315,9 +340,15 @@ Rectangle {
         spacing: 0
 
         StatusTile {
+            objectName: "commLinkStatusTile"
             Layout.preferredWidth: 112
             iconType: "comm"
             label: "COMM LINK"
+            valueColor: root.vehicle && root.vehicle.commLinkCategory === "GOOD" ? "#70b997"
+                : root.vehicle && root.vehicle.commLinkCategory === "FAIR" ? "#c7ad78"
+                : root.vehicle && root.vehicle.commLinkCategory === "POOR" ? "#d98e88" : root.textColor
+            ToolTip.visible: hovered
+            ToolTip.text: root.commQualityDetails
             value: root.commStatusText
             active: root.vehicleConnected
             onClicked: {
@@ -551,9 +582,10 @@ Rectangle {
     }
     Popup {
         id: commLinksPopover
+        objectName: "commLinksPopover"
         parent: Overlay.overlay
         width: 310
-        height: commLinksColumn.implicitHeight + 16
+        height: Math.min(commLinksColumn.implicitHeight + 16, (root.Window.window ? root.Window.window.height : 800) - root.height - 24)
         padding: 0
         modal: false
         focus: true
@@ -571,84 +603,45 @@ Rectangle {
             border.width: 1
         }
 
-        contentItem: Column {
-            id: commLinksColumn
-            width: parent.width
-            padding: 8
-            spacing: 4
-
-            Repeater {
-                model: root.commLinks
-                delegate: Button {
-                    id: commLinkButton
-                    readonly property bool connecting: !modelData.connected
-                                                    && root.pendingCommAddress === modelData.address
-                    width: commLinksColumn.width - 16
-                    height: 42
-                    flat: true
-                    padding: 0
-                    hoverEnabled: true
-
-                    contentItem: RowLayout {
-                        anchors.fill: parent
-                        anchors.leftMargin: 10
-                        anchors.rightMargin: 10
-                        spacing: 10
-
-                        Rectangle {
-                            Layout.preferredWidth: 9
-                            Layout.preferredHeight: 9
-                            radius: 5
-                            color: modelData.connected ? "#ff4b46" : "#20d86c"
-                        }
-
-                        ColumnLayout {
-                            Layout.fillWidth: true
-                            spacing: 1
-                            Text { text: modelData.name; color: root.textColor; font.pixelSize: 12; font.bold: true }
-                            Text {
-                                text: (modelData.protocol || "UDP") === "Serial" ? modelData.address + " @ " + (modelData.baudRate || 57600) : modelData.address
-                                color: root.mutedColor
-                                font.pixelSize: 10
-                                elide: Text.ElideRight
-                                Layout.fillWidth: true
-                            }
-                        }
-
-                        RowLayout {
-                            Layout.alignment: Qt.AlignVCenter
-                            spacing: 6
-
-                            ConnectingSpinner {
-                                visible: commLinkButton.connecting
-                                Layout.preferredWidth: 16
-                                Layout.preferredHeight: 16
-                                spinnerColor: root.accentColor
-                            }
-
-                            Text {
-                                text: modelData.connected ? "DISCONNECT" : (commLinkButton.connecting ? "CONNECTING" : "CONNECT")
-                                color: modelData.connected ? "#ff6964" : "#35dc79"
-                                font.pixelSize: 10
-                                font.bold: true
-                            }
-
-                            CancelConnectionButton {
-                                visible: commLinkButton.connecting
-                                Layout.preferredWidth: 22
-                                Layout.preferredHeight: 22
-                                onClicked: root.cancelPendingCommLink()
-                            }
-                        }
+        property int diagnosticRevision: 0
+        readonly property var diagnosticSnapshot: {
+            var revision = diagnosticRevision
+            return opened && root.mavlinkObject ? root.mavlinkObject.transportDiagnosticSnapshot() : ({})
+        }
+        Timer {
+            interval: 500
+            repeat: true
+            running: commLinksPopover.opened
+            onTriggered: commLinksPopover.diagnosticRevision++
+        }
+        contentItem: ScrollView {
+            clip: true
+            contentWidth: availableWidth
+            Column {
+                id: commLinksColumn
+                width: commLinksPopover.width
+                padding: 8
+                spacing: 4
+                Repeater {
+                    model: root.commLinks
+                    delegate: CommLinkDiagnostics {
+                        required property var modelData
+                        required property int index
+                        width: commLinksColumn.width - 16
+                        linkRecord: modelData
+                        diagnostics: commLinksPopover.diagnosticSnapshot
+                        endpoint: diagnostics.endpoint || ""
+                        connectionActive: root.vehicleConnected
+                        connecting: !modelData.connected && root.pendingCommAddress === modelData.address
+                        darkTheme: root.darkTheme
+                        borderColor: root.borderColor
+                        textColor: root.textColor
+                        mutedColor: root.mutedColor
+                        accentColor: root.accentColor
+                        hoverColor: root.hoverColor
+                        onConnectionRequested: root.connectCommLink(index)
+                        onCancelRequested: root.cancelPendingCommLink()
                     }
-
-                    background: Rectangle {
-                        color: commLinkButton.hovered ? root.hoverColor : "#00000000"
-                        border.color: modelData.connected ? (root.darkTheme ? "#663a2424" : "#efc2c2") : root.borderColor
-                        border.width: 1
-                    }
-
-                    onClicked: if (!connecting) root.connectCommLink(index)
                 }
             }
         }
@@ -939,6 +932,7 @@ Rectangle {
     Connections {
         target: root.mavlinkObject
         function onConnectionStatusChanged(connected) {
+            commLinksPopover.diagnosticRevision++
             if (!connected) root.markSelectedCommLink(-1)
             else {
                 var linkIndex = root.commLinks.findIndex(function(link) {
@@ -957,8 +951,17 @@ Rectangle {
         }
     }
 
+    MavlinkConsole {
+        id: mavlinkConsole
+        mapRightInset: root.consoleRightInset
+        missionBottomInset: root.consoleBottomInset
+        controller: root.mavlinkObject ? root.mavlinkObject.console : null
+        armingAllowed: root.consoleArmingAllowed
+    }
+
     SettingsWindow {
         id: settingsWindow
+        onConsoleRequested: mavlinkConsole.open()
         transientParent: root.Window.window
         mavlinkObject: root.mavlinkObject
         vpsModuleEnabled: root.vpsModuleEnabled
@@ -1223,6 +1226,7 @@ Rectangle {
         property string iconType: ""
         property string label: ""
         property string value: ""
+        property color valueColor: root.textColor
         property bool active: false
 
         Layout.fillHeight: true
@@ -1261,7 +1265,7 @@ Rectangle {
                 Text {
                     Layout.fillWidth: true
                     text: tile.value
-                    color: tile.active ? root.textColor : root.inactiveColor
+                    color: tile.active ? tile.valueColor : root.inactiveColor
                     font.pixelSize: 13
                     font.bold: true
                     elide: Text.ElideRight

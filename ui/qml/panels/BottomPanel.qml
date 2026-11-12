@@ -1,9 +1,7 @@
 import QtCore
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Dialogs
 import QtQuick.Layouts
-import Qt.labs.settings
 
 Rectangle {
     id: root
@@ -36,6 +34,7 @@ Rectangle {
     readonly property color mutedColor: root.darkTheme ? "#8196b7" : "#526680"
     readonly property color disabledColor: root.darkTheme ? "#465371" : "#c8d2e0"
     property bool preflightChecklistPassed: false
+    readonly property bool consoleArmingAllowed: !persistedGeneralSettings.preflightChecklistEnabled || root.preflightChecklistPassed
     property bool preflightChecklistOpen: false
     property bool armAfterChecklist: false
     property bool armConfirmationVisible: false
@@ -43,6 +42,8 @@ Rectangle {
     property bool flightModeExpanded: false
     property int tacticalPayloadStep: 0
     signal generateMissionRequested()
+    signal uploadMissionRequested()
+    signal clearMissionRequested()
     signal graphRequested()
     signal statusMessageRequested(string message)
 
@@ -327,13 +328,9 @@ Rectangle {
                     root.statusMessageRequested("Mission planner requested")
                     root.generateMissionRequested()
                 } else if (action === "upload") {
-                    missionUploadDialog.open()
-                    root.statusMessageRequested("Select mission file")
+                    root.uploadMissionRequested()
                 } else if (action === "clear") {
-                    if (root.mavlinkObject) {
-                        root.mavlinkObject.clearMission()
-                        root.statusMessageRequested("Mission plan cleared")
-                    }
+                    root.clearMissionRequested()
                 } else if (action === "graph") {
                     root.graphRequested()
                 }
@@ -661,20 +658,6 @@ Rectangle {
                 }
             }
             }
-        }
-    }
-
-    FileDialog {
-        id: missionUploadDialog
-        title: "Select mission waypoint file"
-        currentFolder: (typeof backend !== "undefined" && backend.missionsDirectoryUrl)
-                       ? backend.missionsDirectoryUrl()
-                       : StandardPaths.writableLocation(StandardPaths.DocumentsLocation)
-        nameFilters: [ "Waypoint files (*.waypoints *.txt)", "All files (*)" ]
-        fileMode: FileDialog.OpenFile
-        onAccepted: if (root.mavlinkObject) {
-            root.statusMessageRequested("Mission upload requested")
-            root.mavlinkObject.uploadMissionFile(selectedFile)
         }
     }
 

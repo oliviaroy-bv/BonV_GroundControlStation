@@ -20,6 +20,7 @@ Item {
     readonly property var stepTitles: [ "Setup", "Coordinates", "Params", "Output", "Review" ]
 
     signal missionGenerated(string path)
+    signal closed()
 
     Component.onCompleted: {
         outputFolder = defaultOutputFolder()
@@ -175,7 +176,10 @@ Item {
         id: closeDelay
         interval: 220
         repeat: false
-        onTriggered: root.opened = false
+        onTriggered: {
+            root.opened = false
+            root.closed()
+        }
     }
 
     Rectangle {

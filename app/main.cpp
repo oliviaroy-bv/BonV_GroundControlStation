@@ -19,6 +19,8 @@
 #include <QTimer>
 
 #include "mission/MissionFileWriter.h"
+#include "mission/MissionPlanModel.h"
+#include "mission/MissionPlanConverter.h"
 #include "map/RasterOverlayManager.h"
 #include "map/RasterOverlaySchemeHandler.h"
 #include "map/TileCacheManager.h"
@@ -27,6 +29,7 @@
 #include "storage/AppDataPaths.h"
 #include "video/VideoItem.h"
 #include "vehicle/VehicleManager.h"
+#include "mavlink/Mavlink.h"
 #include "AppBackend.h"
 #include "imagerytileprovider.h"
 #include "terrainmanager.h"
@@ -164,6 +167,12 @@ int main(int argc, char *argv[])
 
     VehicleManager manager;
     MissionFileWriter missionFileWriter;
+    MissionPlanModel missionPlanModel;
+    MissionPlanConverter missionPlanConverter;
+    if (auto *activeVehicle = qobject_cast<Vehicle *>(manager.activeVehicle())) {
+        if (auto *mavlink = qobject_cast<Mavlink *>(activeVehicle->mavlink()))
+            mavlink->setMissionPlanModel(&missionPlanModel);
+    }
     RasterOverlayManager rasterOverlayManager;
     AppBackend appBackend;
 
@@ -174,6 +183,10 @@ int main(int argc, char *argv[])
     qmlRegisterType<TerrainTileGeometry>("DroneTerrainSim", 1, 0, "TerrainTileGeometry");
     engine.rootContext()->setContextProperty("vehicleManager", &manager);
     engine.rootContext()->setContextProperty("missionFileWriter", &missionFileWriter);
+    // MP-2 deliberately exposes the editable plan without synchronizing it to
+    // legacy transfer or display representations.  MP-3 owns that boundary.
+    engine.rootContext()->setContextProperty("missionPlanModel", &missionPlanModel);
+    engine.rootContext()->setContextProperty("missionPlanConverter", &missionPlanConverter);
     engine.rootContext()->setContextProperty("rasterOverlayManager", &rasterOverlayManager);
     engine.rootContext()->setContextProperty("tileCacheManager", &tileCacheManager);
     engine.rootContext()->setContextProperty("backend", &appBackend);

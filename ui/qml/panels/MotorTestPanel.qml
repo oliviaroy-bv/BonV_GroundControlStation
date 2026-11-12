@@ -8,14 +8,17 @@ Item {
     property var mavlinkObject: null
     property var vehicle: null
     property bool opened: false
-    property int motorCount: vehicle ? Math.max(1, vehicle.motorCount) : 4
+    readonly property var prerequisites: mavlinkObject ? mavlinkObject.motorTestPrerequisites : null
+    readonly property bool startAvailable: !!prerequisites && prerequisites.available
+    readonly property string startUnavailableReason: prerequisites ? prerequisites.reason : "Motor configuration is unavailable."
+    readonly property int motorCount: startAvailable ? prerequisites.motorCount : vehicle ? Math.max(1, vehicle.motorCount) : 4
     property int frameClass: 1
     property int frameType: 1
-    property bool frameConfigurationAvailable: false
+    readonly property bool frameConfigurationAvailable: startAvailable
     property int throttlePercent: 10
     property int runtimeSeconds: 2
     property bool propellersRemoved: false
-    property string motorTestStatus: "Ready"
+    property string motorTestStatus: "No motor test requested"
     property string pendingMotorTestMode: ""
     property int pendingFirstMotor: 1
     property int pendingMotorCount: 1
@@ -25,6 +28,14 @@ Item {
     anchors.fill: parent
     visible: opened
     z: 140
+
+    onMavlinkObjectChanged: {
+        if (motorTestConfirmationTimer) motorTestConfirmationTimer.stop()
+        pendingMotorTestMode = ""
+        motorTestStartedByController = false
+        motorTestStatus = "No motor test requested"
+        stopMotorVisuals()
+    }
 
     function open() {
         refreshFrameConfiguration()
@@ -51,7 +62,6 @@ Item {
 
         frameClass = parameterNumber("FRAME_CLASS", 1)
         frameType = parameterNumber("FRAME_TYPE", 1)
-        frameConfigurationAvailable = true
     }
 
     function frameClassName() {
@@ -78,7 +88,7 @@ Item {
     }
 
     function controlsEnabled() {
-        return propellersRemoved && mavlinkObject && mavlinkObject.connected
+        return propellersRemoved && root.startAvailable
     }
 
     function requestMotorTest(mode, firstMotor, count, durationSeconds) {
@@ -94,7 +104,7 @@ Item {
     function startConfirmedMotors() {
         motorTestConfirmationTimer.stop()
         motorTestStartedByController = true
-        motorTestStatus = "Flight controller started motor test"
+        motorTestStatus = "Flight controller reported motor-test start"
 
         var firstIndex = Math.max(0, pendingFirstMotor - 1)
         var count = pendingMotorTestMode === "all" ? pendingMotorCount : 1
@@ -103,6 +113,7 @@ Item {
     }
 
     function stopMotorVisuals() {
+        if (!motorVisuals) return
         for (var i = 0; i < motorVisuals.count; i++)
             motorVisuals.itemAt(i).stopSpin()
     }
@@ -139,10 +150,10 @@ Item {
         motorTestConfirmationTimer.stop()
         pendingMotorTestMode = ""
         motorTestStartedByController = false
-        motorTestStatus = "Motor test stopped"
+        motorTestStatus = "Motor stop requested"
         stopMotorVisuals()
 
-        if (mavlinkObject)
+        if (mavlinkObject && mavlinkObject.connected)
             mavlinkObject.stopAllMotorTests(motorCount)
     }
 
@@ -174,6 +185,13 @@ Item {
         }
 
         function onConnectionStatusChanged(connected) {
+            if (!connected) {
+                motorTestConfirmationTimer.stop()
+                root.pendingMotorTestMode = ""
+                root.motorTestStartedByController = false
+                root.stopMotorVisuals()
+                root.motorTestStatus = "Vehicle connection was lost."
+            }
             if (connected)
                 root.refreshFrameConfiguration()
         }
@@ -260,7 +278,8 @@ Item {
             anchors.top: titleText.bottom
             anchors.topMargin: 6
             anchors.horizontalCenter: parent.horizontalCenter
-            text: "Motor Count: " + root.motorCount + "  |  " + root.frameClassName() + " " + root.frameTypeName()
+            text: root.startAvailable ? "Motor Count: " + root.motorCount + "  |  " + root.frameClassName() + " " + root.frameTypeName()
+                : "Motor test unavailable - preview only"
             color: "#58d4ff"
             font.pixelSize: 12
         }
@@ -366,7 +385,11 @@ Item {
             anchors.rightMargin: 24
             anchors.topMargin: 6
             height: 16
-            text: root.motorTestStatus
+            Accessible.name: text
+            HoverHandler { id: motorStatusHover }
+            ToolTip.visible: motorStatusHover.hovered
+            ToolTip.text: motorTestStatusText.text
+            text: !root.startAvailable ? root.startUnavailableReason : !root.propellersRemoved ? "Remove propellers and confirm before starting a motor test." : root.motorTestStatus
             color: root.motorTestStartedByController ? "#6de6ff"
                   : root.motorTestStatus.indexOf("rejected") >= 0
                     || root.motorTestStatus.indexOf("No motor-test") >= 0 ? "#ff9a94" : "#aebdca"
@@ -386,7 +409,6 @@ Item {
             anchors.rightMargin: 24
             anchors.topMargin: 22
             anchors.bottomMargin: 24
-            enabled: root.controlsEnabled()
 
             ColumnLayout {
                 anchors.fill: parent
@@ -479,6 +501,7 @@ Item {
 
                 Item {
                     id: droneModel
+                    enabled: root.controlsEnabled()
 
                     Layout.alignment: Qt.AlignHCenter
                     Layout.preferredWidth: 300
@@ -684,36 +707,27 @@ Item {
 
                     TestButton {
                         Layout.fillWidth: true
+                        objectName: "motorStartAll"
+                        enabled: root.controlsEnabled()
                         label: "All"
                         accent: "#1aa9ef"
                         onClicked: root.runAll()
                     }
                     TestButton {
                         Layout.fillWidth: true
+                        enabled: root.controlsEnabled()
                         label: "Sequential"
                         accent: "#39bfff"
                         onClicked: root.runSequential()
                     }
                     TestButton {
                         Layout.fillWidth: true
+                        objectName: "motorStopAll"
+                        enabled: !!root.mavlinkObject && root.mavlinkObject.connected
                         label: "Stop All"
                         accent: "#ff4a4f"
                         onClicked: root.stopAll()
                     }
-                }
-            }
-
-            Rectangle {
-                anchors.fill: parent
-                visible: !root.controlsEnabled()
-                z: 10
-                radius: 4
-                color: "#78000000"
-                border.color: "#221018"
-                border.width: 1
-
-                MouseArea {
-                    anchors.fill: parent
                 }
             }
         }

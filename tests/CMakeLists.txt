@@ -26,6 +26,14 @@ function(addGcsTest target)
     endif()
 endfunction()
 
+addGcsTest(ParameterManagerTest
+    ParameterManagerTest.cpp
+)
+
+addGcsTest(MavlinkConsoleTest
+    MavlinkConsoleTest.cpp
+)
+
 addGcsTest(VideoTest
     VideoTest.cpp
 )
@@ -36,6 +44,14 @@ addGcsTest(MavlinkTest
 
 addGcsTest(MavlinkInspectorModelTest
     MavlinkInspectorModelTest.cpp
+)
+
+addGcsTest(MissionPlanModelTest
+    MissionPlanModelTest.cpp
+)
+
+addGcsTest(MissionPlanConverterTest
+    MissionPlanConverterTest.cpp
 )
 
 addGcsTest(MavlinkForwarderTest

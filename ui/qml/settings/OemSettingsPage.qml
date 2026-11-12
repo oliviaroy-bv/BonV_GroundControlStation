@@ -36,7 +36,14 @@ Item {
     property var joystickButtonAssignments: backend.joystickButtonAssignments
     property int rcCalibrationStep: 1
     property bool rcCalibrationActive: false
-    property string rcCalibrationStatus: "Ready"
+    property string rcCalibrationStatus: "Not submitted"
+    property string rcCalibrationWriteState: "Not submitted"
+    property var rcCalibrationWriteResults: []
+    property var rcCalibrationWriteGeneration: 0
+    readonly property var parameterManager: vehicle ? vehicle.parameterManager : null
+    readonly property bool configurationWritable: !!parameterManager && parameterManager.parametersReady
+        && !!root.mavlinkObject() && root.mavlinkObject().connected
+    property var rcCalibrationWriteId: 0
     readonly property bool joystickDeviceDetected: backend.joystickAvailable
     readonly property var joystickStepTitles: [ "Connect", "Axes", "Buttons", "Verify", "Complete" ]
     readonly property var joystickAxisControls: [
@@ -159,7 +166,6 @@ Item {
             forceActiveFocus()
         }
     }
-    onVehicleChanged: updateJoystickMavlink()
     onJoystickDevicesChanged: synchronizeSelectedJoystick()
 
     function loadDraftSettings() {
@@ -386,10 +392,13 @@ Item {
     }
 
     function beginRcCalibration() {
+        if (rcCalibrationWriteId) return
         if (!root.mavlinkObject() || !root.mavlinkObject().connected) {
             rcCalibrationStatus = "Connect the vehicle before calibrating RC."
             return
         }
+        rcCalibrationWriteState = "Not submitted"
+        rcCalibrationWriteResults = []
         setRcCalibrationRows(makeRcCalibrationRows(true))
         rcCalibrationActive = true
         rcCalibrationStep = 1
@@ -429,11 +438,56 @@ Item {
             rcCalibrationStatus = "Connect the vehicle before saving RC calibration."
             return
         }
-        if (mavlink.writeRcCalibration(root.rcCalibrationRows()))
-            rcCalibrationStatus = "RC calibration written to vehicle parameters."
-        else
-            rcCalibrationStatus = "RC calibration write failed."
+        if (rcCalibrationWriteId !== 0)
+            return
+        var request = mavlink.requestRcCalibrationWrite(root.rcCalibrationRows())
+        rcCalibrationWriteId = request.accepted ? request.id : 0
+        rcCalibrationWriteGeneration = mavlink.connectionGeneration
+        rcCalibrationWriteResults = []
+        rcCalibrationWriteState = request.accepted ? "Pending" : "Rejected"
+        rcCalibrationStatus = request.accepted
+                ? "RC calibration Pending; awaiting vehicle confirmations..."
+                : "RC calibration request rejected: " + request.reason
     }
+
+    function finishRcCalibrationWrite(result) {
+        if (!root.rcCalibrationWriteId || String(result.id) !== String(root.rcCalibrationWriteId)) return
+        root.rcCalibrationWriteId = 0
+        root.rcCalibrationWriteResults = result.results || []
+        root.rcCalibrationWriteState = result.success ? "Confirmed"
+            : result.status === "Cancelled" ? "Cancelled" : result.status === "PartialFailure" ? "Partial failure" : "Rejected"
+        root.rcCalibrationStatus = result.success
+            ? "RC calibration confirmed by vehicle (" + result.confirmedCount + "/" + result.totalCount + "). Complete success."
+            : "RC calibration " + result.status + ": " + result.reason
+        var failures = []
+        for (var i = 0; i < root.rcCalibrationWriteResults.length; ++i) {
+            var row = root.rcCalibrationWriteResults[i]
+            if (row.outcomeName !== "Confirmed") failures.push(row.outcomeName)
+        }
+        if (!result.success && failures.length && Number(result.confirmedCount) === 0
+                && failures.every(function(value) { return value === "TimedOut" }))
+            root.rcCalibrationWriteState = "Timed out"
+        else if (!result.success && failures.length && Number(result.confirmedCount) === 0
+                 && failures.every(function(value) { return value === "Rejected" || value === "InvalidRequest" }))
+            root.rcCalibrationWriteState = "Rejected"
+    }
+
+    function resetRcCalibrationForVehicleChange() {
+        if (rcCalibrationWriteId) {
+            rcCalibrationWriteId = 0
+            rcCalibrationWriteState = "Cancelled"
+            rcCalibrationStatus = "RC calibration Cancelled: vehicle changed."
+        } else {
+            rcCalibrationWriteState = "Not submitted"
+            rcCalibrationStatus = "Not submitted"
+        }
+        rcCalibrationWriteResults = []
+    }
+    onVehicleChanged: {
+        updateJoystickMavlink()
+        resetRcCalibrationForVehicleChange()
+    }
+
 
     function leaveDetailPage() {
         activeSectionIndex = -1
@@ -716,6 +770,17 @@ Item {
         function onRcChannelsChanged() {
             root.updateRcLiveSamples()
         }
+        function onRcCalibrationWriteFinished(result) { root.finishRcCalibrationWrite(result) }
+        function onConnectionLifecycleChanged() {
+            var transport = root.mavlinkObject()
+            if (root.rcCalibrationWriteId && (!transport || !transport.connected
+                    || transport.connectionGeneration !== root.rcCalibrationWriteGeneration)) {
+                root.rcCalibrationWriteId = 0
+                root.rcCalibrationWriteState = "Cancelled"
+                root.rcCalibrationStatus = "RC calibration Cancelled: vehicle connection changed."
+            }
+        }
+
         function onParameterUpdated(name, parameter) {
             if (root.activeDetailPage === "rc" && String(name).indexOf("RC") === 0)
                 root.updateRcLiveSamples()
@@ -1453,6 +1518,12 @@ Item {
             width: parent ? parent.width : 0
             spacing: root.joystickLargeGap
 
+            ParameterSyncStatus {
+                Layout.fillWidth: true
+                vehicle: root.vehicle
+                darkTheme: root.darkTheme
+            }
+
             ColumnLayout {
                 Layout.fillWidth: true
                 spacing: root.joystickLargeGap
@@ -1465,11 +1536,24 @@ Item {
 
                 SettingBlock {
                     title: "RADIO CALIBRATION"
-                    detail: root.rcCalibrationStatus
+                    detail: root.rcCalibrationWriteState + " - " + root.rcCalibrationStatus
 
                     ColumnLayout {
                         Layout.fillWidth: true
                         spacing: root.joystickMediumGap
+
+                        Repeater {
+                            model: root.rcCalibrationWriteResults
+                            delegate: Text {
+                                required property var modelData
+                                Layout.fillWidth: true
+                                text: modelData.parameter + ": " + modelData.outcomeName
+                                    + (modelData.reason ? " - " + modelData.reason : "")
+                                color: modelData.outcomeName === "Confirmed" ? "#70b997" : "#d98e88"
+                                font.pixelSize: 11
+                                wrapMode: Text.Wrap
+                            }
+                        }
 
                         Text {
                             Layout.fillWidth: true
@@ -1567,7 +1651,8 @@ Item {
                               : "Write Params"
                         iconType: root.rcCalibrationStep === 3 ? "check" : "next"
                         active: root.mavlinkObject() && root.mavlinkObject().connected
-                        enabled: root.mavlinkObject() && root.mavlinkObject().connected
+                        enabled: !!root.mavlinkObject() && root.mavlinkObject().connected
+                            && !root.rcCalibrationWriteId && (root.rcCalibrationStep < 3 || root.configurationWritable)
                         onClicked: {
                             if (root.rcCalibrationStep === 1 && !root.rcCalibrationActive)
                                 root.beginRcCalibration()

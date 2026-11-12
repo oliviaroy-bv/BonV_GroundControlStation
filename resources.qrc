@@ -37,6 +37,9 @@
         <file alias="maplibre-gl.js">integrations/map_provider/lib/maplibre-gl.js</file>
     </qresource>
     <qresource prefix="/qml">
+        <file alias="accessories/ParameterStatusButton.qml">ui/qml/accessories/ParameterStatusButton.qml</file>
+        <file alias="accessories/ParameterSyncStatus.qml">ui/qml/accessories/ParameterSyncStatus.qml</file>
+        <file alias="accessories/CommLinkDiagnostics.qml">ui/qml/accessories/CommLinkDiagnostics.qml</file>
         <file alias="accessories/Palette.qml">ui/qml/accessories/Palette.qml</file>
         <file alias="accessories/StateText.qml">ui/qml/accessories/StateText.qml</file>
         <file alias="accessories/TelemetryIcon.qml">ui/qml/accessories/TelemetryIcon.qml</file>
@@ -47,6 +50,7 @@
         <file alias="core/App.qml">ui/qml/core/App.qml</file>
         <file alias="core/FlyView.qml">ui/qml/core/FlyView.qml</file>
         <file alias="map/FlyMap.qml">ui/qml/map/FlyMap.qml</file>
+        <file alias="map/MapDispatch.js">ui/qml/map/MapDispatch.js</file>
         <file alias="map/OfflineTerrainMap.qml">ui/qml/map/OfflineTerrainMap.qml</file>
         <file alias="offline3d/DroneEntity.qml">integrations/Offline-3DMaps/qml/DroneEntity.qml</file>
         <file alias="offline3d/TerrainView.qml">integrations/Offline-3DMaps/qml/TerrainView.qml</file>
@@ -61,6 +65,7 @@
         <file alias="settings/OemSettingsPage.qml">ui/qml/settings/OemSettingsPage.qml</file>
         <file alias="settings/MavlinkInspectorPage.qml">ui/qml/settings/MavlinkInspectorPage.qml</file>
         <file alias="settings/MavlinkForwardingPage.qml">ui/qml/settings/MavlinkForwardingPage.qml</file>
+        <file alias="settings/MavlinkConsole.qml">ui/qml/settings/MavlinkConsole.qml</file>
         <file alias="settings/SettingsWindow.qml">ui/qml/settings/SettingsWindow.qml</file>
         <file alias="video/Video.qml">ui/qml/video/Video.qml</file>
         <file alias="core/MainPage.qml">ui/qml/core/MainPage.qml</file>

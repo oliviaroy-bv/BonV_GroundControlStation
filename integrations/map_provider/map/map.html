@@ -23,8 +23,20 @@ html, body, #map {
     background: #11161b;
 }
 
+/* Continue the QML map-control column: 12px inset, three 32px
+   buttons with 8px gaps, then an 8px gap before navigation. */
 .maplibregl-ctrl-top-right {
-    top: 96px;
+    top: 132px;
+    right: 12px;
+}
+
+.maplibregl-ctrl-top-right .maplibregl-ctrl {
+    margin: 0;
+}
+
+.maplibregl-ctrl-top-right .maplibregl-ctrl-group button {
+    width: 32px;
+    height: 32px;
 }
 
 .drone-marker {
@@ -46,23 +58,21 @@ html, body, #map {
 }
 
 .mission-marker {
-    min-width: 22px;
-    height: 22px;
-    padding: 0 5px;
-    border-radius: 11px;
-    border: 2px solid white;
-    background: #16A3FF;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font: 700 11px/1 Arial, sans-serif;
-    box-shadow: 0 0 12px rgba(22, 163, 255, 0.75);
+    width: 32px;
+    height: 43px;
+    pointer-events: auto;
 }
 
-.mission-marker-command {
-    background: #FF8A00;
-    box-shadow: 0 0 12px rgba(255, 138, 0, 0.75);
+.mission-marker-pin {
+    display: block;
+    width: 32px;
+    height: 43px;
+    overflow: visible;
+    filter: drop-shadow(0 0 5px rgba(22, 163, 255, 0.85));
+}
+
+.mission-marker-command .mission-marker-pin {
+    filter: drop-shadow(0 0 5px rgba(255, 138, 0, 0.85));
 }
 
 .home-marker {
@@ -91,6 +101,49 @@ html, body, #map {
 
 <script>
 
+// Available before MapLibre construction, including when construction fails.
+let mapStyleReady = false;
+const mapLifecycle = {
+    documentId: Date.now().toString(36) + '-' + Math.random().toString(36).slice(2),
+    styleGeneration: 1,
+    bridgeAvailable: false,
+    mode: 'satellite',
+    state: 'style-loading',
+    error: '',
+    styleStartedAt: performance.now(),
+    styleTransactionId: '',
+    styleTransactionState: 'initial'
+};
+window.getMapReadiness = function(documentGeneration) {
+    return Object.assign({}, mapLifecycle, {documentGeneration});
+};
+function failMapLifecycle(reason)
+{
+    if (mapLifecycle.state === 'failed') return;
+    mapLifecycle.state = 'failed';
+    mapLifecycle.error = String(reason);
+    if (mapLifecycle.styleTransactionId)
+        mapLifecycle.styleTransactionState = 'failed';
+    mapStyleReady = false;
+    // A construction/initialization exception may precede camera initialization.
+    try { stopVehicleCamera(); } catch (_) {}
+    console.error('MAP LIFECYCLE FAILED:', mapLifecycle.error);
+}
+window.failMapLifecycle = failMapLifecycle;
+window.invalidateMapDocument = function() {
+    mapLifecycle.state = 'document-unloaded';
+    mapStyleReady = false;
+    mapLifecycle.styleTransactionState = mapLifecycle.styleTransactionId ? 'cancelled' : 'initial';
+    try { stopVehicleCamera(); } catch (_) {}
+};
+window.addEventListener('error', event => {
+    // Resource errors (for example an image) are not JavaScript exceptions.
+    if (event.error || event.message) failMapLifecycle('JavaScript exception: ' + (event.message || event.error));
+});
+window.addEventListener('unhandledrejection', event => {
+    failMapLifecycle('Unhandled JavaScript rejection: ' + String(event.reason));
+});
+
 function tileProxyUrl(url)
 {
     if (!/^https?:\/\//i.test(url)) {
@@ -108,16 +161,29 @@ const mapStyles = {
     satellite: tileProxyUrl('https://api.maptiler.com/maps/hybrid/style.json?key=KtcPHyoVykbWCHELF8E8'),
     street: tileProxyUrl('https://api.maptiler.com/maps/streets/style.json?key=KtcPHyoVykbWCHELF8E8')
 };
+
+function styleConfiguration(mode)
+{
+    if (mode !== 'satellite' && mode !== 'street') return null;
+    const url = mapStyles[mode];
+    // Only known, non-empty same-origin proxy URLs may reach MapLibre.
+    if (typeof url !== 'string' || !url.length || !/^bonv:\/\/tile\//.test(url)) return null;
+    return {mode, url};
+}
 let currentMapViewMode = 'satellite';
 let lastMissionWaypoints = [];
 let lastRasterOverlays = [];
 let lastRasterEnabled = false;
-let mapStyleReady = false;
-let pendingOperations = [];
 let droneMarker = null;
 let droneElement = null;
 let droneArrow = null;
+let lastDroneLatitude = null;
+let lastDroneLongitude = null;
+let lastDroneHeading = null;
 let missionMarkers = [];
+let interactionConfig = null;
+let interactionSequence = 0;
+let interactionDragWaypointId = '';
 let homeMarker = null;
 let vehicleTrailCoordinates = [];
 const vehicleTrailSourceId = 'vehicle-trail';
@@ -128,18 +194,206 @@ const maxVehicleTrailPoints = 5000;
 const rasterOverlayLayerPrefix = 'raster-overlay-layer-';
 const rasterOverlaySourcePrefix = 'raster-overlay-source-';
 
-const map = new maplibregl.Map({
-    container: 'map',
-    style: mapStyles[currentMapViewMode],
-    center: [0, 0],
-    zoom: 15,
-    pitch: 0,
-    bearing: 0,
-    antialias: true,
-    // Keep every MapTiler request same-origin. The native scheme handler fetches
-    // and caches the real URL, avoiding Chromium's CORS check on bonv://tile.
-    transformRequest: (url) => ({ url: tileProxyUrl(url) })
+let map;
+try {
+    map = new maplibregl.Map({
+        container: 'map',
+        style: mapStyles[currentMapViewMode],
+        center: [0, 0],
+        zoom: 15,
+        pitch: 0,
+        bearing: 0,
+        antialias: true,
+        // Keep every MapTiler request same-origin. The native scheme handler fetches
+        // and caches the real URL, avoiding Chromium's CORS check on bonv://tile.
+        transformRequest: (url) => ({ url: tileProxyUrl(url) })
+    });
+} catch (error) {
+    failMapLifecycle('MapLibre construction failed: ' + error.message);
+    throw error;
+}
+let activeStyle = map.style;
+let activeStyleTransactionId = '';
+let styleViewport = null;
+let legacyStyleTransactionSequence = 0;
+
+// Rendering never owns the viewport. Only initialization, operator actions and
+// the vehicle camera policy below may move it.
+let viewportEstablished = false;
+const sessionViewportKey = 'bonv.map.viewport';
+const vehicleCameraConfig = {
+    intervalMs: 100,
+    safeInset: 0.125,       // 75% of each viewport dimension is the safe rectangle.
+    returnInset: 0.15,     // Hysteresis: return slightly farther inside.
+    durationMs: 350,
+    maxPanFraction: 0.5,   // Limit each correction; reevaluate the latest position.
+    quietPeriodMs: 5000,
+    followTolerancePx: 2
+};
+let vehicleCameraState = null;
+let vehicleCameraOwner = null;
+let vehicleCameraBlockedUntil = 0;
+let vehicleCameraLastEvaluation = -Infinity;
+let vehicleCameraPointers = new Set();
+let vehicleCameraKeys = new Set();
+let vehicleCameraGestureUntil = 0;
+let vehicleCameraManualMapGesture = false;
+let vehicleCameraRenderPending = false;
+let vehicleCameraTrailPending = false;
+
+function stopVehicleCamera()
+{
+    if (vehicleCameraOwner) {
+        vehicleCameraOwner = null;
+        map.stop();
+    }
+}
+
+function resetVehicleCamera()
+{
+    stopVehicleCamera();
+    vehicleCameraState = null;
+    vehicleCameraRenderPending = false;
+    vehicleCameraTrailPending = false;
+}
+
+function vehicleCameraInteractive()
+{
+    return mapStyleReady && vehicleCameraState && vehicleCameraState.active
+        && document.visibilityState !== 'hidden';
+}
+
+function vehicleCameraManualInteraction(kind, active)
+{
+    if (kind !== 'blur') viewportEstablished = true;
+    const now = performance.now();
+    stopVehicleCamera();
+    if (kind === 'map') vehicleCameraManualMapGesture = active;
+    // Wheel/pinch streams and control clicks extend suppression on every event.
+    vehicleCameraGestureUntil = now + (kind === 'wheel' ? 250 : 0);
+    vehicleCameraBlockedUntil = now + vehicleCameraConfig.quietPeriodMs;
+}
+
+function protectExplicitVehicleCamera()
+{
+    viewportEstablished = true;
+    stopVehicleCamera();
+    vehicleCameraBlockedUntil = performance.now() + vehicleCameraConfig.quietPeriodMs;
+}
+
+function setVehicleMapState(state)
+{
+    if (vehicleCameraState && vehicleCameraState.follow !== state.follow) stopVehicleCamera();
+    vehicleCameraState = state;
+    vehicleCameraRenderPending = true;
+    vehicleCameraTrailPending = vehicleCameraTrailPending || !!state.trail;
+    // Inhibition does not wait for the next evaluation/animation completion.
+    if (!vehicleCameraInteractive() || !state.connected || !state.positionFresh
+            || !state.positionValid || (!state.follow
+                && !(state.armed && state.flightStateFresh && state.airborne))) {
+        stopVehicleCamera();
+    }
+    renderVehicleMapState();
+}
+
+function renderVehicleMapState()
+{
+    if (!mapStyleReady || !vehicleCameraRenderPending || !vehicleCameraState) return;
+    vehicleCameraRenderPending = false;
+    const state = vehicleCameraState;
+    updateDrone(state.lat, state.lon, state.heading);
+    if (vehicleCameraTrailPending && state.connected) updateVehicleTrail(state.lat, state.lon);
+    vehicleCameraTrailPending = false;
+}
+
+function evaluateVehicleCamera()
+{
+    renderVehicleMapState();
+    const now = performance.now();
+    if (!vehicleCameraInteractive()) { stopVehicleCamera(); return; }
+    const state = vehicleCameraState;
+    if (!state.connected || !state.positionFresh || !state.positionValid
+            || !isValidCoordinate(state.lat, state.lon)) { stopVehicleCamera(); return; }
+    if (!state.follow && !(state.armed && state.flightStateFresh && state.airborne)) {
+        stopVehicleCamera();
+        return;
+    }
+    if (vehicleCameraPointers.size || vehicleCameraKeys.size || vehicleCameraManualMapGesture
+            || now < vehicleCameraGestureUntil) {
+        vehicleCameraBlockedUntil = now + vehicleCameraConfig.quietPeriodMs;
+        return;
+    }
+    if (now < vehicleCameraBlockedUntil || vehicleCameraOwner || map.isMoving()
+            || now - vehicleCameraLastEvaluation < vehicleCameraConfig.intervalMs) return;
+    vehicleCameraLastEvaluation = now;
+    if (state.follow) {
+        const point = map.project([state.lon, state.lat]);
+        const canvas = map.getCanvas();
+        if (Math.hypot(point.x - canvas.clientWidth / 2,
+                       point.y - canvas.clientHeight / 2) <= vehicleCameraConfig.followTolerancePx) return;
+        vehicleCameraOwner = 'follow';
+        viewportEstablished = true;
+        map.easeTo({center: [state.lon, state.lat], duration: vehicleCameraConfig.durationMs});
+    } else {
+        autoPanToKeepDroneVisible(state.lon, state.lat);
+    }
+}
+
+// DOM input carries operator intent; programmatic camera events have no originalEvent.
+const vehicleCameraContainer = map.getContainer();
+vehicleCameraContainer.addEventListener('pointerdown', event => {
+    vehicleCameraPointers.add(event.pointerId);
+    vehicleCameraManualInteraction('pointer', true);
+}, true);
+function releaseVehicleCameraPointer(event)
+{
+    if (vehicleCameraPointers.delete(event.pointerId)) vehicleCameraManualInteraction('pointer', false);
+}
+window.addEventListener('pointerup', releaseVehicleCameraPointer, true);
+window.addEventListener('pointercancel', releaseVehicleCameraPointer, true);
+vehicleCameraContainer.addEventListener('lostpointercapture', releaseVehicleCameraPointer, true);
+vehicleCameraContainer.addEventListener('wheel', () => vehicleCameraManualInteraction('wheel', false),
+                                        {capture: true, passive: true});
+vehicleCameraContainer.addEventListener('click', () => vehicleCameraManualInteraction('control', false), true);
+vehicleCameraContainer.addEventListener('contextmenu', () => vehicleCameraManualInteraction('context', false), true);
+vehicleCameraContainer.addEventListener('keydown', event => {
+    if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', '+', '-', '=', 'PageUp', 'PageDown'].includes(event.key)) {
+        vehicleCameraKeys.add(event.key);
+        vehicleCameraManualInteraction('key', true);
+    }
+}, true);
+window.addEventListener('keyup', event => {
+    if (vehicleCameraKeys.delete(event.key)) vehicleCameraManualInteraction('key', false);
+}, true);
+window.addEventListener('blur', () => {
+    vehicleCameraPointers.clear();
+    vehicleCameraKeys.clear();
+    vehicleCameraManualMapGesture = false;
+    vehicleCameraManualInteraction('blur', false);
 });
+for (const eventName of ['dragstart', 'zoomstart', 'rotatestart', 'pitchstart']) {
+    map.on(eventName, event => {
+        if (event.originalEvent) vehicleCameraManualInteraction('map', true);
+    });
+}
+map.on('moveend', () => {
+    vehicleCameraOwner = null;
+    if (vehicleCameraManualMapGesture) vehicleCameraManualInteraction('map', false);
+    saveSessionViewport();
+});
+// Capture the current camera even if reload interrupts an unfinished gesture.
+window.addEventListener('pagehide', saveSessionViewport);
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') stopVehicleCamera();
+});
+// One clock handles both controlled evaluation and cooldown expiry without telemetry.
+window.setInterval(() => {
+    if (mapLifecycle.state === 'style-loading'
+            && performance.now() - mapLifecycle.styleStartedAt >= 20000) {
+        failMapLifecycle('Style initialization timed out after 20000 ms');
+    }
+    evaluateVehicleCamera();
+}, vehicleCameraConfig.intervalMs);
 
 map.addControl(new maplibregl.NavigationControl());
 
@@ -149,41 +403,93 @@ function getMapView()
     return {
         latitude: center.lat,
         longitude: center.lng,
-        zoom: map.getZoom()
+        zoom: map.getZoom(),
+        bearing: map.getBearing(),
+        pitch: map.getPitch()
     };
 }
 
-function flushPendingMapOperations()
+function saveSessionViewport()
 {
-    mapStyleReady = true;
-    console.log('MAP STYLE READY');
-
-    const operations = pendingOperations;
-    pendingOperations = [];
-    operations.forEach(operation => operation());
+    if (!viewportEstablished) return;
+    try {
+        window.sessionStorage.setItem(sessionViewportKey, JSON.stringify(getMapView()));
+    } catch (error) {
+        console.warn('Unable to retain session map viewport:', error);
+    }
 }
 
-map.on('load', flushPendingMapOperations);
-map.on('style.load', () => {
-    flushPendingMapOperations();
-    if (lastMissionWaypoints.length > 0) {
-        setMissionWaypoints(lastMissionWaypoints);
+function validViewport(view)
+{
+    // Unlike telemetry, the camera is allowed to be centered on [0, 0].
+    return view && Number.isFinite(view.latitude) && Math.abs(view.latitude) <= 90
+        && Number.isFinite(view.longitude) && Math.abs(view.longitude) <= 180
+        && Number.isFinite(view.zoom) && view.zoom >= 0 && view.zoom <= 24
+        && (view.bearing === undefined || Number.isFinite(view.bearing))
+        && (view.pitch === undefined || (Number.isFinite(view.pitch) && view.pitch >= 0 && view.pitch <= 85));
+}
+
+function initializeViewport(initialView)
+{
+    runWhenMapReady(() => {
+        // Recheck at execution: queued initialization yields to any operator or
+        // vehicle camera action that has already established this document's view.
+        if (viewportEstablished) return;
+        let view = initialView;
+        try {
+            const saved = JSON.parse(window.sessionStorage.getItem(sessionViewportKey));
+            if (validViewport(saved)) view = saved;
+        } catch (error) {
+            console.warn('Unable to restore session map viewport:', error);
+        }
+        viewportEstablished = true;
+        if (validViewport(view)) {
+            map.jumpTo({center: [view.longitude, view.latitude], zoom: view.zoom,
+                        bearing: view.bearing === undefined ? 0 : view.bearing,
+                        pitch: view.pitch === undefined ? 0 : view.pitch});
+        }
+        saveSessionViewport();
+    });
+}
+
+map.on('style.load', event => {
+    // MapLibre 3.6 propagates the originating Style as event.style. An old
+    // transaction must not flush work or declare its replacement operational.
+    if (mapLifecycle.state !== 'style-loading' || event.style !== activeStyle
+            || activeStyle !== map.style) return;
+    // Restore the exact operator viewport after MapLibre has installed the
+    // replacement style. This is deliberately not a fit or follow action.
+    if (validViewport(styleViewport)) {
+        map.jumpTo({center:[styleViewport.longitude, styleViewport.latitude], zoom:styleViewport.zoom,
+                    bearing:styleViewport.bearing, pitch:styleViewport.pitch});
     }
-    refreshVehicleTrail();
-    setRasterOverlays(lastRasterOverlays, lastRasterEnabled);
+    styleViewport = null;
+    mapStyleReady = true;
+    mapLifecycle.state = 'style-ready';
+    mapLifecycle.styleTransactionState = activeStyleTransactionId ? 'succeeded' : 'initial';
+    console.log('MAP STYLE READY:', mapLifecycle.styleGeneration);
+    // Do not restore these caches here: they may be stale while the style was
+    // loading. MapDispatch marks desired snapshots and ordered trail data dirty
+    // and replays the newest state after QML acknowledges this generation.
 });
 
 map.on('error', event => {
-    console.log('MAP ERROR:', event && event.error ? event.error.message : event);
+    const message = event && event.error ? event.error.message : String(event);
+    console.warn('MAP ERROR [style ' + mapLifecycle.styleGeneration + ']:', message);
+    // Root style JSON/validation failure is fatal. Source, tile, sprite and
+    // glyph failures do not invalidate an otherwise usable style.
+    if (event.style === activeStyle && activeStyle === map.style && !map.getStyle()
+            && !event.sourceId && !event.tile) {
+        failMapLifecycle('Style initialization failed: ' + message);
+    }
 });
 
 function runWhenMapReady(operation)
 {
-    if (mapStyleReady) {
-        operation();
-    } else {
-        pendingOperations.push(operation);
-    }
+    // Dispatch owns all deferral. Never retain anonymous closures in the page.
+    if (!mapStyleReady || mapLifecycle.state === 'failed' || mapLifecycle.state === 'document-unloaded') return false;
+    const value = operation();
+    return value === undefined ? true : value;
 }
 
 function isValidCoordinate(lat, lon)
@@ -196,6 +502,79 @@ function isValidCoordinate(lat, lon)
         && lon <= 180
         && !(lat === 0 && lon === 0);
 }
+
+function interactionEnabled(type)
+{
+    if (!interactionConfig || !interactionConfig.active || !mapStyleReady
+            || mapLifecycle.state !== 'style-ready'
+            || interactionConfig.styleGeneration !== mapLifecycle.styleGeneration) return false;
+    return type === 'MapContextRequested' || interactionConfig.manualPlanningActive === true;
+}
+
+function emitMapInteraction(type, details)
+{
+    if (!interactionEnabled(type)) return false;
+    const event = Object.assign({
+        eventId: interactionConfig.instanceId + ':' + interactionConfig.documentGeneration
+                 + ':' + interactionConfig.styleGeneration + ':' + (++interactionSequence),
+        type: type,
+        instanceId: interactionConfig.instanceId,
+        documentId: interactionConfig.documentId,
+        documentGeneration: interactionConfig.documentGeneration,
+        styleGeneration: interactionConfig.styleGeneration
+    }, details || {});
+    const text = JSON.stringify(event);
+    if (text.length > 3500) return false;
+    console.log('BONV_MAP_INTERACTION:' + text);
+    return true;
+}
+
+function setInteractionConfig(config, operation)
+{
+    if (!config || typeof config !== 'object' || typeof config.instanceId !== 'string'
+            || typeof config.documentId !== 'string' || !Number.isInteger(config.documentGeneration)
+            || !Number.isInteger(config.styleGeneration)
+            || config.instanceId !== operation.instanceId
+            || config.documentGeneration !== operation.documentGeneration
+            || config.documentId !== operation.documentId
+            || config.styleGeneration !== operation.styleGeneration) {
+        throw Error('Invalid interaction configuration');
+    }
+    interactionConfig = {
+        instanceId: config.instanceId,
+        documentId: config.documentId,
+        documentGeneration: config.documentGeneration,
+        styleGeneration: config.styleGeneration,
+        manualPlanningActive: config.manualPlanningActive === true,
+        active: config.active === true
+    };
+    // A replacement style/document or manual-mode exit cancels the proposal;
+    // no coordinate is ever accepted as authoritative here.
+    if (!interactionConfig.active || !interactionConfig.manualPlanningActive)
+        interactionDragWaypointId = '';
+    if (mapStyleReady) setMissionWaypoints(lastMissionWaypoints);
+}
+
+map.on('click', event => {
+    if (!event || !event.lngLat || !event.point) return;
+    emitMapInteraction('MapClicked', {
+        latitude: event.lngLat.lat,
+        longitude: event.lngLat.lng,
+        screenX: event.point.x,
+        screenY: event.point.y
+    });
+});
+
+map.on('contextmenu', event => {
+    if (!event || !event.lngLat || !event.point) return;
+    if (event.preventDefault) event.preventDefault();
+    emitMapInteraction('MapContextRequested', {
+        latitude: event.lngLat.lat,
+        longitude: event.lngLat.lng,
+        screenX: event.point.x,
+        screenY: event.point.y
+    });
+});
 
 function distanceMeters(fromLon, fromLat, toLon, toLat)
 {
@@ -304,16 +683,50 @@ function refreshVehicleTrail()
     });
 }
 
-function setMapViewMode(mode)
+function setMapViewMode(mode, transactionId)
 {
-    const nextMode = mode === 'street' ? 'street' : 'satellite';
-    if (nextMode === currentMapViewMode) {
-        return;
+    const configuration = styleConfiguration(mode);
+    if (!configuration) return {status:'invalid-payload', error:'Unknown or invalid map style configuration'};
+    // The QML bridge always supplies a dispatcher operation ID. Preserve the
+    // exported legacy API for existing integrations by minting an ID locally.
+    if (typeof transactionId !== 'string' || !transactionId.length)
+        transactionId = 'legacy-style-' + (++legacyStyleTransactionSequence);
+    if (mapLifecycle.state === 'failed' || mapLifecycle.state === 'document-unloaded')
+        return {status:'map-unavailable', error:'Map document is unavailable'};
+    if (mapLifecycle.state === 'style-loading' && !mapStyleReady)
+        return {status:'cancelled', error:'A style transaction is already active'};
+    if (configuration.mode === currentMapViewMode) {
+        mapLifecycle.styleTransactionId = transactionId;
+        mapLifecycle.styleTransactionState = 'succeeded';
+        return {styleGeneration:mapLifecycle.styleGeneration, mode:currentMapViewMode,
+                transactionId, state:mapLifecycle.state};
     }
 
-    currentMapViewMode = nextMode;
+    styleViewport = getMapView();
+    currentMapViewMode = configuration.mode;
+    mapLifecycle.mode = configuration.mode;
+    mapLifecycle.styleTransactionId = transactionId;
+    mapLifecycle.styleTransactionState = 'loading';
+    activeStyleTransactionId = transactionId;
     mapStyleReady = false;
-    map.setStyle(mapStyles[currentMapViewMode]);
+    // QML must acknowledge this style and deliver current eligibility before
+    // retained telemetry can drive the camera again.
+    if (vehicleCameraState) vehicleCameraState.active = false;
+    stopVehicleCamera();
+    mapLifecycle.styleGeneration++;
+    mapLifecycle.state = 'style-loading';
+    mapLifecycle.styleStartedAt = performance.now();
+    try {
+        // A distinct Style gives load/error events an unambiguous transaction
+        // identity. Keep the existing style.load restoration path.
+        map.setStyle(configuration.url, {diff: false});
+        activeStyle = map.style;
+        return {styleGeneration:mapLifecycle.styleGeneration, mode:currentMapViewMode,
+                transactionId, state:mapLifecycle.state};
+    } catch (error) {
+        failMapLifecycle('Style change failed: ' + error.message);
+        return {status:'javascript-exception', error:'Style change failed: ' + error.message};
+    }
 }
 
 function centerMap(lat, lon, zoom = 15)
@@ -325,7 +738,10 @@ function centerMap(lat, lon, zoom = 15)
         return;
     }
 
-    runWhenMapReady(() => {
+    return runWhenMapReady(() => {
+        if (vehicleCameraPointers.size || vehicleCameraKeys.size || vehicleCameraManualMapGesture
+                || performance.now() < vehicleCameraGestureUntil) return {status:'cancelled', error:'Manual interaction owns the camera'};
+        protectExplicitVehicleCamera();
         map.jumpTo({
             center: [lon, lat],
             zoom: zoom
@@ -335,7 +751,7 @@ function centerMap(lat, lon, zoom = 15)
 
 function initializeMap(lat, lon)
 {
-    centerMap(lat, lon, 17);
+    initializeViewport({latitude: lat, longitude: lon, zoom: 17});
 }
 
 function ensureDroneMarker(lon, lat)
@@ -370,65 +786,70 @@ function autoPanToKeepDroneVisible(lon, lat)
         return;
     }
 
-    const horizontalPadding = Math.max(28, Math.min(72, width * 0.25));
-    const verticalPadding = Math.max(28, Math.min(72, height * 0.25));
+    const horizontalPadding = width * vehicleCameraConfig.safeInset;
+    const verticalPadding = height * vehicleCameraConfig.safeInset;
     const point = map.project([lon, lat]);
     let deltaX = 0;
     let deltaY = 0;
 
     if (point.x < horizontalPadding) {
-        deltaX = point.x - horizontalPadding;
+        deltaX = point.x - width * vehicleCameraConfig.returnInset;
     } else if (point.x > width - horizontalPadding) {
-        deltaX = point.x - (width - horizontalPadding);
+        deltaX = point.x - width * (1 - vehicleCameraConfig.returnInset);
     }
 
     if (point.y < verticalPadding) {
-        deltaY = point.y - verticalPadding;
+        deltaY = point.y - height * vehicleCameraConfig.returnInset;
     } else if (point.y > height - verticalPadding) {
-        deltaY = point.y - (height - verticalPadding);
+        deltaY = point.y - height * (1 - vehicleCameraConfig.returnInset);
     }
 
     if (deltaX === 0 && deltaY === 0) {
         return;
     }
 
+    const limit = vehicleCameraConfig.maxPanFraction;
+    deltaX = Math.max(-width * limit, Math.min(width * limit, deltaX));
+    deltaY = Math.max(-height * limit, Math.min(height * limit, deltaY));
     const centerPoint = map.project(map.getCenter());
     const nextCenter = map.unproject([
         centerPoint.x + deltaX,
         centerPoint.y + deltaY
     ]);
 
+    vehicleCameraOwner = 'visibility';
+    viewportEstablished = true;
     map.easeTo({
         center: nextCenter,
-        duration: 350
+        duration: vehicleCameraConfig.durationMs
     });
 }
 
-function updateDrone(lat, lon, heading, follow = true, keepVisible = follow)
+function updateDroneHeading(heading)
 {
-    console.log('UPDATE DRONE:', lat, lon, heading, follow, keepVisible);
+    if (!droneArrow || !Number.isFinite(heading) || heading === lastDroneHeading) return;
+    lastDroneHeading = heading;
+    droneArrow.style.transform = `rotate(${heading}deg)`;
+}
 
+function updateDrone(lat, lon, heading)
+{
     if (!isValidCoordinate(lat, lon)) {
         console.log('IGNORING INVALID DRONE COORDINATE:', lat, lon);
         return;
     }
 
-    runWhenMapReady(() => {
+    // Vehicle rendering keeps only the latest snapshot, never queued camera work.
+    if (mapStyleReady) {
+        const existingMarker = !!droneMarker;
         ensureDroneMarker(lon, lat);
-        droneMarker.setLngLat([lon, lat]);
+        if (existingMarker && (lat !== lastDroneLatitude || lon !== lastDroneLongitude))
+            droneMarker.setLngLat([lon, lat]);
+        lastDroneLatitude = lat;
+        lastDroneLongitude = lon;
+        updateDroneHeading(heading);
 
-        const safeHeading = Number.isFinite(heading) ? heading : 0;
-        droneArrow.style.transform = `rotate(${safeHeading}deg)`;
-
-        if (follow) {
-            map.easeTo({
-                center: [lon, lat],
-                duration: 500
-            });
-        } else if (keepVisible) {
-            autoPanToKeepDroneVisible(lon, lat);
-        }
-    });
+    }
 }
 
 function updateVehicleTrail(lat, lon)
@@ -523,8 +944,6 @@ function setRasterOverlays(overlays, enabled)
             return;
         }
 
-        let combinedBounds = null;
-
         overlays.forEach(overlay => {
             if (!overlay || !overlay.visible || !overlay.image || !Array.isArray(overlay.coordinates) || overlay.coordinates.length !== 4) {
                 return;
@@ -563,29 +982,7 @@ function setRasterOverlays(overlays, enabled)
             }, beforeLayerId);
 
             console.log("Added layer:", layerId);
-
-            overlay.coordinates.forEach(coordinate => {
-                if (!Array.isArray(coordinate) || coordinate.length < 2) {
-                    return;
-                }
-
-                const lon = Number(coordinate[0]);
-                const lat = Number(coordinate[1]);
-                if (!Number.isFinite(lon) || !Number.isFinite(lat)) {
-                    return;
-                }
-
-                if (!combinedBounds) {
-                    combinedBounds = new maplibregl.LngLatBounds([lon, lat], [lon, lat]);
-                } else {
-                    combinedBounds.extend([lon, lat]);
-                }
-            });
         });
-
-        if (combinedBounds) {
-            map.fitBounds(combinedBounds, { padding: 40, duration: 0, maxZoom: 18 });
-        }
     });
 }
 function setRasterOverlayOpacity(id, opacity)
@@ -661,41 +1058,101 @@ function setMissionWaypoints(points)
             }
         });
 
-        const duplicateGroups = new Map();
-        safePoints.forEach(point => {
-            const key = `${Number(point.lat).toFixed(7)},${Number(point.lon).toFixed(7)}`;
-            duplicateGroups.set(key, (duplicateGroups.get(key) || 0) + 1);
-        });
-
-        const duplicateIndexes = new Map();
         safePoints.forEach((point, index) => {
             const markerElement = document.createElement('div');
             markerElement.className = point.hasCoordinate === false ? 'mission-marker mission-marker-command' : 'mission-marker';
-            markerElement.textContent = point.seq !== undefined ? point.seq : index + 1;
+            // The SVG tip is precisely (16, 43), matching Marker's bottom
+            // anchor.  Keeping the geometry in the SVG avoids MapLibre's
+            // element transform overriding a CSS rotation.
+            const pin = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            pin.className = 'mission-marker-pin';
+            pin.setAttribute('viewBox', '0 0 32 43');
+            pin.setAttribute('aria-hidden', 'true');
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('d', 'M16 1C7.9 1 2 7.3 2 15.1C2 25.7 16 43 16 43C16 43 30 25.7 30 15.1C30 7.3 24.1 1 16 1Z');
+            path.setAttribute('fill', point.hasCoordinate === false ? '#FF8A00' : '#16A3FF');
+            path.setAttribute('stroke', '#FFFFFF');
+            path.setAttribute('stroke-width', '2');
+            path.setAttribute('stroke-linejoin', 'round');
+            const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            label.setAttribute('x', '16');
+            label.setAttribute('y', '19');
+            label.setAttribute('fill', '#FFFFFF');
+            label.setAttribute('font-family', 'Arial, sans-serif');
+            label.setAttribute('font-size', '11');
+            label.setAttribute('font-weight', '700');
+            label.setAttribute('text-anchor', 'middle');
+            label.setAttribute('dominant-baseline', 'middle');
+            label.textContent = point.displaySequence !== undefined
+                ? Number(point.displaySequence)
+                : (point.seq !== undefined ? Number(point.seq) + 1 : index + 1);
+            pin.appendChild(path);
+            pin.appendChild(label);
+            markerElement.appendChild(pin);
 
-            const key = `${Number(point.lat).toFixed(7)},${Number(point.lon).toFixed(7)}`;
-            const duplicateCount = duplicateGroups.get(key) || 1;
-            const duplicateIndex = duplicateIndexes.get(key) || 0;
-            duplicateIndexes.set(key, duplicateIndex + 1);
-
-            let offset = [0, 0];
-            if (duplicateCount > 1) {
-                const angle = (Math.PI * 2 * duplicateIndex) / duplicateCount - Math.PI / 2;
-                const radius = Math.min(34, 14 + duplicateCount * 2.5);
-                offset = [Math.cos(angle) * radius, Math.sin(angle) * radius];
-            }
-
+            const waypointId = typeof point.id === 'string' && /^[A-Za-z0-9_.:-]{1,128}$/.test(point.id)
+                ? point.id : '';
+            const interactive = !!waypointId && interactionEnabled('WaypointSelected');
             const marker = new maplibregl.Marker({
                 element: markerElement,
-                anchor: 'center',
-                offset
+                anchor: 'bottom',
+                offset: [0, 0],
+                draggable: interactive
             })
             .setLngLat([Number(point.lon), Number(point.lat)])
             .addTo(map);
 
+            if (interactive) {
+                markerElement.addEventListener('click', event => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const location = marker.getLngLat();
+                    emitMapInteraction('WaypointSelected', {
+                        waypointId: waypointId,
+                        latitude: location.lat,
+                        longitude: location.lng,
+                        screenX: event.clientX,
+                        screenY: event.clientY
+                    });
+                });
+                marker.on('dragstart', () => {
+                    interactionDragWaypointId = waypointId;
+                    const location = marker.getLngLat();
+                    emitMapInteraction('WaypointDragStarted', {waypointId: waypointId,
+                        latitude: location.lat, longitude: location.lng});
+                });
+                marker.on('drag', () => {
+                    if (interactionDragWaypointId !== waypointId) return;
+                    const location = marker.getLngLat();
+                    emitMapInteraction('WaypointDragged', {waypointId: waypointId,
+                        latitude: location.lat, longitude: location.lng});
+                });
+                marker.on('dragend', () => {
+                    if (interactionDragWaypointId !== waypointId) return;
+                    const location = marker.getLngLat();
+                    emitMapInteraction('WaypointDragFinished', {waypointId: waypointId,
+                        latitude: location.lat, longitude: location.lng});
+                    interactionDragWaypointId = '';
+                });
+            }
+
             missionMarkers.push(marker);
         });
+    });
+}
 
+// Explicit operator operation; ordinary mission snapshots never call this.
+function fitMission()
+{
+    return runWhenMapReady(() => {
+        const coordinates = lastMissionWaypoints
+            .filter(point => isValidCoordinate(Number(point.lat), Number(point.lon)))
+            .map(point => [Number(point.lon), Number(point.lat)]);
+        if (!coordinates.length) return {status:'cancelled', error:'No mission coordinates'};
+        if (vehicleCameraPointers.size || vehicleCameraKeys.size
+                || vehicleCameraManualMapGesture || performance.now() < vehicleCameraGestureUntil)
+            return {status:'cancelled', error:'Manual interaction owns the camera'};
+        protectExplicitVehicleCamera();
         if (coordinates.length === 1) {
             map.easeTo({ center: coordinates[0], zoom: Math.max(map.getZoom(), 16), duration: 500 });
             return;
@@ -712,6 +1169,8 @@ function setMissionWaypoints(points)
 window.setMapViewMode = setMapViewMode;
 window.centerMap = centerMap;
 window.initializeMap = initializeMap;
+window.initializeViewport = initializeViewport;
+window.fitMission = fitMission;
 window.updateDrone = updateDrone;
 const vpsMarkers = {};
 window.setVpsMarkers = function(points) {
@@ -736,7 +1195,116 @@ window.setRasterOverlays = setRasterOverlays;
 window.setRasterOverlayOpacity = setRasterOverlayOpacity;
 window.clearRasterOverlays = clearRasterOverlays;
 
+let dispatchInstanceId = null;
+let dispatchDocumentGeneration = null;
+let dispatchedTrailEpoch = -1;
+let dispatchedTrailSequence = 0;
+
+function applyRasterSnapshot(payload)
+{
+    // A complete desired snapshot still uses the existing cheap opacity path
+    // when image sources, geometry, visibility and ordering have not changed.
+    function shape(overlays) {
+        return overlays.map(overlay => {
+            const copy = Object.assign({}, overlay);
+            delete copy.opacity;
+            return copy;
+        });
+    }
+    const overlays = Array.isArray(payload.overlays) ? payload.overlays : [];
+    const opacityOnly = !!payload.enabled === lastRasterEnabled
+        && JSON.stringify(shape(overlays)) === JSON.stringify(shape(lastRasterOverlays))
+        && overlays.every(overlay => !overlay || !overlay.visible || !payload.enabled
+                          || map.getLayer(rasterOverlayLayerPrefix + overlay.id));
+    if (!opacityOnly) { setRasterOverlays(overlays, payload.enabled); return; }
+    lastRasterOverlays = overlays;
+    overlays.forEach(overlay => { if (overlay) setRasterOverlayOpacity(overlay.id, overlay.opacity); });
+}
+
+function applyTrailBatch(payload)
+{
+    if (!Number.isInteger(payload.epoch) || !Array.isArray(payload.samples) || payload.samples.length > 128)
+        throw Error('Invalid trail batch');
+    let previousSequence = 0;
+    for (const sample of payload.samples) {
+        if (!Number.isInteger(sample.sequence) || sample.sequence <= previousSequence
+                || !isValidCoordinate(sample.lat, sample.lon)) throw Error('Invalid trail sample');
+        previousSequence = sample.sequence;
+    }
+    if (payload.epoch < dispatchedTrailEpoch) return {status:'cancelled', error:'Obsolete trail epoch'};
+    if (payload.reset) {
+        clearVehicleTrail();
+        dispatchedTrailEpoch = payload.epoch;
+        dispatchedTrailSequence = 0;
+    }
+    if (payload.epoch !== dispatchedTrailEpoch) throw Error('Trail reset required');
+    for (const sample of payload.samples) {
+        if (sample.sequence <= dispatchedTrailSequence) continue;
+        const previous = vehicleTrailCoordinates[vehicleTrailCoordinates.length-1];
+        if (!previous || distanceMeters(previous[0], previous[1], sample.lon, sample.lat) >= minVehicleTrailPointSpacingMeters)
+            vehicleTrailCoordinates.push([sample.lon, sample.lat]);
+        dispatchedTrailSequence = sample.sequence;
+    }
+    if (vehicleTrailCoordinates.length > maxVehicleTrailPoints)
+        vehicleTrailCoordinates = vehicleTrailCoordinates.slice(-maxVehicleTrailPoints);
+    if (vehicleTrailCoordinates.length) refreshVehicleTrail();
+    return {epoch:dispatchedTrailEpoch, sequence:dispatchedTrailSequence};
+}
+
+window.dispatchMapOperation = function(op) {
+    const answer = {instanceId:op.instanceId, operationId:op.operationId, category:op.category,
+        documentGeneration:op.documentGeneration, styleGeneration:op.styleGeneration,
+        status:'success', value:null, error:''};
+    function reject(status, error) { answer.status=status; answer.error=error || ''; return answer; }
+    try {
+        if (op.documentId !== mapLifecycle.documentId) return reject('stale-document');
+        if (dispatchInstanceId !== null && dispatchInstanceId !== op.instanceId) return reject('stale-instance');
+        if (dispatchDocumentGeneration !== null && dispatchDocumentGeneration !== op.documentGeneration) return reject('stale-document');
+        if (op.styleGeneration !== mapLifecycle.styleGeneration) return reject('stale-style');
+        if (!Number.isFinite(op.deadline) || Date.now() >= op.deadline) return reject('expired');
+        if (!mapLifecycle.bridgeAvailable || mapLifecycle.state === 'failed' || mapLifecycle.state === 'document-unloaded')
+            return reject('map-unavailable');
+        if (op.category !== 'style' && (!mapStyleReady || mapLifecycle.state !== 'style-ready')) return reject('map-unavailable');
+        dispatchInstanceId = op.instanceId;
+        dispatchDocumentGeneration = op.documentGeneration;
+        const p = op.payload;
+        switch (op.category) {
+        case 'snapshot:vehicle': setVehicleMapState(Object.assign({}, p, {trail:false})); break;
+        case 'snapshot:mission': setMissionWaypoints(p); break;
+        case 'snapshot:rasters': applyRasterSnapshot(p); break;
+        case 'snapshot:vps': window.setVpsMarkers(p); break;
+        case 'snapshot:initialViewport': initializeViewport(p); break;
+        case 'snapshot:interaction': setInteractionConfig(p, op); break;
+        case 'trail': answer.value = applyTrailBatch(p); break;
+        case 'center':
+            if (!isValidCoordinate(p.lat, p.lon) || !Number.isFinite(p.zoom) || p.zoom < 0 || p.zoom > 24)
+                return reject('invalid-payload', 'Invalid camera coordinates or zoom');
+            answer.value = centerMap(p.lat, p.lon, p.zoom);
+            break;
+        case 'fitMission': answer.value = fitMission(); break;
+        case 'coordinate': {
+            if (!Number.isFinite(p.x) || !Number.isFinite(p.y)) throw Error('Invalid screen coordinate');
+            const coordinate = map.unproject([p.x, p.y]);
+            answer.value = {latitude:coordinate.lat, longitude:coordinate.lng};
+            break;
+        }
+        case 'view': answer.value = getMapView(); break;
+        case 'style':
+            if (!styleConfiguration(p.mode) || typeof p.transactionId !== 'string' || !p.transactionId.length)
+                return reject('invalid-payload', 'Unknown map style or missing transaction ID');
+            answer.value = setMapViewMode(p.mode, p.transactionId);
+            break;
+        default: return reject('invalid-operation', 'Unknown operation category');
+        }
+        if (answer.value && answer.value.status) return reject(answer.value.status, answer.value.error);
+        return answer;
+    } catch (error) {
+        return reject('javascript-exception', String(error.message || error).slice(0, 1024));
+    }
+};
+
 console.log('MAP FUNCTIONS EXPORTED');
+mapLifecycle.bridgeAvailable = true;
 
 </script>
 

@@ -107,6 +107,7 @@ set(CORE_SOURCES
     comms/transport/udp/UdpLink.cpp
     comms/transport/serial/SerialLink.cpp
     comms/mavlink/Mavlink.cpp
+    core/mavlink/MavlinkConsoleController.cpp
     core/mavlink/MavlinkFrame.cpp
     core/mavlink/MavlinkForwarder.cpp
     core/mavlink/MavlinkInspectorController.cpp
@@ -116,6 +117,8 @@ set(CORE_SOURCES
     core/mavlink/MavlinkMessageMetadata.cpp
     core/gimbal/GimbalController.cpp
     core/mission/MissionFileWriter.cpp
+    core/mission/MissionPlanModel.cpp
+    core/mission/MissionPlanConverter.cpp
     core/map/RasterOverlayManager.cpp
     core/map/RasterOverlaySchemeHandler.cpp
     core/map/RasterOverlayStorage.cpp
@@ -124,6 +127,7 @@ set(CORE_SOURCES
     core/map/TileCacheSchemeHandler.cpp
     core/storage/AppDataPaths.cpp
     core/terrain/TerrainProvider.cpp
+    core/parameters/ParameterManager.cpp
     core/vehicle/Vehicle.cpp
     core/vehicle/VehicleManager.cpp
     core/video/Video.cpp
@@ -144,6 +148,7 @@ set(CORE_HEADERS
     comms/transport/udp/UdpLink.h
     comms/transport/serial/SerialLink.h
     comms/mavlink/Mavlink.h
+    core/mavlink/MavlinkConsoleController.h
     core/mavlink/MavlinkFrame.h
     core/mavlink/MavlinkForwarder.h
     core/mavlink/MavlinkInspectorController.h
@@ -153,6 +158,8 @@ set(CORE_HEADERS
     core/mavlink/MavlinkMessageMetadata.h
     core/gimbal/GimbalController.h
     core/mission/MissionFileWriter.h
+    core/mission/MissionPlanModel.h
+    core/mission/MissionPlanConverter.h
     core/map/RasterOverlayManager.h
     core/map/RasterOverlaySchemeHandler.h
     core/map/RasterOverlayStorage.h
@@ -161,6 +168,7 @@ set(CORE_HEADERS
     core/map/TileCacheSchemeHandler.h
     core/storage/AppDataPaths.h
     core/terrain/TerrainProvider.h
+    core/parameters/ParameterManager.h
     core/vehicle/Vehicle.h
     core/vehicle/VehicleManager.h
     core/video/Video.h
@@ -178,6 +186,9 @@ set(CORE_HEADERS
 )
 
 set(QML_FILES
+    ${CMAKE_SOURCE_DIR}/ui/qml/accessories/ParameterStatusButton.qml
+    ${CMAKE_SOURCE_DIR}/ui/qml/accessories/ParameterSyncStatus.qml
+    ${CMAKE_SOURCE_DIR}/ui/qml/accessories/CommLinkDiagnostics.qml
     ${CMAKE_SOURCE_DIR}/ui/qml/accessories/Palette.qml
     ${CMAKE_SOURCE_DIR}/ui/qml/accessories/StateText.qml
     ${CMAKE_SOURCE_DIR}/ui/qml/accessories/TelemetryIcon.qml
@@ -201,6 +212,7 @@ set(QML_FILES
     ${CMAKE_SOURCE_DIR}/ui/qml/settings/OemSettingsPage.qml
     ${CMAKE_SOURCE_DIR}/ui/qml/settings/MavlinkInspectorPage.qml
     ${CMAKE_SOURCE_DIR}/ui/qml/settings/MavlinkForwardingPage.qml
+    ${CMAKE_SOURCE_DIR}/ui/qml/settings/MavlinkConsole.qml
     ${CMAKE_SOURCE_DIR}/ui/qml/settings/SettingsWindow.qml
     ${CMAKE_SOURCE_DIR}/ui/qml/video/Video.qml
 )

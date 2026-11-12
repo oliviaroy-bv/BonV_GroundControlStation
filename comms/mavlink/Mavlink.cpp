@@ -1,4 +1,6 @@
 #include "Mavlink.h"
+#include "parameters/ParameterManager.h"
+#include "mavlink/MavlinkConsoleController.h"
 
 #include "mavlink/MavlinkInspectorController.h"
 #include "mavlink/MavlinkForwarder.h"
@@ -7,8 +9,11 @@
 #include "transport/tcp/TcpLink.h"
 #include "transport/udp/UdpLink.h"
 #include "storage/AppDataPaths.h"
+#include "mission/MissionPlanConverter.h"
 #include "../../integrations/VPS/VpsProtocol.h"
 #include <cmath>
+#include <chrono>
+#include <algorithm>
 
 #include <QDateTime>
 #include <QDebug>
@@ -274,13 +279,16 @@ private:
     bool open = false;
 };
 
-Mavlink::Mavlink(QObject *parent)
+Mavlink::Mavlink(QObject *parent, ParameterManager *parameters, std::function<qint64()> monotonicClock)
     : QObject(parent)
 {
     vpsTimeoutTimer = new QTimer(this);
     vpsTimeoutTimer->setSingleShot(true);
     vpsTimeoutTimer->setInterval(5000);
     connect(vpsTimeoutTimer, &QTimer::timeout, this, &Mavlink::clearVpsStatus);
+    missionTransferTimer = new QTimer(this);
+    missionTransferTimer->setSingleShot(true);
+
     qRegisterMetaType<MavlinkFrame>("MavlinkFrame");
     inspectorController = new MavlinkInspectorController(this, this);
     forwarderObject = new MavlinkForwarder(this);
@@ -303,6 +311,14 @@ Mavlink::Mavlink(QObject *parent)
         emit serialPortsChanged();
     });
 
+    connectionClock = std::move(monotonicClock);
+    if (!connectionClock) connectionClock = [] {
+        return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
+    };
+    heartbeatTimer.setSingleShot(true);
+    heartbeatTimer.setTimerType(Qt::PreciseTimer);
+    parameterStartupTimer.setSingleShot(true);
+    consoleController = new MavlinkConsoleController(this);
     setLink(new TcpLink(this));
     refreshSerialPorts();
 
@@ -313,16 +329,10 @@ Mavlink::Mavlink(QObject *parent)
 
     motorTestSequenceTimer = new QTimer(this);
     motorTestSequenceTimer->setSingleShot(true);
-    connect(motorTestSequenceTimer, &QTimer::timeout, this, &Mavlink::runNextSequentialMotorTest);
+
 
     motorTestStopTimer = new QTimer(this);
     motorTestStopTimer->setSingleShot(true);
-    connect(motorTestStopTimer, &QTimer::timeout, this, [this]() {
-        const int stopCount = qBound(1, activeMotorTestStopCount, 12);
-        activeMotorTestStopCount = 0;
-        stopAllMotorTests(stopCount);
-    });
-
     terrainRetryTimer = new QTimer(this);
     terrainRetryTimer->setInterval(terrainRetryIntervalMs);
     connect(terrainRetryTimer, &QTimer::timeout, this, &Mavlink::retryPendingTerrainRequests);
@@ -345,19 +355,73 @@ Mavlink::Mavlink(QObject *parent)
                    << baseLatitude << baseLongitude << reason;
     });
 
-    parameterFetchIdleTimer = new QTimer(this);
-    parameterFetchIdleTimer->setSingleShot(true);
-    parameterFetchIdleTimer->setInterval(5000);
-    connect(parameterFetchIdleTimer, &QTimer::timeout, this, [this]() {
-        finishParameterFetch(expectedParameterCount > 0 && parameterCache.size() >= expectedParameterCount);
+    parameterManagerObject = parameters ? parameters : new ParameterManager(this);
+    connect(parameterManagerObject, &ParameterManager::statusChanged, this, &Mavlink::parameterFetchStatusChanged);
+    connect(parameterManagerObject, &ParameterManager::parameterUpdated, this, &Mavlink::parameterUpdated);
+    // Presentation adapter only: use the same validator as command admission.
+    connect(this, &Mavlink::connectionLifecycleChanged, this, &Mavlink::motorTestPrerequisitesChanged);
+    connect(this, &Mavlink::heartbeatObserved, this, &Mavlink::motorTestPrerequisitesChanged);
+    connect(parameterManagerObject, &ParameterManager::statusChanged, this, &Mavlink::motorTestPrerequisitesChanged);
+    connect(parameterManagerObject, &ParameterManager::parameterUpdated, this, [this](const QString &name, const QVariantMap &) {
+        if (name == "FRAME_CLASS" || name == "FRAME_TYPE") emit motorTestPrerequisitesChanged();
+    });
+    connect(parameterManagerObject, &ParameterManager::statusChanged, this, &Mavlink::revalidateMotorSchedule);
+    connect(parameterManagerObject, &ParameterManager::parameterUpdated, this, [this](const QString &name, const QVariantMap &) {
+        if (name == QLatin1String("FRAME_CLASS") || name == QLatin1String("FRAME_TYPE")) revalidateMotorSchedule();
+    });
+    connect(parameterManagerObject, &ParameterManager::fetchFinished, this, &Mavlink::parameterFetchFinished);
+    connect(parameterManagerObject, &ParameterManager::requestList, this,
+            [this](quint8 system, quint8 component, quint64 generation) {
+        if (!parameterManagerObject || !connected() || system != targetSystemId || component != targetComponentId
+                || generation != parameterManagerObject->generation()
+                || parameterManagerObject->syncState() != ParameterManager::Loading) return;
+        mavlink_message_t msg = {};
+        mavlink_msg_param_request_list_pack(255, 0, &msg, system, component);
+        sendMavlinkMessage(msg);
     });
 
-    missingParameterRetryTimer = new QTimer(this);
-    missingParameterRetryTimer->setSingleShot(true);
-    missingParameterRetryTimer->setInterval(1800);
-    connect(missingParameterRetryTimer, &QTimer::timeout, this, &Mavlink::requestMissingParameters);
+    connect(parameterManagerObject, &ParameterManager::requestRead, this,
+            [this](quint8 system, quint8 component, int index, quint64 generation) {
+        if (!parameterManagerObject || !connected() || system != targetSystemId || component != targetComponentId
+                || generation != parameterManagerObject->generation()
+                || parameterManagerObject->syncState() != ParameterManager::Recovering
+                || !parameterManagerObject->parameterIndexMissing(index)
+                || index > INT16_MAX) return;
+        mavlink_message_t msg = {};
+        const char unusedId[16] = {}; // Index selects the parameter; param_id is ignored by the protocol.
+        mavlink_msg_param_request_read_pack(255, 0, &msg, system, component, unusedId, int16_t(index));
+        sendMavlinkMessage(msg);
+    });
 
-    linkPingClock.start();
+    connect(parameterManagerObject, &ParameterManager::writeFinished, this, &Mavlink::parameterWriteFinished);
+    connect(parameterManagerObject, &ParameterManager::writeBatchFinished, this, [this](const QVariantMap &result) {
+        if (rcCalibrationBatches.remove(result.value("id").toULongLong())) emit rcCalibrationWriteFinished(result);
+    });
+    connect(parameterManagerObject, &ParameterManager::requestSet, this,
+            [this](quint64 id, quint8 system, quint8 component, const QString &name,
+                   float value, quint8 type, quint64 generation, int attempt) {
+        if (!parameterManagerObject || !parameterManagerObject->writeTransmissionCurrent(id, generation, attempt)) return;
+        bool sent = false;
+        if (connected() && system == targetSystemId && component == targetComponentId) {
+            char paramId[16] = {};
+            const auto bytes = name.toLatin1();
+            if (!bytes.isEmpty() && bytes.size() <= 16) {
+                memcpy(paramId, bytes.constData(), size_t(bytes.size()));
+                mavlink_message_t message = {};
+                mavlink_msg_param_set_pack(255, 0, &message, system, component, paramId, value, type);
+                sent = sendMavlinkMessage(message);
+            }
+        }
+        parameterManagerObject->writeTransportResult(id, generation, attempt, sent);
+    });
+
+    qualityTimer.setInterval(qualityConfig.tickMs);
+    connect(&qualityTimer, &QTimer::timeout, this, &Mavlink::processLinkQuality);
+    connect(this, &Mavlink::connectionLifecycleChanged, this, [this] {
+        if (qualityGeneration != connectionGenerationValue) resetLinkQuality();
+        if (connected()) qualityTimer.start(qualityConfig.tickMs);
+        else qualityTimer.stop();
+    });
     linkPingTimer = new QTimer(this);
     linkPingTimer->setInterval(1000);
     connect(linkPingTimer, &QTimer::timeout, this, &Mavlink::sendLinkPing);
@@ -365,7 +429,7 @@ Mavlink::Mavlink(QObject *parent)
 
 bool Mavlink::connected() const
 {
-    return connectedState;
+    return connectionStateValue == Connected;
 }
 
 int Mavlink::linkLatencyMs() const
@@ -393,7 +457,20 @@ QVariantList Mavlink::missionTerrainProfile() const
     return loadedMissionTerrainProfile;
 }
 
-Mavlink::~Mavlink() = default;
+QVector<MavlinkMissionItem> Mavlink::missionItems() const
+{
+    return pendingMissionItems;
+}
+
+Mavlink::~Mavlink()
+{
+    shuttingDown = true;
+    if (link) QObject::disconnect(link, nullptr, this, nullptr);
+    endConnection(QStringLiteral("MAVLink object destroyed"), false);
+    stopLifecycleTimers();
+}
+
+ParameterManager *Mavlink::parameterManager() const { return parameterManagerObject.data(); }
 
 QVariantMap Mavlink::uploadedHomeLocation() const
 {
@@ -416,6 +493,23 @@ bool Mavlink::missionUploaded() const
     return missionUploadedState;
 }
 
+Mavlink::TransferState Mavlink::missionTransferState() const { return transferStateValue; }
+quint64 Mavlink::missionTransferId() const { return transferIdValue; }
+int Mavlink::missionTransferProgress() const { return transferProgressValue; }
+int Mavlink::missionTransferTotal() const { return transferTotalValue; }
+int Mavlink::missionTransferPercent() const { return transferTotalValue > 0 ? (100 * transferProgressValue) / transferTotalValue : 0; }
+QString Mavlink::missionTransferOperation() const
+{
+    switch (transferStateValue) {
+    case ClearingBeforeUpload: case Uploading: return QStringLiteral("upload");
+    case Downloading: return QStringLiteral("download");
+    case Clearing: return QStringLiteral("clear");
+    default: return QString();
+    }
+}
+QString Mavlink::missionTransferErrorCode() const { return transferErrorCodeValue; }
+void Mavlink::setMissionPlanModel(MissionPlanModel *model) { missionPlanModel = model; }
+
 QStringList Mavlink::serialPorts() const
 {
     return serialPortNames;
@@ -423,28 +517,13 @@ QStringList Mavlink::serialPorts() const
 
 bool Mavlink::parameterFetchInProgress() const
 {
-    return parameterFetchActive;
+    return parameterManagerObject->syncState() == ParameterManager::Loading
+            || parameterManagerObject->syncState() == ParameterManager::Recovering;
 }
 
-int Mavlink::parameterFetchProgress() const
-{
-    if (expectedParameterCount <= 0) {
-        return parameterFetchActive ? 1 : 0;
-    }
-
-    return qBound(0, qRound((parameterCache.size() * 100.0) / expectedParameterCount), 100);
-}
-
-int Mavlink::parameterCount() const
-{
-    return expectedParameterCount > 0 ? expectedParameterCount : 0;
-}
-
-int Mavlink::loadedParameterCount() const
-{
-    return parameterCache.size();
-}
-
+int Mavlink::parameterFetchProgress() const { return parameterManagerObject->progress(); }
+int Mavlink::parameterCount() const { return parameterManagerObject->expectedParameterCount(); }
+int Mavlink::loadedParameterCount() const { return parameterManagerObject->receivedParameterCount(); }
 QVariantList Mavlink::rcChannels() const
 {
     return latestRcChannels;
@@ -507,28 +586,37 @@ bool Mavlink::connectToVehicle(QString ip, int port)
 
 bool Mavlink::connectToVehicleProtocol(QString protocol, QString hostOrPortName, int port, int baudRate)
 {
+    if (shuttingDown || transitioningConnection) return false;
     const QString normalizedProtocol = protocol.trimmed().toUpper();
 
     if (normalizedProtocol == QStringLiteral("SERIAL")) {
         refreshSerialPorts();
         if (!serialPortNames.contains(hostOrPortName)) {
-            setConnected(false);
+            endConnection(QStringLiteral("Transport connection failed"), false);
+            if (link) link->disconnectLink();
             qDebug() << "Serial port unavailable:" << hostOrPortName;
             return false;
         }
-        setLink(new SerialLink(this));
+        if (!setLink(new SerialLink(this))) return false;
         port = baudRate;
     } else if (normalizedProtocol == QStringLiteral("UDP")) {
-        setLink(new UdpLink(this));
+        if (!setLink(new UdpLink(this))) return false;
     } else {
-        setLink(new TcpLink(this));
+        if (!setLink(new TcpLink(this))) return false;
     }
 
+    diagnosticEndpointValue = normalizedProtocol + ":" + hostOrPortName + ":" + QString::number(port);
+    receivedPackets = transmittedPackets = detectedSequenceGaps = 0;
+    transportDuplicates = transportReordered = 0;
+    lastPacketAt = -1;
+    packetRateStartedAt = connectionClock();
+    packetTimes.clear();
+    beginConnection();
     if (link->connectLink(hostOrPortName, port, 3000)) {
         qDebug() << "Connection started via" << normalizedProtocol << "to" << hostOrPortName << port;
         return true;
     } else {
-        setConnected(false);
+        endConnection(QStringLiteral("Transport connection failed"), false);
         qDebug() << "Connection failed:" << link->errorString();
         return false;
     }
@@ -536,25 +624,11 @@ bool Mavlink::connectToVehicleProtocol(QString protocol, QString hostOrPortName,
 
 void Mavlink::disconnectFromVehicle()
 {
-    link->disconnectLink();
-    stopTelemetryLog();
-    stopFlightControllerLog();
-    setMissionUploaded(false);
-    missionUploadActive = false;
-    missionClearBeforeUploadActive = false;
-    missionDownloadActive = false;
-    missionDownloadRequestedOnConnect = false;
-    missionSaveRequestedAfterDownload = false;
-    missionDownloadExpectedCount = 0;
-    downloadingMissionItems.clear();
-    downloadedMissionItemSeqs.clear();
-    clearPendingTerrainRequests();
-    targetSystemId = 1;
-    targetComponentId = MAV_COMP_ID_AUTOPILOT1;
-    resetParameterCache();
-    setConnected(false);
+    auto *disconnectingLink = link;
+    const auto transport = transportGeneration;
+    endConnection(QStringLiteral("Explicit disconnect"), false);
+    if (link && link == disconnectingLink && transport == transportGeneration) link->disconnectLink();
 }
-
 void Mavlink::refreshSerialPorts()
 {
     if (serialPortRefreshActive) {
@@ -580,7 +654,8 @@ void Mavlink::armVehicle(bool arm)
 
 void Mavlink::takeoff(double altitudeMeters)
 {
-    if (!connectedState) {
+    if (!connected()) {
+        rejectCommand("takeoff", "Vehicle is not connected.");
         qDebug() << "Cannot start takeoff while disconnected";
         return;
     }
@@ -588,8 +663,9 @@ void Mavlink::takeoff(double altitudeMeters)
     const double safeAltitudeMeters = qBound(1.0, altitudeMeters, 100.0);
     sendSetMode(4);
 
-    QTimer::singleShot(1200, this, [this, safeAltitudeMeters]() {
-        if (!connectedState) {
+    const auto generation = connectionGenerationValue;
+    QTimer::singleShot(1200, this, [this, safeAltitudeMeters, generation]() {
+        if (!connected() || generation != connectionGenerationValue) {
             return;
         }
 
@@ -599,14 +675,16 @@ void Mavlink::takeoff(double altitudeMeters)
 
 void Mavlink::startMission()
 {
-    if (!connectedState) {
+    if (!connected()) {
+        rejectCommand("missionStart", "Vehicle is not connected.");
         qDebug() << "Cannot start mission while disconnected";
         return;
     }
 
     sendSetMode(3);
-    QTimer::singleShot(900, this, [this]() {
-        if (!connectedState) {
+    const auto generation = connectionGenerationValue;
+    QTimer::singleShot(900, this, [this, generation]() {
+        if (!connected() || generation != connectionGenerationValue) {
             return;
         }
 
@@ -632,6 +710,7 @@ void Mavlink::emergencyStop()
 void Mavlink::setFlightMode(int customMode)
 {
     if (customMode < 0) {
+        rejectCommand("setFlightMode", "Flight mode must be non-negative.");
         return;
     }
 
@@ -640,7 +719,7 @@ void Mavlink::setFlightMode(int customMode)
 
 void Mavlink::motor()
 {
-    armVehicle(connectedState);
+    armVehicle(connected());
 }
 
 bool Mavlink::vpsConnected() const
@@ -673,7 +752,7 @@ void Mavlink::handleVpsMessage(const mavlink_message_t &message)
 {
     // The supplied VPS integration identifies status packets from sys 200,
     // component 14. Learn the reply target only from a valid status packet.
-    if (!connectedState || message.msgid != MAVLINK_MSG_ID_TUNNEL
+    if (!connected() || message.msgid != MAVLINK_MSG_ID_TUNNEL
             || message.sysid != 200 || message.compid != 14)
         return;
 
@@ -723,7 +802,7 @@ void Mavlink::handleVpsMessage(const mavlink_message_t &message)
 
 bool Mavlink::writeVpsMessage(uint16_t type, const QByteArray &payload)
 {
-    if (!connectedState || !vpsConnectedState || !link || !link->isConnected()
+    if (!connected() || !vpsConnectedState || !link || !link->isConnected()
             || payload.size() > 128)
         return false;
 
@@ -738,6 +817,7 @@ bool Mavlink::writeVpsMessage(uint16_t type, const QByteArray &payload)
     const qint64 written = link->writeData(reinterpret_cast<const char *>(buffer), length);
     if (written != length)
         return false;
+    ++transmittedPackets;
     if (shouldLogTelemetryMessage(message))
         writeTelemetryLogRecord(reinterpret_cast<const char *>(buffer), length);
     link->flush();
@@ -798,7 +878,7 @@ bool Mavlink::setVpsGpsJamming(const QVariantMap &v)
 
 bool Mavlink::sendPayloadCommand(int commandId, int watchdogMinutes)
 {
-    if (!connectedState) {
+    if (!connected()) {
         qDebug() << "Cannot send payload command while disconnected:" << commandId;
         return false;
     }
@@ -836,15 +916,177 @@ bool Mavlink::sendPayloadCommand(int commandId, int watchdogMinutes)
     return true;
 }
 
+bool Mavlink::rejectCommand(const QString &operation, const QString &reason)
+{
+    const QVariantMap context{{"accepted", false}, {"connected", connected()}, {"connectionState", int(connectionStateValue)},
+                             {"connectionGeneration", QVariant::fromValue(connectionGenerationValue)},
+                             {"parameterState", parameterManagerObject ? int(parameterManagerObject->syncState()) : -1},
+                             {"parametersReady", parameterManagerObject && parameterManagerObject->parametersReady()}};
+    emit commandPrerequisiteRejected(operation, reason, context);
+    return false;
+}
+
+QString Mavlink::liveConnectionError() const
+{
+    return connected() && link && link->isConnected() ? QString() : QStringLiteral("Vehicle is not connected.");
+}
+
+QString Mavlink::parameterPrerequisiteError(const QStringList &required) const
+{
+    const auto connectionError = liveConnectionError();
+    if (!connectionError.isEmpty()) return connectionError;
+    if (!parameterManagerObject) return QStringLiteral("Parameter manager is unavailable.");
+    if (!parameterManagerObject->parametersReady()) {
+        switch (parameterManagerObject->syncState()) {
+        case ParameterManager::Loading: return QStringLiteral("Parameters are loading.");
+        case ParameterManager::Recovering: return QStringLiteral("Parameters are recovering.");
+        case ParameterManager::Failed: return QStringLiteral("Parameter synchronization failed: %1").arg(parameterManagerObject->syncError());
+        default: return QStringLiteral("Current validated parameters are not available.");
+        }
+    }
+    if (parameterManagerObject->snapshotProvenance().value("sourceConnectionGeneration").toULongLong() != connectionGenerationValue)
+        return QStringLiteral("Parameter snapshot belongs to a stale connection.");
+    for (const auto &name : required) {
+        const auto record = parameterManagerObject->parameterValue(name);
+        if (record.isEmpty()) return QStringLiteral("Required parameter %1 is missing.").arg(name);
+        const int type = record.value("type").toInt();
+        bool numeric = false;
+        const double value = record.value("value").toDouble(&numeric);
+        const int index = record.value("index", -1).toInt();
+        if (!numeric || !std::isfinite(value) || index < 0 || index >= parameterManagerObject->expectedParameterCount()
+                || !((type >= MAV_PARAM_TYPE_UINT8 && type <= MAV_PARAM_TYPE_INT32) || type == MAV_PARAM_TYPE_REAL32))
+            return QStringLiteral("Required parameter %1 has invalid metadata.").arg(name);
+    }
+    return {};
+}
+
+QString Mavlink::motorConfigurationError(int &motorCount, QString *signature) const
+{
+    auto error = parameterPrerequisiteError({QStringLiteral("FRAME_CLASS")});
+    if (!error.isEmpty()) return error;
+    if (selectedAutopilot != MAV_AUTOPILOT_ARDUPILOTMEGA) return QStringLiteral("Motor frame configuration is unsupported for this autopilot.");
+    const auto frame = parameterValue(QStringLiteral("FRAME_CLASS"));
+    const auto value = frame.value("value").toDouble();
+    if (std::trunc(value) != value || value < 1 || value > 14) return QStringLiteral("Unsupported FRAME_CLASS value.");
+    const int frameClass = int(value);
+    // Static ArduCopter classes; scripting and helicopter layouts cannot supply
+    // a trustworthy motor count through this existing FRAME_CLASS API.
+    static const QHash<int, int> counts{{1,4}, {2,6}, {3,8}, {4,8}, {5,6}, {7,3}, {9,2}, {10,2}, {12,12}, {14,10}};
+    if (!counts.contains(frameClass)) return QStringLiteral("Vehicle frame configuration is unsupported for motor testing.");
+    motorCount = counts.value(frameClass);
+    int frameType = -1;
+    if (frameClass != 5 && frameClass != 7 && frameClass != 9 && frameClass != 10) {
+        error = parameterPrerequisiteError({QStringLiteral("FRAME_TYPE")});
+        if (!error.isEmpty()) return error;
+        const double type = parameterValue(QStringLiteral("FRAME_TYPE")).value("value").toDouble();
+        static const QSet<int> types{0,1,2,3,4,5,6,12,13,14,15,16,17,18,19};
+        if (std::trunc(type) != type || type < 0 || type > 19 || !types.contains(int(type)))
+            return QStringLiteral("Vehicle FRAME_TYPE is unsupported for motor testing.");
+        frameType = int(type);
+    }
+    if (selectedHeartbeatArmed) return QStringLiteral("Motor testing requires a disarmed vehicle.");
+    if (signature) *signature = QStringLiteral("%1:%2:%3").arg(frameClass).arg(frameType).arg(motorCount);
+    return {};
+}
+
+QVariantMap Mavlink::motorTestPrerequisites() const
+{
+    int count = 0;
+    const auto reason = motorConfigurationError(count);
+    return {{"available", reason.isEmpty()}, {"reason", reason}, {"motorCount", reason.isEmpty() ? count : 0}};
+}
+
+bool Mavlink::validateMotorStart(const QString &mode, int motor, int throttle, int duration, int count)
+{
+    int confirmedCount = 0;
+    auto reason = motorConfigurationError(confirmedCount);
+    if (reason.isEmpty() && (motor < 1 || motor > confirmedCount)) reason = QStringLiteral("Motor index is outside the confirmed motor count (%1).").arg(confirmedCount);
+    if (reason.isEmpty() && count && count != confirmedCount) reason = QStringLiteral("Requested motor count differs from confirmed frame count (%1).").arg(confirmedCount);
+    if (reason.isEmpty() && (throttle < 1 || throttle > 20 || duration < 1 || duration > 30))
+        reason = QStringLiteral("Motor test requires throttle 1-20 percent and duration 1-30 seconds.");
+    if (!reason.isEmpty()) {
+        rejectCommand(QStringLiteral("motorTestStart"), reason);
+        emit motorTestCommandRejected(mode, motor, count > 0 ? count : 1, reason);
+        return false;
+    }
+    lastConfirmedMotorCount = confirmedCount;
+    return true;
+}
+
+void Mavlink::cancelPendingMotorStarts(const QString &reason)
+{
+    if (pendingMotorStartMode.isEmpty()) return;
+    const auto mode = pendingMotorStartMode;
+    const int motor = motorTestSequenceNextMotor;
+    const int count = motorTestSequenceMotorCount;
+    ++motorTestCommandGeneration;
+    motorTestSequenceTimer->stop();
+    pendingMotorStartMode.clear();
+    motorTestSequenceMotorCount = 0;
+    // Keep any automatic stop timer and sent-command acknowledgements alive.
+    rejectCommand(QStringLiteral("motorTestStart"), reason);
+    emit motorTestCommandRejected(mode, motor, qMax(1, count), reason);
+}
+
+void Mavlink::revalidateMotorSchedule()
+{
+    if (pendingMotorStartMode.isEmpty()) return;
+    int count = 0;
+    QString signature;
+    auto reason = motorConfigurationError(count, &signature);
+    if (reason.isEmpty() && (signature != scheduledMotorConfiguration
+            || motorStartConnectionGeneration != connectionGenerationValue
+            || motorStartParameterGeneration != parameterManagerObject->generation())) reason = QStringLiteral("Required motor configuration changed while a start was scheduled.");
+    if (!reason.isEmpty()) cancelPendingMotorStarts(reason);
+}
+
+bool Mavlink::missionTransferAvailable(const QString &operation)
+{
+    auto reason = liveConnectionError();
+    if (reason.isEmpty() && (missionUploadActive || missionClearBeforeUploadActive || missionDownloadActive
+            || transferStateValue == Uploading || transferStateValue == Downloading
+            || transferStateValue == ClearingBeforeUpload || transferStateValue == Clearing))
+        reason = QStringLiteral("Wait for the current mission transfer to finish.");
+    if (reason.isEmpty()) return true;
+    setMissionStatus(reason);
+    return rejectCommand(operation, reason);
+}
+
+void Mavlink::armMotorSequenceTimer(int delay)
+{
+    QObject::disconnect(motorSequenceConnection);
+    const auto connection = connectionGenerationValue;
+    const auto command = motorTestCommandGeneration;
+    motorSequenceConnection = connect(motorTestSequenceTimer, &QTimer::timeout, this, [this, connection, command] {
+        if (connection != connectionGenerationValue || command != motorTestCommandGeneration) return;
+        revalidateMotorSchedule();
+        if (command == motorTestCommandGeneration) runNextSequentialMotorTest();
+    });
+    motorTestSequenceTimer->start(delay);
+}
+
+void Mavlink::armMotorStopTimer(int delay)
+{
+    QObject::disconnect(motorStopConnection);
+    const auto connection = connectionGenerationValue;
+    const auto serial = ++motorStopSerial;
+    motorStopConnection = connect(motorTestStopTimer, &QTimer::timeout, this, [this, connection, serial] {
+        if (!connected() || connection != connectionGenerationValue || serial != motorStopSerial) return;
+        stopAllMotorTests(qBound(1, activeMotorTestStopCount, 12));
+    });
+    motorTestStopTimer->start(delay);
+}
+
 void Mavlink::testMotor(int motor, int throttlePercent, int durationSeconds)
 {
+    if (!validateMotorStart("single", motor, throttlePercent, durationSeconds)) return;
     stopMotorTestSequence();
     sendMotorTestCommand(QStringLiteral("single"), motor, throttlePercent, durationSeconds);
 }
 
 void Mavlink::sendMotorTestCommand(const QString &mode, int motor, int throttlePercent, int durationSeconds, int motorCount)
 {
-    if (!connectedState || motor < 1) {
+    if (!validateMotorStart(mode, motor, throttlePercent, durationSeconds, motorCount)) {
         return;
     }
 
@@ -878,7 +1120,7 @@ void Mavlink::sendMotorTestCommand(const QString &mode, int motor, int throttleP
 
 void Mavlink::sendActuatorMotorTestCommand(const QString &mode, int motor, int throttlePercent, int durationSeconds)
 {
-    if (!connectedState || motor < 1) {
+    if (!validateMotorStart(mode, motor, throttlePercent, durationSeconds)) {
         return;
     }
 
@@ -915,7 +1157,7 @@ void Mavlink::sendActuatorMotorTestCommand(const QString &mode, int motor, int t
 
 void Mavlink::sendActuatorMotorStopCommand(int motor)
 {
-    if (!connectedState || motor < 1) {
+    if (!connected() || motor < 1) {
         return;
     }
 
@@ -933,12 +1175,21 @@ void Mavlink::sendActuatorMotorStopCommand(int motor)
 
 void Mavlink::runAllMotorTest(int throttlePercent, int durationSeconds, int motorCount)
 {
+    if (motorCount < 1) { rejectCommand("motorTestStart", "Motor count must be positive."); emit motorTestCommandRejected("all", 1, motorCount, "Motor count must be positive."); return; }
+    if (!validateMotorStart("all", 1, throttlePercent, durationSeconds, motorCount)) return;
     stopMotorTestSequence();
 
     const int safeDuration = qBound(1, durationSeconds, 30);
-    const int safeMotorCount = qBound(1, qMax(motorCount, 4), 12);
+    const int safeMotorCount = motorCount;
     const int safeThrottle = qBound(1, throttlePercent, 20);
     const int commandGeneration = motorTestCommandGeneration;
+    pendingMotorStartMode = QStringLiteral("all");
+    motorStartConnectionGeneration = connectionGenerationValue;
+    motorStartParameterGeneration = parameterManagerObject->generation();
+    int confirmedCount = 0;
+    motorConfigurationError(confirmedCount, &scheduledMotorConfiguration);
+    const auto connection = motorStartConnectionGeneration;
+    const auto parameters = motorStartParameterGeneration;
 
     qDebug() << "Run all motor test:"
              << "throttlePercent" << safeThrottle
@@ -948,27 +1199,38 @@ void Mavlink::runAllMotorTest(int throttlePercent, int durationSeconds, int moto
     for (int motor = 1; motor <= safeMotorCount; ++motor) {
         QTimer::singleShot((motor - 1) * simultaneousMotorCommandDelayMs,
                            this,
-                           [this, commandGeneration, motor, safeThrottle, safeDuration]() {
-            if (!connectedState || commandGeneration != motorTestCommandGeneration) {
+                           [this, commandGeneration, connection, parameters, motor, safeThrottle, safeDuration, safeMotorCount]() {
+            if (!connected() || commandGeneration != motorTestCommandGeneration || connection != connectionGenerationValue
+                    || !parameterManagerObject || parameters != parameterManagerObject->generation()) {
                 return;
             }
 
+            revalidateMotorSchedule();
+            if (commandGeneration != motorTestCommandGeneration) return;
             sendMotorTestCommand(QStringLiteral("all"), motor, safeThrottle, safeDuration);
+            if (motor == safeMotorCount) pendingMotorStartMode.clear();
         });
     }
 
     activeMotorTestStopCount = safeMotorCount;
-    motorTestStopTimer->start((safeDuration * 1000)
+    armMotorStopTimer((safeDuration * 1000)
                               + ((safeMotorCount - 1) * simultaneousMotorCommandDelayMs)
                               + 250);
 }
 
 void Mavlink::runSequentialMotorTest(int throttlePercent, int durationSeconds, int motorCount)
 {
+    if (motorCount < 1) { rejectCommand("motorTestStart", "Motor count must be positive."); emit motorTestCommandRejected("sequential", 1, motorCount, "Motor count must be positive."); return; }
+    if (!validateMotorStart("sequential", 1, throttlePercent, durationSeconds, motorCount)) return;
     stopMotorTestSequence();
 
+    pendingMotorStartMode = QStringLiteral("sequential");
+    motorStartConnectionGeneration = connectionGenerationValue;
+    motorStartParameterGeneration = parameterManagerObject->generation();
+    int confirmedCount = 0;
+    motorConfigurationError(confirmedCount, &scheduledMotorConfiguration);
     motorTestSequenceNextMotor = 1;
-    motorTestSequenceMotorCount = qBound(1, motorCount, 12);
+    motorTestSequenceMotorCount = motorCount;
     motorTestSequenceThrottle = qBound(1, throttlePercent, 20);
     motorTestSequenceDuration = qBound(1, durationSeconds, 30);
 
@@ -977,11 +1239,16 @@ void Mavlink::runSequentialMotorTest(int throttlePercent, int durationSeconds, i
 
 void Mavlink::runNextSequentialMotorTest()
 {
-    if (!connectedState || motorTestSequenceNextMotor > motorTestSequenceMotorCount) {
+    if (!connected() || motorStartConnectionGeneration != connectionGenerationValue || !parameterManagerObject
+            || motorStartParameterGeneration != parameterManagerObject->generation()
+            || motorTestSequenceNextMotor > motorTestSequenceMotorCount) {
         stopMotorTestSequence();
         return;
     }
 
+    if (!validateMotorStart("sequential", motorTestSequenceNextMotor, motorTestSequenceThrottle, motorTestSequenceDuration)) {
+        cancelPendingMotorStarts("Motor prerequisites changed."); return;
+    }
     qDebug() << "Run sequential motor test:"
              << "motor" << motorTestSequenceNextMotor
              << "of" << motorTestSequenceMotorCount
@@ -991,15 +1258,18 @@ void Mavlink::runNextSequentialMotorTest()
     sendMotorTestCommand(QStringLiteral("sequential"), motorTestSequenceNextMotor,
                          motorTestSequenceThrottle, motorTestSequenceDuration);
     ++motorTestSequenceNextMotor;
+    if (motorTestSequenceNextMotor > motorTestSequenceMotorCount) pendingMotorStartMode.clear();
 
     if (motorTestSequenceNextMotor <= motorTestSequenceMotorCount) {
-        motorTestSequenceTimer->start((motorTestSequenceDuration * 1000) + 250);
+        armMotorSequenceTimer((motorTestSequenceDuration * 1000) + 250);
     }
 }
 
 void Mavlink::stopMotorTestSequence()
 {
     ++motorTestCommandGeneration;
+    ++motorStopSerial;
+    pendingMotorStartMode.clear();
 
     if (motorTestSequenceTimer) {
         motorTestSequenceTimer->stop();
@@ -1016,8 +1286,9 @@ void Mavlink::stopMotorTestSequence()
 
 void Mavlink::stopAllMotorTests(int motorCount)
 {
+    const int safeMotorCount = qBound(1, qMax(motorCount, lastConfirmedMotorCount), 12);
     stopMotorTestSequence();
-    const int safeMotorCount = qBound(1, motorCount, 12);
+    if (!connected()) { rejectCommand("stopAllMotorTests", "Vehicle is not connected."); return; }
 
     for (int motor = 1; motor <= safeMotorCount; ++motor) {
         sendActuatorMotorStopCommand(motor);
@@ -1056,7 +1327,7 @@ bool Mavlink::servo(int servoNumber, int pwm)
         return false;
     }
 
-    if (!connectedState) {
+    if (!connected()) {
         emit servoCommandRejected(servoNumber, pwm, QStringLiteral("Vehicle is not connected"));
         return false;
     }
@@ -1072,8 +1343,8 @@ bool Mavlink::servo(int servoNumber, int pwm)
 
 bool Mavlink::sendManualControl(int x, int y, int z, int r, int buttons, int buttons2)
 {
-    if (!connectedState) {
-        return false;
+    if (!connected()) {
+        return rejectCommand("manualControl", "Vehicle is not connected.");
     }
 
     mavlink_message_t msg;
@@ -1105,8 +1376,8 @@ bool Mavlink::sendManualControl(int x, int y, int z, int r, int buttons, int but
 
 bool Mavlink::sendRcChannelsOverride(int rollPwm, int pitchPwm, int throttlePwm, int yawPwm)
 {
-    if (!connectedState) {
-        return false;
+    if (!connected()) {
+        return rejectCommand("rcChannelsOverride", "Vehicle is not connected.");
     }
 
     const bool releaseOverride = rollPwm == 0 && pitchPwm == 0 && throttlePwm == 0 && yawPwm == 0;
@@ -1149,13 +1420,16 @@ bool Mavlink::sendRcChannelsOverride(int rollPwm, int pitchPwm, int throttlePwm,
 
 void Mavlink::refreshTelemetry()
 {
-    if (connectedState) {
+    if (connected()) {
         requestDataStreams();
     }
 }
 
 bool Mavlink::uploadMissionFile(const QUrl &fileUrl)
 {
+    if (connected() && !missionTransferAvailable("missionUpload")) { emit missionUploadFinished(false, missionStatusText); return false; }
+    canonicalUploadPending = false;
+    transferUsesCanonicalSnapshot = false;
     const QString path = fileUrl.isLocalFile() ? fileUrl.toLocalFile() : fileUrl.toString();
     QVector<MissionItem> parsedItems;
     QVariantList displayWaypoints;
@@ -1164,6 +1438,7 @@ bool Mavlink::uploadMissionFile(const QUrl &fileUrl)
 
     if (!parseMissionFile(path, parsedItems, displayWaypoints, homeLocation, error)) {
         setUploadedHomeLocation(QVariantMap());
+        rejectCommand("missionUpload", error);
         setMissionStatus(error);
         emit missionUploadFinished(false, error);
         return false;
@@ -1184,7 +1459,8 @@ bool Mavlink::uploadMissionFile(const QUrl &fileUrl)
     emit missionElevationWaypointsChanged();
     emit missionTerrainProfileChanged();
 
-    if (!connectedState) {
+    if (!connected()) {
+        rejectCommand("missionUpload", "Vehicle is not connected; mission retained locally.");
         setMissionStatus(QStringLiteral("Mission loaded on map. Connect to a drone before uploading."));
         emit missionUploadFinished(false, missionStatusText);
         return false;
@@ -1192,19 +1468,9 @@ bool Mavlink::uploadMissionFile(const QUrl &fileUrl)
 
     missionClearBeforeUploadActive = true;
     missionUploadActive = false;
+    startMissionTransfer(ClearingBeforeUpload, pendingMissionItems.size());
     setMissionStatus(QStringLiteral("Clearing existing mission before upload."));
     sendMissionClearAll();
-
-    QTimer::singleShot(750, this, [this]() {
-        if (!connectedState || !missionClearBeforeUploadActive) {
-            return;
-        }
-
-        missionClearBeforeUploadActive = false;
-        missionUploadActive = true;
-        setMissionStatus(QStringLiteral("Uploading mission: %1 waypoint items").arg(pendingMissionItems.size()));
-        sendMissionCount();
-    });
 
     return true;
 }
@@ -1216,7 +1482,7 @@ bool Mavlink::resetHomeToUploadedLocation()
         return false;
     }
 
-    if (!connectedState) {
+    if (!connected()) {
         setMissionStatus(QStringLiteral("Connect to a drone before resetting home."));
         return false;
     }
@@ -1244,13 +1510,17 @@ bool Mavlink::resetHomeToUploadedLocation()
 
 bool Mavlink::writeLoadedMissionToVehicle()
 {
+    if (!missionTransferAvailable("missionUpload")) { emit missionUploadFinished(false, missionStatusText); return false; }
+    transferUsesCanonicalSnapshot = canonicalUploadPending;
+    canonicalUploadPending = false;
     if (pendingMissionItems.isEmpty()) {
+        rejectCommand("missionUpload", "No mission plan loaded to write.");
         setMissionStatus(QStringLiteral("No mission plan loaded to write."));
         emit missionUploadFinished(false, missionStatusText);
         return false;
     }
 
-    if (!connectedState) {
+    if (!connected()) {
         setMissionStatus(QStringLiteral("Connect to a drone before writing mission."));
         emit missionUploadFinished(false, missionStatusText);
         return false;
@@ -1269,47 +1539,61 @@ bool Mavlink::writeLoadedMissionToVehicle()
     missionDownloadExpectedCount = 0;
     downloadingMissionItems.clear();
     downloadedMissionItemSeqs.clear();
+    startMissionTransfer(ClearingBeforeUpload, pendingMissionItems.size());
     setMissionUploaded(false);
     setMissionStatus(QStringLiteral("Clearing existing mission before write."));
     sendMissionClearAll();
 
-    QTimer::singleShot(750, this, [this]() {
-        if (!connectedState || !missionClearBeforeUploadActive) {
-            return;
-        }
-
-        missionClearBeforeUploadActive = false;
-        missionUploadActive = true;
-        setMissionStatus(QStringLiteral("Uploading mission: %1 waypoint items").arg(pendingMissionItems.size()));
-        sendMissionCount();
-    });
-
     return true;
 }
 
-void Mavlink::downloadMissionFromVehicle()
+bool Mavlink::uploadMissionPlan(QObject *object)
 {
-    if (!connectedState) {
-        setMissionStatus(QStringLiteral("Connect to a drone before downloading mission."));
-        return;
+    if (!missionTransferAvailable("missionUpload")) { emit missionUploadFinished(false, missionStatusText); return false; }
+    auto *model = qobject_cast<MissionPlanModel *>(object);
+    if (!model || model->rowCount() == 0) {
+        rejectCommand("missionUpload", "No canonical mission plan is available to upload.");
+        setMissionStatus(QStringLiteral("No canonical mission plan is available to upload."));
+        return false;
     }
+    QVector<MavlinkMissionItem> snapshot;
+    const auto conversion = MissionPlanConverter::exportVehicleMission(*model, &snapshot);
+    if (!conversion.success) { setMissionStatus(conversion.error); return rejectCommand("missionUpload", conversion.error); }
+    missionPlanModel = model;
+    transferSnapshotRevision = model->revision();
+    pendingMissionItems = std::move(snapshot);
+    canonicalUploadPending = true;
+    return writeLoadedMissionToVehicle();
+}
 
-    if (missionUploadActive || missionClearBeforeUploadActive) {
-        return;
-    }
+bool Mavlink::replaceDownloadedMission(QObject *object)
+{
+    auto *model = qobject_cast<MissionPlanModel *>(object);
+    if (!model || pendingMissionItems.isEmpty()) return false;
+    const auto result = MissionPlanConverter::importVehicleMission(pendingMissionItems, model, true);
+    if (!result.success) setMissionStatus(result.error);
+    return result.success;
+}
+
+void Mavlink::downloadMissionFromVehicle(bool replaceDirtyPlan)
+{
+    if (!missionTransferAvailable("missionDownload")) return;
 
     missionDownloadActive = true;
+    replaceDirtyPlanOnDownloadCompletion = replaceDirtyPlan;
     missionSaveRequestedAfterDownload = false;
     missionDownloadExpectedCount = 0;
     downloadingMissionItems.clear();
     downloadedMissionItemSeqs.clear();
+    startMissionTransfer(Downloading);
     setMissionStatus(QStringLiteral("Requesting mission from vehicle."));
     requestMissionList();
 }
 
 void Mavlink::saveMissionFromVehicle()
 {
-    if (!connectedState) {
+    if (!missionDownloadActive && !missionTransferAvailable("missionSave")) return;
+    if (!connected()) {
         setMissionStatus(QStringLiteral("Connect to a drone before saving vehicle mission."));
         return;
     }
@@ -1329,128 +1613,129 @@ void Mavlink::saveMissionFromVehicle()
     missionDownloadExpectedCount = 0;
     downloadingMissionItems.clear();
     downloadedMissionItemSeqs.clear();
+    startMissionTransfer(Downloading);
     setMissionStatus(QStringLiteral("Downloading vehicle mission to save."));
     requestMissionList();
 }
 
 void Mavlink::clearMission()
 {
-    pendingMissionItems.clear();
-    loadedMissionWaypoints.clear();
-    loadedMissionElevationWaypoints.clear();
-    loadedMissionTerrainProfile.clear();
-    setUploadedHomeLocation(QVariantMap());
-    missionUploadActive = false;
-    missionClearBeforeUploadActive = false;
-    missionDownloadActive = false;
-    missionSaveRequestedAfterDownload = false;
-    missionDownloadExpectedCount = 0;
-    downloadingMissionItems.clear();
-    downloadedMissionItemSeqs.clear();
-    setMissionUploaded(false);
-    emit missionWaypointsChanged();
-    emit missionElevationWaypointsChanged();
-    emit missionTerrainProfileChanged();
-
-    if (connectedState) {
-        sendMissionClearAll();
-        setMissionStatus(QStringLiteral("Mission cleared."));
-    } else {
-        setMissionStatus(QStringLiteral("Mission cleared from map."));
-    }
+    if (!missionTransferAvailable("missionClear")) return;
+    startMissionTransfer(Clearing);
+    sendMissionClearAll();
+    setMissionStatus(QStringLiteral("Clearing vehicle mission."));
 }
 
 void Mavlink::requestParameters()
 {
-    if (!connectedState) {
-        qDebug() << "Cannot request parameters while disconnected";
-        return;
-    }
+    const auto error = liveConnectionError();
+    if (!error.isEmpty()) { rejectCommand("parameterRefresh", error); return; }
+    parameterManagerObject->refresh();
+}
 
-    parameterCache.clear();
-    receivedParameterIndices.clear();
-    expectedParameterCount = -1;
-    parameterRetryCount = 0;
-    parameterFetchActive = true;
-    parameterRequestSent = true;
-    emit parameterFetchStatusChanged();
-
-    mavlink_message_t msg;
-    mavlink_msg_param_request_list_pack(
-        255,
-        0,
-        &msg,
-        targetSystemId,
-        targetComponentId
-    );
-
-    sendMavlinkMessage(msg);
-    parameterFetchIdleTimer->start();
-    missingParameterRetryTimer->start();
-
-    qDebug() << "Requested full parameter list from target" << targetSystemId << targetComponentId;
+bool Mavlink::requestParameterRead(const QString &name)
+{
+    auto error = liveConnectionError();
+    const auto bytes = name.toLatin1();
+    if (error.isEmpty() && (name.isEmpty() || bytes.size() > 16 || QString::fromLatin1(bytes) != name))
+        error = "Parameter identifier must contain 1-16 printable ASCII bytes.";
+    for (const auto byte : bytes) if (byte < 33 || byte > 126) error = "Invalid parameter identifier.";
+    if (!error.isEmpty()) return rejectCommand("parameterRead", error);
+    char id[16]{};
+    std::memcpy(id, bytes.constData(), size_t(bytes.size()));
+    mavlink_message_t message{};
+    mavlink_msg_param_request_read_pack(255, 0, &message, targetSystemId, targetComponentId, id, -1);
+    if (!sendMavlinkMessage(message)) return rejectCommand("parameterRead", "Transport rejected parameter read.");
+    return true;
 }
 
 QVariantMap Mavlink::parameterValue(const QString &name) const
 {
-    const QString key = name.trimmed();
-    if (!parameterCache.contains(key)) {
-        return {};
-    }
-
-    return parameterToVariantMap(parameterCache.value(key));
+    return parameterManagerObject->parameterValue(name);
 }
 
 QVariantMap Mavlink::parameters() const
 {
-    QVariantMap allParameters;
-    for (auto it = parameterCache.constBegin(); it != parameterCache.constEnd(); ++it) {
-        allParameters.insert(it.key(), parameterToVariantMap(it.value()));
-    }
+    return parameterManagerObject->parameters();
+}
 
-    return allParameters;
+QVariantMap Mavlink::requestParameterWrite(const QString &name, double value, int type)
+{
+    const auto result = parameterManagerObject->requestWrite(name, value, type);
+    if (!result.value("accepted").toBool()) rejectCommand("parameterWrite", result.value("reason").toString());
+    return result;
 }
 
 bool Mavlink::setParameter(const QString &name, double value, int type)
 {
-    return sendParameterSet(name, static_cast<float>(value), static_cast<uint8_t>(type));
+    return requestParameterWrite(name, value, type).value("accepted").toBool();
 }
 
 bool Mavlink::writeRcCalibration(const QVariantList &calibration)
 {
-    if (!connectedState) {
-        qDebug() << "Cannot write RC calibration while disconnected";
-        return false;
-    }
-
-    bool wroteAny = false;
-    for (const QVariant &entryValue : calibration) {
-        const QVariantMap entry = entryValue.toMap();
-        const int channel = entry.value(QStringLiteral("channel")).toInt();
-        if (channel < 1 || channel > 16) {
-            continue;
-        }
-
-        const int minimum = qBound(800, entry.value(QStringLiteral("minimum")).toInt(), 2200);
-        const int maximum = qBound(800, entry.value(QStringLiteral("maximum")).toInt(), 2200);
-        const int trim = qBound(800, entry.value(QStringLiteral("trim")).toInt(), 2200);
-        const bool reversed = entry.value(QStringLiteral("reversed")).toBool();
-        const QString prefix = QStringLiteral("RC%1_").arg(channel);
-
-        wroteAny = sendParameterSet(prefix + QStringLiteral("MIN"), minimum, MAV_PARAM_TYPE_INT16) || wroteAny;
-        wroteAny = sendParameterSet(prefix + QStringLiteral("MAX"), maximum, MAV_PARAM_TYPE_INT16) || wroteAny;
-        wroteAny = sendParameterSet(prefix + QStringLiteral("TRIM"), trim, MAV_PARAM_TYPE_INT16) || wroteAny;
-        if (channel <= 4) {
-            wroteAny = sendParameterSet(prefix + QStringLiteral("REVERSED"), reversed ? 1.0f : 0.0f, MAV_PARAM_TYPE_INT8) || wroteAny;
-        }
-    }
-
-    if (wroteAny) {
-        setMissionStatus(QStringLiteral("RC calibration parameters written."));
-    }
-    return wroteAny;
+    return requestRcCalibrationWrite(calibration).value("accepted").toBool();
 }
 
+QVariantMap Mavlink::requestRcCalibrationWrite(const QVariantList &calibration)
+{
+    QVariantList requests;
+    QString error = parameterPrerequisiteError();
+    if (!error.isEmpty()) {
+        rejectCommand("rcCalibration", error);
+        return {{"id", qulonglong(0)}, {"accepted", false}, {"reason", error}};
+    }
+    QSet<int> channels;
+    for (const auto &entryValue : calibration) {
+        const auto entry = entryValue.toMap();
+        bool channelOk = false, minOk = false, maxOk = false, trimOk = false;
+        const auto channelNumber = entry.value("channel").toDouble(&channelOk);
+        const auto minimum = entry.value("minimum").toDouble(&minOk);
+        const auto maximum = entry.value("maximum").toDouble(&maxOk);
+        const auto trim = entry.value("trim").toDouble(&trimOk);
+        if (!channelOk || !std::isfinite(channelNumber) || std::trunc(channelNumber) != channelNumber
+                || channelNumber < 1 || channelNumber > 16) { error = "Invalid RC channel (supported range 1-16)."; break; }
+        const int channel = int(channelNumber);
+        if (channels.contains(channel)) { error = "Duplicate RC channel."; break; }
+        channels.insert(channel);
+        const auto prefix = QStringLiteral("RC%1_").arg(channel);
+        // The existing workflow offers 16 channels. Only channels present in the
+        // complete firmware table participate; partial channel metadata is an error.
+        const QStringList suffixes{"MIN", "MAX", "TRIM"};
+        int supported = 0;
+        for (const auto &suffix : suffixes) supported += !parameterValue(prefix + suffix).isEmpty();
+        if (!supported) continue;
+        if (supported != 3) { error = prefix + "has incomplete calibration metadata."; break; }
+        if (!minOk || !maxOk || !trimOk || !std::isfinite(minimum) || !std::isfinite(maximum) || !std::isfinite(trim)
+                || minimum < 800 || maximum > 2200 || minimum >= maximum || trim < minimum || trim > maximum
+                || std::trunc(minimum) != minimum || std::trunc(maximum) != maximum || std::trunc(trim) != trim) {
+            error = prefix + "requires integral 800-2200 PWM values with MIN <= TRIM <= MAX and MIN < MAX."; break;
+        }
+        const double values[] = {minimum, maximum, trim};
+        for (int i = 0; i < suffixes.size(); ++i) {
+            const auto name = prefix + suffixes[i];
+            requests.append(QVariantMap{{"name", name}, {"value", values[i]}, {"type", parameterValue(name).value("type")}});
+        }
+        const auto reversedName = prefix + "REVERSED";
+        if (channel <= 4 && !parameterValue(reversedName).isEmpty())
+            requests.append(QVariantMap{{"name", reversedName}, {"value", entry.value("reversed").toBool() ? 1 : 0},
+                                        {"type", parameterValue(reversedName).value("type")}});
+    }
+    if (error.isEmpty() && requests.isEmpty()) error = "No supported RC calibration parameters were requested.";
+    for (const auto &request : requests) {
+        const auto row = request.toMap();
+        float wire = 0;
+        if (error.isEmpty()) error = parameterPrerequisiteError({row.value("name").toString()});
+        if (error.isEmpty() && !parameterManagerObject->prepareWrite(row.value("name").toString(), row.value("value").toDouble(), row.value("type").toUInt(), wire))
+            error = row.value("name").toString() + ": invalid calibration value or metadata.";
+    }
+    if (!error.isEmpty()) {
+        rejectCommand("rcCalibration", error);
+        return {{"id", qulonglong(0)}, {"accepted", false}, {"reason", error}};
+    }
+    const auto accepted = parameterManagerObject->requestWriteBatch(requests);
+    rcCalibrationBatches.insert(accepted.value("id").toULongLong());
+    return accepted;
+}
 void Mavlink::setTelemetryLoggingEnabled(bool enabled)
 {
     if (telemetryLoggingEnabledState == enabled) {
@@ -1463,7 +1748,7 @@ void Mavlink::setTelemetryLoggingEnabled(bool enabled)
 
     if (!telemetryLoggingEnabledState) {
         stopTelemetryLog();
-    } else if (connectedState) {
+    } else if (connected()) {
         startTelemetryLog();
     }
 
@@ -1485,7 +1770,7 @@ void Mavlink::setTelemetryLogDirectory(const QString &directory)
     telemetryLogDirectoryPath = cleanedDirectory;
     emit telemetryLogDirectoryChanged();
 
-    if (wasActive && telemetryLoggingEnabledState && connectedState) {
+    if (wasActive && telemetryLoggingEnabledState && connected()) {
         startTelemetryLog();
     }
 }
@@ -1585,7 +1870,7 @@ void Mavlink::setFlightControllerLogDirectory(const QString &directory)
     flightControllerLogDirectoryPath = cleanedDirectory;
     emit flightControllerLogDirectoryChanged();
 
-    if (wasActive && flightControllerLoggingEnabledState && connectedState) {
+    if (wasActive && flightControllerLoggingEnabledState && connected()) {
         startFlightControllerLog();
     }
 }
@@ -1656,10 +1941,15 @@ QStringList Mavlink::flightControllerLogFiles() const
 
 void Mavlink::readData()
 {
+    if (!link || !acceptTransportMessages) return;
+    processConnectionTimeout(connectionGenerationValue);
+    if (!link || !acceptTransportMessages) return;
+    const auto transport = transportGeneration;
     const QByteArray data = link->readAll();
     mavlink_message_t msg;
 
     for (int i = 0; i < data.size(); i++) {
+        if (transport != transportGeneration || !acceptTransportMessages) return;
         const uint8_t byte = static_cast<uint8_t>(data[i]);
         // Keep only the trailing wire window required for one maximum-size
         // MAVLink frame.  Its bounds come from the parser's accepted message,
@@ -1673,6 +1963,10 @@ void Mavlink::readData()
 
         const bool parsed = mavlink_parse_char(MAVLINK_COMM_0, byte, &msg, &mavlinkStatus);
         if (parsed) {
+            ++receivedPackets;
+            lastPacketAt = connectionClock();
+            packetTimes.append(lastPacketAt);
+            while (!packetTimes.isEmpty() && (lastPacketAt - packetTimes.first() >= 1000 || packetTimes.size() > 10000)) packetTimes.removeFirst();
             const bool mavlink1 = msg.magic == MAVLINK_STX_MAVLINK1;
             const int frameLength = (mavlink1 ? 8 : 12) + msg.len
                     + ((!mavlink1 && (msg.incompat_flags & MAVLINK_IFLAG_SIGNED))
@@ -1685,45 +1979,22 @@ void Mavlink::readData()
             logTelemetryMessage(msg);
             logFlightControllerStatusText(msg);
 
-            if (msg.msgid == MAVLINK_MSG_ID_HEARTBEAT) {
-                mavlink_heartbeat_t heartbeat;
-                mavlink_msg_heartbeat_decode(&msg, &heartbeat);
-                if (heartbeat.autopilot != MAV_AUTOPILOT_INVALID) {
-                    // A transport can be open without a vehicle at the other
-                    // end (especially UDP).  A valid autopilot heartbeat is
-                    // the first proof that this is an established vehicle
-                    // connection.
-                    setConnected(true);
-                    targetSystemId = msg.sysid;
-                    targetComponentId = msg.compid;
-                    if (!parameterRequestSent) {
-                        QTimer::singleShot(250, this, [this]() {
-                            if (connectedState && !parameterRequestSent) {
-                                requestParameters();
-                            }
-                        });
-                    }
-                    if (!missionDownloadRequestedOnConnect) {
-                        missionDownloadRequestedOnConnect = true;
-                        QTimer::singleShot(650, this, [this]() {
-                            if (connectedState && !missionUploadActive && !missionClearBeforeUploadActive) {
-                                downloadMissionFromVehicle();
-                            }
-                        });
-                    }
-                }
-            }
-
+            handleHeartbeat(msg);
+            if (transport != transportGeneration || !acceptTransportMessages) return;
             const QString linkIdentity = link
                     ? QStringLiteral("%1@%2")
                               .arg(QString::fromLatin1(link->metaObject()->className()))
                               .arg(reinterpret_cast<quintptr>(link), 0, 16)
                     : QString();
+            if (!parameterManagerObject) return;
+            const auto lifecycleGeneration = connectionGenerationValue;
+            const auto parameterGeneration = parameterManagerObject->generation();
             emit frameObserved(MavlinkFrame(QDateTime::currentDateTimeUtc(), linkIdentity, msg, rawFrame));
             emit messageReceived(msg);
+            if (transport != transportGeneration || lifecycleGeneration != connectionGenerationValue || !acceptTransportMessages) return;
             updateMavlinkQuality(msg);
             handleLinkPing(msg);
-            handleParameterValue(msg);
+            handleParameterValue(msg, parameterGeneration);
             handleRcChannels(msg);
             handleVpsMessage(msg);
             handleTerrainRequest(msg);
@@ -1733,100 +2004,416 @@ void Mavlink::readData()
     }
 }
 
-void Mavlink::setConnected(bool connected)
+bool Mavlink::setConnectionConfiguration(const ConnectionConfig &config)
 {
-    if (connectedState == connected) {
-        return;
-    }
+    if (connectionStateValue != Disconnected || acceptTransportMessages || config.heartbeatTimeoutMs <= 0
+            || config.initialHeartbeatTimeoutMs <= 0 || config.parameterStartupDelayMs < 0) return false;
+    connectionConfig = config;
+    emit connectionLifecycleChanged();
+    return true;
+}
 
-    connectedState = connected;
-    if (!connectedState) {
-        clearVpsStatus();
-        pendingServoAcks.clear();
-        linkPingTimer->stop();
-        resetLinkQuality();
+void Mavlink::stopLifecycleTimers()
+{
+    heartbeatTimer.stop();
+    parameterStartupTimer.stop();
+    QObject::disconnect(heartbeatTimerConnection);
+    QObject::disconnect(parameterStartupConnection);
+    ++heartbeatTimerSerial;
+}
+
+void Mavlink::beginConnection()
+{
+    ++connectionGenerationValue;
+    acceptTransportMessages = true;
+    connectionStateValue = AwaitingHeartbeat;
+    lastHeartbeatMs = -1;
+    lastHeartbeatUtcMs = 0;
+    awaitingHeartbeatDeadline = connectionClock() + connectionConfig.initialHeartbeatTimeoutMs;
+    armConnectionDeadline();
+    emit connectionLifecycleChanged();
+}
+
+void Mavlink::armConnectionDeadline()
+{
+    heartbeatTimer.stop();
+    QObject::disconnect(heartbeatTimerConnection);
+    const auto serial = ++heartbeatTimerSerial;
+    const auto generation = connectionGenerationValue;
+    if (connectionStateValue == Disconnected) return;
+    const auto deadline = connected() ? lastHeartbeatMs + connectionConfig.heartbeatTimeoutMs : awaitingHeartbeatDeadline;
+    heartbeatTimerConnection = connect(&heartbeatTimer, &QTimer::timeout, this, [this, generation, serial] {
+        if (serial == heartbeatTimerSerial) processConnectionTimeout(generation);
+    });
+    heartbeatTimer.start(int(std::clamp<qint64>(deadline - connectionClock(), 0, std::numeric_limits<int>::max())));
+}
+
+void Mavlink::processConnectionTimeout(quint64 generation)
+{
+    if (generation != connectionGenerationValue || connectionStateValue == Disconnected) return;
+    const auto deadline = connected() ? lastHeartbeatMs + connectionConfig.heartbeatTimeoutMs : awaitingHeartbeatDeadline;
+    if (connectionClock() < deadline) { armConnectionDeadline(); return; }
+    if (connected()) {
+        ++heartbeatExpiries;
+        endConnection(QStringLiteral("Selected autopilot heartbeat timed out"), true);
     } else {
+        auto *disconnectingLink = link;
+        const auto transport = transportGeneration;
+        endConnection(QStringLiteral("Initial autopilot heartbeat timed out"), false);
+        if (link && link == disconnectingLink && transport == transportGeneration) link->disconnectLink();
+    }
+}
+
+void Mavlink::scheduleInitialParameters()
+{
+    parameterStartupTimer.stop();
+    QObject::disconnect(parameterStartupConnection);
+    const auto generation = connectionGenerationValue;
+    const auto parameterGeneration = parameterManagerObject->generation();
+    parameterStartupConnection = connect(&parameterStartupTimer, &QTimer::timeout, this, [this, generation, parameterGeneration] {
+        if (connected() && generation == connectionGenerationValue && parameterManagerObject
+                && parameterGeneration == parameterManagerObject->generation()
+                && parameterManagerObject->syncState() == ParameterManager::Idle) requestParameters();
+    });
+    parameterStartupTimer.start(connectionConfig.parameterStartupDelayMs);
+}
+
+void Mavlink::handleHeartbeat(const mavlink_message_t &msg)
+{
+    if (shuttingDown || transitioningConnection || !acceptTransportMessages || !link || !link->isConnected() || !parameterManagerObject
+            || msg.msgid != MAVLINK_MSG_ID_HEARTBEAT || msg.len < MAVLINK_MSG_ID_HEARTBEAT_MIN_LEN
+            || msg.sysid == 0 || msg.compid == 0) return;
+    mavlink_heartbeat_t heartbeat = {};
+    mavlink_msg_heartbeat_decode(&msg, &heartbeat);
+    if (heartbeat.type == MAV_TYPE_GCS || heartbeat.autopilot == MAV_AUTOPILOT_INVALID
+            || (selectedVehicleValid && (msg.sysid != targetSystemId || msg.compid != targetComponentId))) return;
+    if (connectionStateValue == Disconnected) ++connectionGenerationValue;
+    const auto generation = connectionGenerationValue;
+    const bool establishing = !connected();
+    if (!selectedVehicleValid) {
+        targetSystemId = msg.sysid;
+        targetComponentId = msg.compid;
+        selectedAutopilot = heartbeat.autopilot;
+        selectedVehicleValid = true;
+        emit selectedVehicleChanged();
+        if (generation != connectionGenerationValue || !acceptTransportMessages) return;
+    }
+    selectedHeartbeatArmed = (heartbeat.base_mode & MAV_MODE_FLAG_SAFETY_ARMED) != 0;
+    revalidateMotorSchedule();
+    lastHeartbeatMs = connectionClock();
+    lastHeartbeatUtcMs = QDateTime::currentMSecsSinceEpoch();
+    if (establishing) {
+        connectionStateValue = Connected;
+        const auto encoding = selectedAutopilot == MAV_AUTOPILOT_ARDUPILOTMEGA ? ParameterManager::NumericCast
+                : selectedAutopilot == MAV_AUTOPILOT_PX4 ? ParameterManager::Bytewise : ParameterManager::UnknownEncoding;
+        parameterManagerObject->connectSource(targetSystemId, targetComponentId, encoding, generation);
+        if (generation != connectionGenerationValue || !connected()) return;
+        scheduleInitialParameters();
+        missionDownloadRequestedOnConnect = true;
+        QTimer::singleShot(650, this, [this, generation] {
+            if (connected() && generation == connectionGenerationValue && !missionUploadActive && !missionClearBeforeUploadActive && !missionDownloadActive
+                    && transferStateValue != Clearing)
+                downloadMissionFromVehicle();
+        });
         linkPingTimer->start();
         startTelemetryLog();
         requestDataStreams();
         sendLinkPing();
     }
-    emit connectionStatusChanged(connectedState);
+    armConnectionDeadline();
+    emit heartbeatObserved();
+    if (generation != connectionGenerationValue || !connected()) return;
+    if (establishing) {
+        emit connectionLifecycleChanged();
+        if (generation == connectionGenerationValue && connected()) emit connectionStatusChanged(true);
+    }
+}
+
+void Mavlink::endConnection(const QString &reason, bool permitHeartbeatReconnect)
+{
+    const bool wasConnected = connected();
+    const bool active = connectionStateValue != Disconnected;
+    acceptTransportMessages = permitHeartbeatReconnect && link && link->isConnected();
+    stopLifecycleTimers();
+    if (!active) {
+        if (!acceptTransportMessages && selectedVehicleValid) {
+            selectedVehicleValid = false;
+            emit selectedVehicleChanged();
+        }
+        return;
+    }
+    connectionStateValue = Disconnected;
+    selectedHeartbeatArmed = false;
+    lastConfirmedMotorCount = 0;
+    transitioningConnection = true;
+    const auto generation = ++connectionGenerationValue;
+    disconnectReason = reason;
+    // Revoke readiness and cancel parameter work before notifying connection consumers.
+    if (parameterManagerObject) parameterManagerObject->disconnectSource();
+    if (generation != connectionGenerationValue) { transitioningConnection = false; return; }
+    cancelMissionTransfer();
+    stopTelemetryLog();
+    stopFlightControllerLog();
+    setMissionUploaded(false);
+    missionUploadActive = missionClearBeforeUploadActive = missionDownloadActive = false;
+    missionDownloadRequestedOnConnect = missionSaveRequestedAfterDownload = false;
+    missionDownloadExpectedCount = 0;
+    downloadingMissionItems.clear();
+    downloadedMissionItemSeqs.clear();
+    clearPendingTerrainRequests();
+    stopMotorTestSequence(); // Cancel local timers, without sending new motor commands.
+    clearVpsStatus();
+    pendingServoAcks.clear();
+    linkPingTimer->stop();
+    resetLinkQuality();
+    inboundFrameBytes.clear();
+    if (!acceptTransportMessages && selectedVehicleValid) {
+        selectedVehicleValid = false;
+        emit selectedVehicleChanged();
+    }
+    transitioningConnection = false;
+    if (generation != connectionGenerationValue) return;
+    qInfo() << "MAVLink disconnected:" << reason << "generation" << generation;
+    if (wasConnected) emit connectionStatusChanged(false);
+    if (generation == connectionGenerationValue) emit connectionLifecycleChanged();
+}
+bool Mavlink::setQualityConfiguration(const QualityConfig &config)
+{
+    if (connected() || config.tickMs < 50 || config.sequenceWindowMs <= 0 || config.sequenceFreshMs <= 0
+            || config.radioFreshMs <= 0 || config.pingFreshMs <= 0 || config.pingResponseMs <= 0
+            || config.minimumSequenceExpected < 1 || config.maximumForwardDelta < 2 || config.maximumForwardDelta > 127
+            || config.sustainedCategoryMs < 0 || config.minimumCategoryDwellMs < 0
+            || !std::isfinite(config.timeConstantSeconds) || config.timeConstantSeconds <= 0
+            || !(0 <= config.poorEntry && config.poorEntry < config.poorExit && config.poorExit < config.goodExit
+                 && config.goodExit < config.goodEntry && config.goodEntry <= 100)) return false;
+    qualityConfig = config;
+    qualityTimer.setInterval(config.tickMs);
+    resetLinkQuality();
+    return true;
+}
+
+int Mavlink::rawRadioRssi() const
+{
+    const auto now = connectionClock();
+    return connected() && lastRssiAt >= 0 && now >= lastRssiAt && now - lastRssiAt < qualityConfig.radioFreshMs ? rawRssi : -1;
 }
 
 void Mavlink::sendLinkPing()
 {
-    if (!connectedState) {
-        return;
+    if (!connected()) return;
+    const auto now = connectionClock();
+    const auto stamp = quint64(qMax<qint64>(1, now * 1000));
+    if (pendingQualityPings.size() >= 8) {
+        auto oldest = pendingQualityPings.begin();
+        for (auto it = pendingQualityPings.begin(); it != pendingQualityPings.end(); ++it)
+            if (it->at < oldest->at) oldest = it;
+        pendingQualityPings.erase(oldest);
     }
-
-    lastPingTimestampUsec = static_cast<quint64>(linkPingClock.nsecsElapsed() / 1000);
-    mavlink_message_t msg = {};
-    mavlink_msg_ping_pack(255, MAV_COMP_ID_MISSIONPLANNER, &msg,
-                          lastPingTimestampUsec, nextPingSequence++, 0, 0);
-    sendMavlinkMessage(msg);
+    const auto seq = nextPingSequence++;
+    pendingQualityPings.insert(seq, {now, stamp});
+    mavlink_message_t message{};
+    mavlink_msg_ping_pack(255, MAV_COMP_ID_MISSIONPLANNER, &message, stamp, seq, 0, 0);
+    if (!sendMavlinkMessage(message)) pendingQualityPings.remove(seq);
 }
 
-void Mavlink::handleLinkPing(const mavlink_message_t &msg)
+void Mavlink::handleLinkPing(const mavlink_message_t &message)
 {
-    if (msg.msgid != MAVLINK_MSG_ID_PING || lastPingTimestampUsec == 0) {
-        return;
-    }
-
-    mavlink_ping_t ping = {};
-    mavlink_msg_ping_decode(&msg, &ping);
-    if (ping.time_usec != lastPingTimestampUsec || ping.target_system != 255) {
-        return;
-    }
-
-    const qint64 elapsedUsec = linkPingClock.nsecsElapsed() / 1000;
-    const qint64 roundTripMs = (elapsedUsec - static_cast<qint64>(ping.time_usec)) / 1000;
-    if (roundTripMs < 0 || roundTripMs > 30000) {
-        return;
-    }
-
-    const int measuredLatencyMs = static_cast<int>(roundTripMs);
-    const int newLatencyMs = linkLatencyMsValue < 0
-            ? measuredLatencyMs
-            : qRound(linkLatencyMsValue * 0.7 + measuredLatencyMs * 0.3);
-    if (newLatencyMs != linkLatencyMsValue) {
-        linkLatencyMsValue = newLatencyMs;
-        emit linkQualityChanged();
-    }
+    if (!connected() || message.msgid != MAVLINK_MSG_ID_PING || message.sysid != targetSystemId
+            || message.compid != targetComponentId) return;
+    mavlink_ping_t ping{};
+    mavlink_msg_ping_decode(&message, &ping);
+    if (ping.target_system != 255 || ping.target_component != MAV_COMP_ID_MISSIONPLANNER) return;
+    const auto request = pendingQualityPings.constFind(ping.seq);
+    if (request == pendingQualityPings.cend() || request->stamp != ping.time_usec) return;
+    const auto now = connectionClock(), elapsed = now - request->at;
+    pendingQualityPings.remove(ping.seq);
+    if (elapsed < 0 || elapsed > qualityConfig.pingResponseMs) return;
+    lastValidPingAt = now;
+    latencyWindow.append({now, int(elapsed)});
+    if (latencyWindow.size() > 5) latencyWindow.removeFirst();
 }
 
-void Mavlink::updateMavlinkQuality(const mavlink_message_t &msg)
+void Mavlink::updateMavlinkQuality(const mavlink_message_t &message)
 {
-    if (msg.sysid != targetSystemId || msg.msgid == MAVLINK_MSG_ID_PING) {
-        return;
+    if (!connected() || qualityGeneration != connectionGenerationValue || message.sysid != targetSystemId) return;
+    const auto now = connectionClock();
+    if (message.msgid == MAVLINK_MSG_ID_RADIO_STATUS
+            && (message.compid == targetComponentId || message.compid == MAV_COMP_ID_TELEMETRY_RADIO)) {
+        if (radioSourceComponent != message.compid) {
+            radioSourceComponent = message.compid; radioBaseline = false; radioWindow.clear();
+        }
+        mavlink_radio_status_t radio{};
+        mavlink_msg_radio_status_decode(&message, &radio);
+        diagnosticRadio = radio;
+        const bool continuous = radioBaseline && now >= lastRadioAt && now - lastRadioAt < qualityConfig.radioFreshMs;
+        if (continuous) {
+            const auto delta = [](quint16 oldValue, quint16 newValue) {
+                if (newValue >= oldValue) return int(newValue - oldValue);
+                // Only an edge-to-edge transition is a defensible 16-bit wrap.
+                if (oldValue >= 0xf000 && newValue <= 0x0fff) return int(65536u + newValue - oldValue);
+                return -1;
+            };
+            const int errors = delta(previousRadioErrors, radio.rxerrors);
+            const int corrections = delta(previousRadioCorrections, radio.fixed);
+            if (errors < 0 || corrections < 0) {
+                ++radioResets; radioWindow.clear(); radioCounterStatus = "reset/rebaseline";
+            } else {
+                radioWindow.append({now, errors, corrections});
+                if (radioWindow.size() > 256) radioWindow.removeFirst();
+                radioCounterStatus = errors || corrections ? "recent counter deltas (not packet loss)" : "no new error/correction events";
+            }
+        } else { radioWindow.clear(); radioCounterStatus = "baseline only"; }
+        radioBaseline = true;
+        previousRadioErrors = radio.rxerrors; previousRadioCorrections = radio.fixed;
+        lastRadioAt = now;
+        rawRssi = radio.rssi == UINT8_MAX ? -1 : radio.rssi;
+        lastRssiAt = rawRssi < 0 ? -1 : now;
     }
+    // Track every selected-autopilot frame, including PING, before message-type
+    // filtering. Other components have independent sequence spaces and are ignored.
+    if (message.compid != targetComponentId) return;
+    if (!sequenceBaseline || now < lastSequenceAt || now - lastSequenceAt >= qualityConfig.sequenceFreshMs) {
+        sequenceWindow.clear(); sequenceBaseline = true; qualityLastSequence = message.seq; lastSequenceAt = now; return;
+    }
+    const int delta = quint8(message.seq - qualityLastSequence);
+    if (!delta) { ++sequenceDuplicates; ++transportDuplicates; return; }
+    if (delta >= 128) { ++sequenceReordered; ++transportReordered; return; }
+    qualityLastSequence = message.seq; lastSequenceAt = now;
+    if (delta > qualityConfig.maximumForwardDelta) { ++sequenceResyncs; sequenceWindow.clear(); return; }
+    detectedSequenceGaps += quint64(delta - 1);
+    sequenceWindow.append({now, delta});
+    if (sequenceWindow.size() > 4096) sequenceWindow.removeFirst();
+}
 
-    const quint16 source = static_cast<quint16>((static_cast<quint16>(msg.sysid) << 8) | msg.compid);
-    const auto previous = lastMessageSequenceBySource.constFind(source);
-    if (previous != lastMessageSequenceBySource.cend()) {
-        const int gap = (static_cast<int>(msg.seq) - static_cast<int>(previous.value()) - 1 + 256) % 256;
-        const double sampleQuality = gap == 0 ? 100.0 : 0.0;
-        const double newQuality = mavlinkQualityValue < 0
-                ? sampleQuality
-                : mavlinkQualityValue * 0.9 + sampleQuality * 0.1;
-        if (mavlinkQualityValue < 0 || qAbs(newQuality - mavlinkQualityValue) >= 0.5) {
-            mavlinkQualityValue = newQuality;
-            emit linkQualityChanged();
+void Mavlink::processLinkQuality()
+{
+    if (!connected() || qualityGeneration != connectionGenerationValue) return;
+    const auto now = connectionClock();
+    const auto fresh = [now](qint64 stamp, int limit) { return stamp >= 0 && now >= stamp && now - stamp < limit; };
+    while (!sequenceWindow.isEmpty() && !fresh(sequenceWindow.first().at, qualityConfig.sequenceWindowMs)) sequenceWindow.removeFirst();
+    while (!latencyWindow.isEmpty() && !fresh(latencyWindow.first().at, qualityConfig.pingFreshMs)) latencyWindow.removeFirst();
+    while (!radioWindow.isEmpty() && !fresh(radioWindow.first().at, qualityConfig.radioFreshMs)) radioWindow.removeFirst();
+    for (auto it = pendingQualityPings.begin(); it != pendingQualityPings.end();) {
+        if (!fresh(it->at, qualityConfig.pingResponseMs + 1)) it = pendingQualityPings.erase(it); else ++it;
+    }
+    int expected = 0;
+    for (const auto &sample : sequenceWindow) expected += sample.expected;
+    sequenceEstimate = fresh(lastSequenceAt, qualityConfig.sequenceFreshMs) && expected >= qualityConfig.minimumSequenceExpected
+            ? std::clamp(100.0 * sequenceWindow.size() / expected, 0.0, 100.0) : -1;
+    QVector<int> latency;
+    for (const auto &sample : latencyWindow) latency.append(sample.value);
+    std::sort(latency.begin(), latency.end());
+    linkLatencyMsValue = latency.isEmpty() ? -1 : latency.size() % 2 ? latency[latency.size()/2]
+        : (latency[latency.size()/2 - 1] + latency[latency.size()/2]) / 2;
+    double measured = sequenceEstimate;
+    if (measured >= 0 && linkLatencyMsValue >= 0) {
+        const double latencyScore = std::clamp(100.0 - (linkLatencyMsValue - 50) * 100.0 / 450.0, 0.0, 100.0);
+        // Continuity remains primary; sustained high RTT must still be able
+        // to downgrade a perfectly continuous stream from GOOD to FAIR.
+        measured = 0.70 * measured + 0.30 * latencyScore;
+    }
+    mavlinkQualityValue = sequenceEstimate;
+    if (measured < 0) {
+        filteredQuality = -1; qualityScore = -1; filterAt = -1;
+        qualityCategory.clear(); candidateCategory.clear(); candidateAt = categoryAt = -1;
+    } else {
+        if (filteredQuality < 0 || filterAt < 0 || now < filterAt || now - filterAt > qMax(qualityConfig.sequenceWindowMs, qualityConfig.pingFreshMs)) {
+            filteredQuality = measured;
+            qualityCategory.clear(); candidateCategory.clear(); candidateAt = categoryAt = -1;
+        } else {
+            const double seconds = double(now - filterAt) / 1000.;
+            filteredQuality += (1.0 - std::exp(-seconds / qualityConfig.timeConstantSeconds)) * (measured - filteredQuality);
+        }
+        filterAt = now;
+        qualityScore = qRound(std::clamp(filteredQuality, 0.0, 100.0));
+        QString desired;
+        if (qualityCategory == "GOOD") desired = filteredQuality < qualityConfig.poorEntry ? "POOR" : filteredQuality < qualityConfig.goodExit ? "FAIR" : "GOOD";
+        else if (qualityCategory == "POOR") desired = filteredQuality >= qualityConfig.goodEntry ? "GOOD" : filteredQuality >= qualityConfig.poorExit ? "FAIR" : "POOR";
+        else desired = filteredQuality >= qualityConfig.goodEntry ? "GOOD" : filteredQuality < qualityConfig.poorEntry ? "POOR" : "FAIR";
+        if (desired == qualityCategory) { candidateCategory.clear(); candidateAt = -1; }
+        else {
+            if (candidateCategory != desired || candidateAt < 0 || now < candidateAt) { candidateCategory = desired; candidateAt = now; }
+            if (now - candidateAt >= qualityConfig.sustainedCategoryMs
+                    && (categoryAt < 0 || now - categoryAt >= qualityConfig.minimumCategoryDwellMs)) {
+                qualityCategory = desired; categoryAt = now; candidateCategory.clear(); candidateAt = -1;
+            }
         }
     }
-    lastMessageSequenceBySource.insert(source, msg.seq);
+    const auto diagnostics = linkQualityDiagnostics();
+    if (diagnostics != publishedQualityDiagnostics) { publishedQualityDiagnostics = diagnostics; emit linkQualityChanged(); }
+}
+
+QVariantMap Mavlink::linkQualityDiagnostics() const
+{
+    const auto now = connectionClock();
+    const auto fresh = [now](qint64 at, int limit) { return at >= 0 && now >= at && now - at < limit; };
+    QStringList available, stale;
+    if (sequenceEstimate >= 0 && fresh(lastSequenceAt, qualityConfig.sequenceFreshMs)) available << "sequence continuity estimate";
+    else if (lastSequenceAt >= 0) stale << "sequence (stale or insufficient evidence)";
+    if (linkLatencyMsValue >= 0 && fresh(lastValidPingAt, qualityConfig.pingFreshMs)) available << "PING median RTT";
+    else if (lastValidPingAt >= 0) stale << "PING";
+    if (rawRadioRssi() >= 0) available << "raw RSSI (diagnostic only)";
+    else if (lastRssiAt >= 0) stale << "RSSI";
+    const bool radioFresh = fresh(lastRadioAt, qualityConfig.radioFreshMs);
+    if (radioFresh && !radioWindow.isEmpty()) available << "radio counter deltas (diagnostic only)";
+    if (!radioFresh && lastRadioAt >= 0) stale << "radio counters";
+    int errors = 0, corrections = 0, expected = 0;
+    for (const auto &sample : radioWindow) if (fresh(sample.at, qualityConfig.radioFreshMs)) { errors += sample.errors; corrections += sample.corrections; }
+    for (const auto &sample : sequenceWindow) if (fresh(sample.at, qualityConfig.sequenceWindowMs)) expected += sample.expected;
+    return {{"connected", connected()}, {"connectionState", int(connectionStateValue)},
+        {"connectionGeneration", QVariant::fromValue(connectionGenerationValue)}, {"systemId", targetSystemId},
+        {"componentId", targetComponentId}, {"radioComponentId", radioSourceComponent}, {"qualityEstimate", qualityScore},
+        {"category", qualityCategory}, {"availableMetrics", available}, {"staleMetrics", stale},
+        {"lastRadioMonotonicMs", lastRadioAt}, {"lastPingMonotonicMs", lastValidPingAt}, {"lastSequenceMonotonicMs", lastSequenceAt},
+        {"latencyMs", linkLatencyMsValue}, {"rawRssi", rawRadioRssi()}, {"rssiInterpretation", "uncalibrated device-dependent raw RSSI; not dBm or percent"},
+        {"radioCountersFresh", radioFresh}, {"radioCounterStatus", radioFresh ? radioCounterStatus : "unavailable/stale"},
+        {"radioErrorsDelta", errors}, {"radioCorrectionsDelta", corrections}, {"radioCounterResets", radioResets},
+        {"sequenceExpected", expected}, {"sequenceReceived", sequenceWindow.size()}, {"sequenceScore", sequenceEstimate},
+        {"duplicates", sequenceDuplicates}, {"reordered", sequenceReordered}, {"resynchronizations", sequenceResyncs},
+        {"confidence", qualityScore < 0 ? "unavailable" : linkLatencyMsValue < 0 ? "limited: sequence only" : "moderate: sequence plus latency"},
+        {"unknownReason", !connected() ? "No live heartbeat connection" : qualityScore < 0 ? "Insufficient fresh sequence evidence" : qualityCategory.isEmpty() ? "Assessing sustained quality" : ""}};
+}
+
+QVariantMap Mavlink::transportDiagnostics() const
+{
+    if (!link) return {};
+    const auto now = connectionClock();
+    const bool radioFresh = connected() && lastRadioAt >= 0 && now >= lastRadioAt && now - lastRadioAt < qualityConfig.radioFreshMs;
+    const bool pingFresh = connected() && lastValidPingAt >= 0 && now >= lastValidPingAt && now - lastValidPingAt < qualityConfig.pingFreshMs;
+    int recent = 0;
+    for (auto at : packetTimes) if (now >= at && now - at < 1000) ++recent;
+    const auto raw = [radioFresh](int value) { return radioFresh && value != UINT8_MAX ? value : -1; };
+    return {{"endpoint", diagnosticEndpointValue}, {"connectionGeneration", QVariant::fromValue(connectionGenerationValue)},
+        {"received", QVariant::fromValue(receivedPackets)}, {"transmitted", QVariant::fromValue(transmittedPackets)},
+        {"sequenceGaps", QVariant::fromValue(detectedSequenceGaps)}, {"duplicates", QVariant::fromValue(transportDuplicates)}, {"reordered", QVariant::fromValue(transportReordered)},
+        {"rate", packetRateStartedAt >= 0 && now - packetRateStartedAt >= 1000 && recent < 10000 ? recent : -1},
+        {"lastPacketAgeMs", lastPacketAt >= 0 && now >= lastPacketAt ? now - lastPacketAt : -1},
+        {"radioState", lastRadioAt < 0 ? "Unavailable" : radioFresh ? "Available" : "Stale"},
+        {"radioAgeMs", lastRadioAt >= 0 && now >= lastRadioAt ? now - lastRadioAt : -1},
+        {"radioSystem", targetSystemId}, {"radioComponent", radioSourceComponent},
+        {"rssi", raw(diagnosticRadio.rssi)}, {"remoteRssi", raw(diagnosticRadio.remrssi)},
+        {"noise", raw(diagnosticRadio.noise)}, {"remoteNoise", raw(diagnosticRadio.remnoise)},
+        {"rxerrors", radioFresh ? int(diagnosticRadio.rxerrors) : -1}, {"fixed", radioFresh ? int(diagnosticRadio.fixed) : -1},
+        {"txbuf", radioFresh && diagnosticRadio.txbuf <= 100 ? int(diagnosticRadio.txbuf) : -1},
+        {"systemId", targetSystemId}, {"componentId", targetComponentId},
+        {"latencyState", lastValidPingAt < 0 ? "Unavailable" : pingFresh ? "Available" : "Stale"},
+        {"latencyAgeMs", lastValidPingAt >= 0 && now >= lastValidPingAt ? now - lastValidPingAt : -1},
+        {"latencyMs", pingFresh ? linkLatencyMsValue : -1},
+        {"quality", connected() ? qualityScore : -1}, {"category", connected() ? qualityCategory : QString()}};
 }
 
 void Mavlink::resetLinkQuality()
 {
-    const bool hadQuality = linkLatencyMsValue >= 0 || mavlinkQualityValue >= 0 || !lastMessageSequenceBySource.isEmpty();
-    linkLatencyMsValue = -1;
-    mavlinkQualityValue = -1;
-    lastPingTimestampUsec = 0;
-    lastMessageSequenceBySource.clear();
-    if (hadQuality) {
-        emit linkQualityChanged();
-    }
+    qualityTimer.stop();
+    qualityGeneration = connectionGenerationValue;
+    sequenceWindow.clear(); latencyWindow.clear(); pendingQualityPings.clear(); radioWindow.clear();
+    sequenceBaseline = radioBaseline = false; radioSourceComponent = -1;
+    lastSequenceAt = lastRadioAt = lastRssiAt = lastValidPingAt = filterAt = candidateAt = categoryAt = -1;
+    qualityScore = rawRssi = linkLatencyMsValue = -1; filteredQuality = sequenceEstimate = mavlinkQualityValue = -1;
+    sequenceDuplicates = sequenceReordered = sequenceResyncs = radioResets = 0;
+    qualityCategory.clear(); candidateCategory.clear(); radioCounterStatus = "unavailable";
+    publishedQualityDiagnostics.clear();
+    emit linkQualityChanged();
 }
 
 void Mavlink::setMissionStatus(const QString &status)
@@ -1855,150 +2442,31 @@ void Mavlink::setUploadedHomeLocation(const QVariantMap &location)
     emit uploadedHomeLocationChanged();
 }
 
-void Mavlink::resetParameterCache()
+void Mavlink::handleParameterValue(const mavlink_message_t &msg, quint64 generation)
 {
-    if (parameterFetchIdleTimer) {
-        parameterFetchIdleTimer->stop();
-    }
-    if (missingParameterRetryTimer) {
-        missingParameterRetryTimer->stop();
-    }
-
-    const bool hadState = parameterFetchActive || parameterRequestSent || !parameterCache.isEmpty()
-            || expectedParameterCount > 0 || !receivedParameterIndices.isEmpty();
-
-    parameterCache.clear();
-    receivedParameterIndices.clear();
-    expectedParameterCount = -1;
-    parameterRetryCount = 0;
-    parameterFetchActive = false;
-    parameterRequestSent = false;
-
-    if (hadState) {
-        emit parameterFetchStatusChanged();
-    }
-}
-
-void Mavlink::requestMissingParameters()
-{
-    if (!connectedState || !parameterFetchActive || expectedParameterCount <= 0) {
+    if (!connected() || msg.sysid != targetSystemId || msg.compid != targetComponentId
+            || generation != parameterManagerObject->generation()) return;
+    if (msg.msgid == MAVLINK_MSG_ID_AUTOPILOT_VERSION) {
+        mavlink_autopilot_version_t version = {};
+        mavlink_msg_autopilot_version_decode(&msg, &version);
+        const bool bytewise = version.capabilities & MAV_PROTOCOL_CAPABILITY_PARAM_ENCODE_BYTEWISE;
+        const bool numeric = version.capabilities & MAV_PROTOCOL_CAPABILITY_PARAM_ENCODE_C_CAST;
+        if (bytewise || numeric)
+            parameterManagerObject->setEncoding(bytewise && numeric ? ParameterManager::UnknownEncoding
+                                                : bytewise ? ParameterManager::Bytewise : ParameterManager::NumericCast);
         return;
     }
-
-    if (parameterCache.size() >= expectedParameterCount) {
-        finishParameterFetch(true);
-        return;
-    }
-
-    if (parameterRetryCount >= 5) {
-        finishParameterFetch(false);
-        return;
-    }
-
-    ++parameterRetryCount;
-    int requested = 0;
-    for (int index = 0; index < expectedParameterCount; ++index) {
-        if (receivedParameterIndices.contains(index)) {
-            continue;
-        }
-
-        mavlink_message_t msg;
-        char emptyName[16] = {};
-        mavlink_msg_param_request_read_pack(
-            255,
-            0,
-            &msg,
-            targetSystemId,
-            targetComponentId,
-            emptyName,
-            static_cast<int16_t>(index)
-        );
-        sendMavlinkMessage(msg);
-
-        ++requested;
-        if (requested >= 25) {
-            break;
-        }
-    }
-
-    qDebug() << "Requested missing parameters batch"
-             << "retry" << parameterRetryCount
-             << "requested" << requested
-             << "loaded" << parameterCache.size()
-             << "expected" << expectedParameterCount;
-
-    missingParameterRetryTimer->start();
-}
-
-void Mavlink::finishParameterFetch(bool complete)
-{
-    if (!parameterFetchActive) {
-        return;
-    }
-
-    parameterFetchActive = false;
-    if (parameterFetchIdleTimer) {
-        parameterFetchIdleTimer->stop();
-    }
-    if (missingParameterRetryTimer) {
-        missingParameterRetryTimer->stop();
-    }
-
-    qDebug() << "Parameter fetch finished"
-             << "complete" << complete
-             << "loaded" << parameterCache.size()
-             << "expected" << expectedParameterCount;
-
-    emit parameterFetchStatusChanged();
-    emit parameterFetchFinished(complete, parameterCache.size(), parameterCount());
-}
-
-void Mavlink::handleParameterValue(const mavlink_message_t &msg)
-{
-    if (msg.msgid != MAVLINK_MSG_ID_PARAM_VALUE) {
-        return;
-    }
-
-    mavlink_param_value_t value;
+    if (msg.msgid != MAVLINK_MSG_ID_PARAM_VALUE) return;
+    mavlink_param_value_t value = {};
     mavlink_msg_param_value_decode(&msg, &value);
-
-    const QString name = mavlinkParamIdToString(value.param_id);
-    if (name.isEmpty()) {
-        return;
-    }
-
-    const int previousExpectedCount = expectedParameterCount;
-    if (value.param_count > 0) {
-        expectedParameterCount = value.param_count;
-    }
-
-    VehicleParameter parameter;
-    parameter.name = name;
-    parameter.value = value.param_value;
-    parameter.type = value.param_type;
-    parameter.index = value.param_index;
-
-    const bool isNewParameter = !parameterCache.contains(name);
-    parameterCache.insert(name, parameter);
-    if (value.param_index != UINT16_MAX) {
-        receivedParameterIndices.insert(value.param_index);
-    }
-
-    parameterFetchActive = parameterFetchActive || parameterRequestSent;
-    parameterFetchIdleTimer->start();
-
-    emit parameterUpdated(name, parameterToVariantMap(parameter));
-    if (isNewParameter || previousExpectedCount != expectedParameterCount) {
-        emit parameterFetchStatusChanged();
-    }
-
-    if (expectedParameterCount > 0 && parameterCache.size() >= expectedParameterCount) {
-        finishParameterFetch(true);
-    } else if (expectedParameterCount > 0 && !missingParameterRetryTimer->isActive()) {
-        missingParameterRetryTimer->start();
-    }
+    ParameterManager::Sample sample;
+    sample.identifier = QByteArray(value.param_id, 16);
+    sample.wireValue = value.param_value;
+    sample.type = value.param_type;
+    sample.index = value.param_index;
+    sample.count = value.param_count;
+    parameterManagerObject->receive(msg.sysid, msg.compid, generation, sample);
 }
-
 void Mavlink::handleRcChannels(const mavlink_message_t &msg)
 {
     QVariantList channels;
@@ -2037,24 +2505,6 @@ void Mavlink::handleRcChannels(const mavlink_message_t &msg)
 
     latestRcChannels = channels;
     emit rcChannelsChanged();
-}
-
-QString Mavlink::mavlinkParamIdToString(const char paramId[16]) const
-{
-    const QByteArray raw(paramId, 16);
-    const int terminatorIndex = raw.indexOf('\0');
-    const int length = terminatorIndex >= 0 ? terminatorIndex : raw.size();
-    return QString::fromLatin1(raw.constData(), length).trimmed();
-}
-
-QVariantMap Mavlink::parameterToVariantMap(const VehicleParameter &parameter) const
-{
-    QVariantMap value;
-    value.insert(QStringLiteral("name"), parameter.name);
-    value.insert(QStringLiteral("value"), parameter.value);
-    value.insert(QStringLiteral("type"), parameter.type);
-    value.insert(QStringLiteral("index"), parameter.index);
-    return value;
 }
 
 void Mavlink::requestDataStreams()
@@ -2108,13 +2558,22 @@ void Mavlink::requestDataStreams()
 
     sendMavlinkMessage(msg);
 
-    qDebug() << "Requested all data streams at 10Hz and RC channels at 50Hz";
+    // ArduPilot 4.0+ and PX4 support per-message intervals. This is a request,
+    // not evidence of support/delivery: Vehicle remains unknown until telemetry
+    // arrives. Keep legacy stream requests and RC configuration unchanged.
+    mavlink_msg_command_long_pack(255, 0, &msg, targetSystemId, targetComponentId,
+                                 MAV_CMD_SET_MESSAGE_INTERVAL, 0,
+                                 MAVLINK_MSG_ID_EXTENDED_SYS_STATE, 1000000.0f,
+                                 0, 0, 0, 0, 0);
+    sendMavlinkMessage(msg);
+    qDebug() << "Requested all data streams at 10Hz, RC channels at 50Hz, and landed state at 1Hz";
 }
 
 void Mavlink::sendCommandLong(uint16_t command, float param1, float param2, float param3,
                               float param4, float param5, float param6, float param7)
 {
-    if (!connectedState) {
+    if (!connected()) {
+        rejectCommand(QStringLiteral("commandLong:%1").arg(command), "Vehicle is not connected.");
         qDebug() << "Cannot send MAVLink command while disconnected:" << command;
         return;
     }
@@ -2147,7 +2606,8 @@ void Mavlink::sendCommandLong(uint16_t command, float param1, float param2, floa
 
 void Mavlink::sendSetMode(uint32_t customMode)
 {
-    if (!connectedState) {
+    if (!connected()) {
+        rejectCommand("setFlightMode", "Vehicle is not connected.");
         qDebug() << "Cannot set MAVLink mode while disconnected:" << customMode;
         return;
     }
@@ -2166,51 +2626,15 @@ void Mavlink::sendSetMode(uint32_t customMode)
     qDebug() << "Sent MAVLink set mode:" << customMode << "target" << targetSystemId << targetComponentId;
 }
 
-bool Mavlink::sendParameterSet(const QString &name, float value, uint8_t type)
+bool Mavlink::sendParameterSet(const QString &name, double value, uint8_t type)
 {
-    if (!connectedState) {
-        return false;
-    }
-
-    const QByteArray encodedName = name.trimmed().toLatin1();
-    if (encodedName.isEmpty()) {
-        return false;
-    }
-
-    char paramId[16] = {};
-    const int copyLength = qMin(encodedName.size(), int(sizeof(paramId)));
-    memcpy(paramId, encodedName.constData(), copyLength);
-
-    mavlink_message_t msg;
-    mavlink_msg_param_set_pack(
-        255,
-        0,
-        &msg,
-        targetSystemId,
-        targetComponentId,
-        paramId,
-        value,
-        type
-    );
-
-    sendMavlinkMessage(msg);
-
-    VehicleParameter parameter;
-    parameter.name = QString::fromLatin1(paramId, copyLength).trimmed();
-    parameter.value = value;
-    parameter.type = type;
-    parameter.index = parameterCache.value(parameter.name).index;
-    parameterCache.insert(parameter.name, parameter);
-    emit parameterUpdated(parameter.name, parameterToVariantMap(parameter));
-
-    qDebug() << "Sent MAVLink parameter set:" << parameter.name << value << type;
-    return true;
+    return setParameter(name, value, type);
 }
 
-void Mavlink::sendMavlinkMessage(mavlink_message_t &msg)
+bool Mavlink::sendMavlinkMessage(mavlink_message_t &msg)
 {
     if (!link) {
-        return;
+        return false;
     }
 
     uint8_t buf[MAVLINK_MAX_PACKET_LEN];
@@ -2220,6 +2644,8 @@ void Mavlink::sendMavlinkMessage(mavlink_message_t &msg)
         writeTelemetryLogRecord(reinterpret_cast<const char*>(buf), len);
     }
     link->flush();
+    if (bytesWritten == len) ++transmittedPackets;
+    return bytesWritten == len;
 }
 
 bool Mavlink::shouldLogTelemetryMessage(const mavlink_message_t &msg) const
@@ -2501,7 +2927,7 @@ void Mavlink::queuePendingTerrainBlock(const mavlink_terrain_request_t &request,
 
 void Mavlink::retryPendingTerrainRequests()
 {
-    if (!connectedState || pendingTerrainBlocks.isEmpty()) {
+    if (!connected() || pendingTerrainBlocks.isEmpty()) {
         clearPendingTerrainRequests();
         return;
     }
@@ -2550,7 +2976,7 @@ void Mavlink::sendMissionClearAll()
 
 void Mavlink::sendMissionCount()
 {
-    if (!connectedState || pendingMissionItems.isEmpty()) {
+    if (!connected() || pendingMissionItems.isEmpty()) {
         return;
     }
 
@@ -2671,8 +3097,99 @@ void Mavlink::sendMissionAck(uint8_t type)
     sendMavlinkMessage(msg);
 }
 
+bool Mavlink::missionMessageMatchesTransfer(const mavlink_message_t &msg) const
+{
+    return transferStateValue != TransferIdle && transferStateValue != Completed
+            && transferStateValue != Failed && transferStateValue != Cancelled
+            && connected() && missionTransferConnectionGeneration == connectionGenerationValue
+            && msg.sysid == transferSystemId && msg.compid == transferComponentId;
+}
+
+void Mavlink::startMissionTransfer(TransferState state, int total)
+{
+    if (transferStateValue != TransferIdle && transferStateValue != Completed
+            && transferStateValue != Failed && transferStateValue != Cancelled) {
+        finishMissionTransfer(Cancelled, QStringLiteral("superseded"), QStringLiteral("Mission transfer superseded by a new request."));
+    }
+    ++transferIdValue;
+    transferStateValue = state;
+    missionTransferConnectionGeneration = connectionGenerationValue;
+    transferSystemId = targetSystemId;
+    transferComponentId = targetComponentId;
+    transferTotalValue = total;
+    transferProgressValue = 0;
+    transferRetryCount = 0;
+    transferExpectedSequence = 0;
+    transferErrorCodeValue.clear();
+    emit missionTransferChanged();
+    restartMissionTransferTimer();
+}
+
+void Mavlink::finishMissionTransfer(TransferState state, const QString &code, const QString &message)
+{
+    if (transferStateValue == Completed || transferStateValue == Failed || transferStateValue == Cancelled) return;
+    if (missionTransferTimer) missionTransferTimer->stop();
+    if (state == Completed || state == Failed || state == Cancelled) {
+        replaceDirtyPlanOnDownloadCompletion = false;
+    }
+    transferStateValue = state;
+    transferErrorCodeValue = code;
+    emit missionTransferChanged();
+    setMissionStatus(message);
+    emit missionTransferFinished(transferIdValue, int(state), code, message);
+}
+
+void Mavlink::restartMissionTransferTimer()
+{
+    if (!missionTransferTimer) return;
+    QObject::disconnect(missionTimerConnection);
+    const auto serial = ++missionTimerSerial;
+    const auto generation = connectionGenerationValue;
+    const auto transfer = transferIdValue;
+    missionTimerConnection = connect(missionTransferTimer, &QTimer::timeout, this, [this, serial, generation, transfer] {
+        if (serial == missionTimerSerial && generation == connectionGenerationValue && transfer == transferIdValue)
+            onMissionTransferTimeout();
+    });
+    missionTransferTimer->start(3000);
+}
+
+void Mavlink::onMissionTransferTimeout()
+{
+    if (!connected() || missionTransferConnectionGeneration != connectionGenerationValue) return;
+    if (transferStateValue == TransferIdle || transferStateValue == Completed || transferStateValue == Failed || transferStateValue == Cancelled) return;
+    if (++transferRetryCount > 3) {
+        const bool upload = transferStateValue == ClearingBeforeUpload || transferStateValue == Uploading;
+        missionUploadActive = false; missionClearBeforeUploadActive = false; missionDownloadActive = false;
+        finishMissionTransfer(Failed, QStringLiteral("timeout"), QStringLiteral("Mission transfer timed out."));
+        if (upload) emit missionUploadFinished(false, missionStatusText);
+        return;
+    }
+    if (transferStateValue == Downloading) {
+        if (missionDownloadExpectedCount == 0) requestMissionList(); else requestMissionItem(transferExpectedSequence);
+    } else if (transferStateValue == ClearingBeforeUpload || transferStateValue == Clearing) {
+        sendMissionClearAll();
+    } else if (transferStateValue == Uploading) {
+        sendMissionCount();
+    }
+    restartMissionTransferTimer();
+}
+
+void Mavlink::cancelMissionTransfer()
+{
+    if (transferStateValue == TransferIdle || transferStateValue == Completed || transferStateValue == Failed || transferStateValue == Cancelled) return;
+    missionUploadActive = false; missionClearBeforeUploadActive = false; missionDownloadActive = false;
+    replaceDirtyPlanOnDownloadCompletion = false;
+    finishMissionTransfer(Cancelled, QStringLiteral("cancelled"), QStringLiteral("Mission transfer cancelled."));
+}
+
 void Mavlink::handleMissionMessage(const mavlink_message_t &msg)
 {
+    if ((msg.msgid == MAVLINK_MSG_ID_MISSION_COUNT || msg.msgid == MAVLINK_MSG_ID_MISSION_ITEM
+            || msg.msgid == MAVLINK_MSG_ID_MISSION_ITEM_INT || msg.msgid == MAVLINK_MSG_ID_MISSION_REQUEST
+            || msg.msgid == MAVLINK_MSG_ID_MISSION_REQUEST_INT || msg.msgid == MAVLINK_MSG_ID_MISSION_ACK)
+            && !missionMessageMatchesTransfer(msg)) {
+        return;
+    }
     if (msg.msgid == MAVLINK_MSG_ID_MISSION_COUNT) {
         if (!missionDownloadActive || missionUploadActive || missionClearBeforeUploadActive) {
             return;
@@ -2680,7 +3197,7 @@ void Mavlink::handleMissionMessage(const mavlink_message_t &msg)
 
         mavlink_mission_count_t count;
         mavlink_msg_mission_count_decode(&msg, &count);
-        if (count.mission_type != MAV_MISSION_TYPE_MISSION && count.mission_type != MAV_MISSION_TYPE_ALL) {
+        if (count.mission_type != MAV_MISSION_TYPE_MISSION) {
             return;
         }
 
@@ -2702,12 +3219,17 @@ void Mavlink::handleMissionMessage(const mavlink_message_t &msg)
             emit missionTerrainProfileChanged();
             setMissionStatus(QStringLiteral("Vehicle has no mission to save or load."));
             sendMissionAck(MAV_MISSION_ACCEPTED);
+            finishMissionTransfer(Completed, {}, missionStatusText);
             return;
         }
 
         downloadingMissionItems.resize(missionDownloadExpectedCount);
+        transferTotalValue = missionDownloadExpectedCount;
+        transferExpectedSequence = 0;
+        emit missionTransferChanged();
         setMissionStatus(QStringLiteral("Vehicle mission found: %1 waypoint items.").arg(missionDownloadExpectedCount));
         requestMissionItem(0);
+        restartMissionTransferTimer();
         return;
     }
 
@@ -2720,7 +3242,7 @@ void Mavlink::handleMissionMessage(const mavlink_message_t &msg)
         if (msg.msgid == MAVLINK_MSG_ID_MISSION_ITEM_INT) {
             mavlink_mission_item_int_t downloadedItem;
             mavlink_msg_mission_item_int_decode(&msg, &downloadedItem);
-            if (downloadedItem.mission_type != MAV_MISSION_TYPE_MISSION && downloadedItem.mission_type != MAV_MISSION_TYPE_ALL) {
+            if (downloadedItem.mission_type != MAV_MISSION_TYPE_MISSION) {
                 return;
             }
             item.seq = downloadedItem.seq;
@@ -2738,7 +3260,7 @@ void Mavlink::handleMissionMessage(const mavlink_message_t &msg)
         } else {
             mavlink_mission_item_t downloadedItem;
             mavlink_msg_mission_item_decode(&msg, &downloadedItem);
-            if (downloadedItem.mission_type != MAV_MISSION_TYPE_MISSION && downloadedItem.mission_type != MAV_MISSION_TYPE_ALL) {
+            if (downloadedItem.mission_type != MAV_MISSION_TYPE_MISSION) {
                 return;
             }
             item.seq = downloadedItem.seq;
@@ -2760,16 +3282,35 @@ void Mavlink::handleMissionMessage(const mavlink_message_t &msg)
             missionDownloadActive = false;
             missionSaveRequestedAfterDownload = false;
             setMissionStatus(QStringLiteral("Mission download failed: invalid item sequence %1.").arg(item.seq));
+            finishMissionTransfer(Failed, QStringLiteral("invalid-sequence"), missionStatusText);
+            return;
+        }
+
+        if (downloadedMissionItemSeqs.contains(item.seq)) {
+            sendMissionAck(MAV_MISSION_INVALID_SEQUENCE);
+            missionDownloadActive = false;
+            finishMissionTransfer(Failed, QStringLiteral("duplicate-sequence"), QStringLiteral("Mission download failed: duplicate item sequence."));
+            return;
+        }
+
+        if (item.seq != transferExpectedSequence) {
+            sendMissionAck(MAV_MISSION_INVALID_SEQUENCE);
+            missionDownloadActive = false;
+            finishMissionTransfer(Failed, QStringLiteral("unexpected-sequence"), QStringLiteral("Mission download received an out-of-order item."));
             return;
         }
 
         downloadingMissionItems[item.seq] = item;
         downloadedMissionItemSeqs.insert(item.seq);
+        transferProgressValue = downloadedMissionItemSeqs.size();
+        emit missionTransferChanged();
 
         if (downloadedMissionItemSeqs.size() < missionDownloadExpectedCount) {
             for (uint16_t seq = 0; seq < missionDownloadExpectedCount; ++seq) {
                 if (!downloadedMissionItemSeqs.contains(seq)) {
+                    transferExpectedSequence = seq;
                     requestMissionItem(seq);
+                    restartMissionTransferTimer();
                     break;
                 }
             }
@@ -2791,6 +3332,16 @@ void Mavlink::handleMissionMessage(const mavlink_message_t &msg)
         emit missionElevationWaypointsChanged();
         emit missionTerrainProfileChanged();
         sendMissionAck(MAV_MISSION_ACCEPTED);
+        if (missionPlanModel) {
+            const auto converted = MissionPlanConverter::importVehicleMission(
+                    pendingMissionItems, missionPlanModel, replaceDirtyPlanOnDownloadCompletion);
+            if (!converted.success) {
+                replaceDirtyPlanOnDownloadCompletion = false;
+                finishMissionTransfer(Failed, QStringLiteral("model-import"), converted.error);
+                return;
+            }
+        }
+        replaceDirtyPlanOnDownloadCompletion = false;
 
         if (missionSaveRequestedAfterDownload) {
             missionSaveRequestedAfterDownload = false;
@@ -2803,6 +3354,7 @@ void Mavlink::handleMissionMessage(const mavlink_message_t &msg)
         } else {
             setMissionStatus(QStringLiteral("Downloaded vehicle mission: %1 waypoint items.").arg(pendingMissionItems.size()));
         }
+        finishMissionTransfer(Completed, {}, missionStatusText);
         return;
     }
 
@@ -2885,8 +3437,23 @@ void Mavlink::handleMissionMessage(const mavlink_message_t &msg)
     if (msg.msgid == MAVLINK_MSG_ID_MISSION_REQUEST_INT) {
         mavlink_mission_request_int_t request;
         mavlink_msg_mission_request_int_decode(&msg, &request);
-        if (missionUploadActive) {
+        if (!missionUploadActive) {
+            return;
+        }
+        // Fence/rally and other mission transactions can share the selected
+        // autopilot link. They are unrelated to this normal mission upload.
+        if (request.mission_type != MAV_MISSION_TYPE_MISSION) {
+            return;
+        }
+        if (request.seq < static_cast<uint16_t>(pendingMissionItems.size())) {
             sendMissionItem(request.seq, true);
+            transferProgressValue = qMax(transferProgressValue, int(request.seq) + 1);
+            emit missionTransferChanged();
+            restartMissionTransferTimer();
+        } else {
+            missionUploadActive = false;
+            finishMissionTransfer(Failed, QStringLiteral("invalid-request"), QStringLiteral("Mission upload received an invalid item request."));
+            emit missionUploadFinished(false, missionStatusText);
         }
         return;
     }
@@ -2894,8 +3461,21 @@ void Mavlink::handleMissionMessage(const mavlink_message_t &msg)
     if (msg.msgid == MAVLINK_MSG_ID_MISSION_REQUEST) {
         mavlink_mission_request_t request;
         mavlink_msg_mission_request_decode(&msg, &request);
-        if (missionUploadActive) {
+        if (!missionUploadActive) {
+            return;
+        }
+        if (request.mission_type != MAV_MISSION_TYPE_MISSION) {
+            return;
+        }
+        if (request.seq < static_cast<uint16_t>(pendingMissionItems.size())) {
             sendMissionItem(request.seq, false);
+            transferProgressValue = qMax(transferProgressValue, int(request.seq) + 1);
+            emit missionTransferChanged();
+            restartMissionTransferTimer();
+        } else {
+            missionUploadActive = false;
+            finishMissionTransfer(Failed, QStringLiteral("invalid-request"), QStringLiteral("Mission upload received an invalid item request."));
+            emit missionUploadFinished(false, missionStatusText);
         }
         return;
     }
@@ -2904,11 +3484,42 @@ void Mavlink::handleMissionMessage(const mavlink_message_t &msg)
         mavlink_mission_ack_t ack;
         mavlink_msg_mission_ack_decode(&msg, &ack);
 
+        if (ack.mission_type != MAV_MISSION_TYPE_MISSION) return;
         if (missionClearBeforeUploadActive) {
+            if (ack.type != MAV_MISSION_ACCEPTED) {
+                missionClearBeforeUploadActive = false;
+                finishMissionTransfer(Failed, QStringLiteral("clear-rejected"), QStringLiteral("Vehicle rejected mission clear before upload."));
+                emit missionUploadFinished(false, missionStatusText);
+                return;
+            }
             missionClearBeforeUploadActive = false;
             missionUploadActive = true;
             setMissionStatus(QStringLiteral("Uploading mission: %1 waypoint items").arg(pendingMissionItems.size()));
             sendMissionCount();
+            transferStateValue = Uploading;
+            emit missionTransferChanged();
+            restartMissionTransferTimer();
+            return;
+        }
+
+        if (transferStateValue == Clearing) {
+            if (ack.type == MAV_MISSION_ACCEPTED) {
+                // The clear acknowledgement is the authoritative point at
+                // which the legacy render cache may be discarded.  This keeps
+                // a failed clear from incorrectly removing the mission map.
+                pendingMissionItems.clear();
+                loadedMissionWaypoints.clear();
+                loadedMissionElevationWaypoints.clear();
+                loadedMissionTerrainProfile.clear();
+                setUploadedHomeLocation(QVariantMap());
+                setMissionUploaded(false);
+                emit missionWaypointsChanged();
+                emit missionElevationWaypointsChanged();
+                emit missionTerrainProfileChanged();
+                finishMissionTransfer(Completed, {}, QStringLiteral("Vehicle mission cleared."));
+            } else {
+                finishMissionTransfer(Failed, QStringLiteral("clear-rejected"), QStringLiteral("Vehicle rejected mission clear."));
+            }
             return;
         }
 
@@ -2924,52 +3535,49 @@ void Mavlink::handleMissionMessage(const mavlink_message_t &msg)
                 : QStringLiteral("Mission upload failed. ACK type: %1").arg(ack.type);
         setMissionStatus(message);
         emit missionUploadFinished(ok, message);
-    }
-}
-
-void Mavlink::setLink(ILink *newLink)
-{
-    if (!newLink || link == newLink) {
-        return;
-    }
-
-    if (link) {
-        if (link->isConnected()) {
-            link->disconnectLink();
+        if (ok && transferUsesCanonicalSnapshot && missionPlanModel
+                && missionPlanModel->revision() == transferSnapshotRevision) {
+            missionPlanModel->markCurrentRevisionSaved();
         }
-        stopTelemetryLog();
-        link->deleteLater();
+        finishMissionTransfer(ok ? Completed : Failed, ok ? QString() : QStringLiteral("mission-ack"), message);
     }
-
-    link = newLink;
-    inboundFrameBytes.clear();
-    connect(link, &ILink::connected, this, [this]() {
-        // Keep the public connection state false until readData receives a
-        // valid autopilot heartbeat.  Opening a serial/TCP transport or a UDP
-        // socket alone does not confirm a flight-controller connection.
-        missionDownloadRequestedOnConnect = false;
-    });
-    connect(link, &ILink::readyRead, this, &Mavlink::readData);
-    connect(link, &ILink::disconnected, this, [this]() {
-        inboundFrameBytes.clear();
-        stopTelemetryLog();
-        setMissionUploaded(false);
-        missionUploadActive = false;
-        missionClearBeforeUploadActive = false;
-        missionDownloadActive = false;
-        missionDownloadRequestedOnConnect = false;
-        missionSaveRequestedAfterDownload = false;
-        missionDownloadExpectedCount = 0;
-        downloadingMissionItems.clear();
-        downloadedMissionItemSeqs.clear();
-        clearPendingTerrainRequests();
-        targetSystemId = 1;
-        targetComponentId = MAV_COMP_ID_AUTOPILOT1;
-        resetParameterCache();
-        setConnected(false);
-    });
 }
 
+bool Mavlink::setLink(ILink *newLink)
+{
+    if (!newLink) return false;
+    if (link == newLink) return true;
+    if (link) {
+        auto *oldLink = link;
+        const auto previousTransport = transportGeneration;
+        QObject::disconnect(oldLink, nullptr, this, nullptr);
+        endConnection(QStringLiteral("Transport replaced"), false);
+        if (link != oldLink || transportGeneration != previousTransport) {
+            newLink->deleteLater();
+            return false; // A disconnect observer already initiated a newer connection.
+        }
+        oldLink->disconnectLink();
+        oldLink->deleteLater();
+    }
+    link = newLink;
+    const auto transport = ++transportGeneration;
+    inboundFrameBytes.clear();
+    mavlinkStatus = {};
+    mavlink_reset_channel_status(MAVLINK_COMM_0);
+    connect(newLink, &ILink::readyRead, this, [this, newLink, transport] {
+        if (link == newLink && transport == transportGeneration && acceptTransportMessages) readData();
+    });
+    connect(newLink, &ILink::disconnected, this, [this, newLink, transport] {
+        if (link == newLink && transport == transportGeneration) endConnection(QStringLiteral("Transport disconnected or failed"), false);
+    });
+    connect(newLink, &QObject::destroyed, this, [this, transport] {
+        if (transport != transportGeneration) return;
+        link = nullptr;
+        ++transportGeneration;
+        endConnection(QStringLiteral("Transport destroyed"), false);
+    });
+    return true;
+}
 QString Mavlink::saveLoadedMissionToMissionsFolder() const
 {
     if (pendingMissionItems.isEmpty()) {
@@ -3260,3 +3868,5 @@ QVariantList Mavlink::buildMissionTerrainProfile(const QVariantList &profileWayp
 
     return profile;
 }
+
+QObject *Mavlink::console() const { return consoleController; }

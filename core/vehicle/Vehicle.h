@@ -2,10 +2,13 @@
 
 #include <QObject>
 #include <QString>
+#include <QVariantMap>
 #include <QElapsedTimer>
+#include <QTimer>
 #include "common/mavlink.h"
 
 class Mavlink;
+class ParameterManager;
 class Video;
 
 class Vehicle : public QObject
@@ -13,6 +16,8 @@ class Vehicle : public QObject
     Q_OBJECT
     Q_PROPERTY(QObject* mavlink READ mavlink CONSTANT)
     Q_PROPERTY(QObject* video READ video CONSTANT)
+    Q_PROPERTY(QObject* parameterManager READ parameterManager CONSTANT)
+    Q_PROPERTY(bool parametersReady READ parametersReady NOTIFY parametersReadyChanged)
 
     // ───── Attitude ─────
     Q_PROPERTY(double roll READ roll NOTIFY rollChanged)
@@ -32,6 +37,13 @@ class Vehicle : public QObject
     Q_PROPERTY(double batteryVoltage READ batteryVoltage NOTIFY batteryChanged)
     Q_PROPERTY(double batteryCurrent READ batteryCurrent NOTIFY batteryChanged)
     Q_PROPERTY(bool armed READ armed NOTIFY armedChanged)
+    Q_PROPERTY(FlightPhase flightPhase READ flightPhase NOTIFY flightStateChanged)
+    Q_PROPERTY(bool flightStateFresh READ flightStateFresh NOTIFY flightStateChanged)
+    Q_PROPERTY(bool airborne READ airborne NOTIFY flightStateChanged)
+    Q_PROPERTY(bool heartbeatFresh READ heartbeatFresh NOTIFY telemetryFreshnessChanged)
+    Q_PROPERTY(bool positionFresh READ positionFresh NOTIFY telemetryFreshnessChanged)
+    Q_PROPERTY(bool headingValid READ headingValid NOTIFY telemetryFreshnessChanged)
+    Q_PROPERTY(bool headingFresh READ headingFresh NOTIFY telemetryFreshnessChanged)
     Q_PROPERTY(QString flightMode READ flightMode NOTIFY flightModeChanged)
     Q_PROPERTY(QString vehicleType READ vehicleType NOTIFY vehicleTypeChanged)
     Q_PROPERTY(int motorCount READ motorCount NOTIFY vehicleTypeChanged)
@@ -61,15 +73,41 @@ class Vehicle : public QObject
     Q_PROPERTY(double vy READ vy NOTIFY velocityChanged)
     Q_PROPERTY(double vz READ vz NOTIFY velocityChanged)
 
-    // Communication link quality. -1 means no quality telemetry has arrived yet.
+    // Estimated transport quality, not RF strength. -1 means insufficient fresh evidence.
+    Q_PROPERTY(QString commLinkCategory READ commLinkCategory NOTIFY commLinkQualityChanged)
+    Q_PROPERTY(QVariantMap commLinkDiagnostics READ commLinkDiagnostics NOTIFY commLinkQualityChanged)
     Q_PROPERTY(int commLinkQuality READ commLinkQuality NOTIFY commLinkQualityChanged)
     Q_PROPERTY(int radioRssi READ radioRssi NOTIFY commLinkQualityChanged)
     Q_PROPERTY(double radioPacketLoss READ radioPacketLoss NOTIFY commLinkQualityChanged)
 
 public:
+    enum FlightPhase {
+        Unknown = MAV_LANDED_STATE_UNDEFINED,
+        OnGround = MAV_LANDED_STATE_ON_GROUND,
+        InAir = MAV_LANDED_STATE_IN_AIR,
+        TakingOff = MAV_LANDED_STATE_TAKEOFF,
+        Landing = MAV_LANDED_STATE_LANDING
+    };
+    Q_ENUM(FlightPhase)
+
+    // Conservative application defaults, not guarantees about a firmware/link.
+    static constexpr int HeartbeatTimeoutMs = 3000;
+    static constexpr int FlightStateTimeoutMs = 3500; // requested 1 Hz; tolerate two missed samples
+    static constexpr int PositionTimeoutMs = 2000;
+    static constexpr int HeadingTimeoutMs = 2000;
+    FlightPhase flightPhase() const { return flightPhaseValue; }
+    bool flightStateFresh() const { return flightStateFreshValue; }
+    bool airborne() const { return airborneValue; }
+    bool heartbeatFresh() const { return heartbeatFreshValue; }
+    bool positionFresh() const { return positionFreshValue; }
+    bool headingValid() const { return headingValidValue; }
+    bool headingFresh() const { return headingFreshValue; }
     explicit Vehicle(QObject *parent = nullptr);
+    ~Vehicle() override;
 
     QObject* mavlink() const;
+    QObject* parameterManager() const;
+    bool parametersReady() const;
     QObject* video() const;
 
     // ───── Getters ─────
@@ -114,6 +152,8 @@ public:
     double vy() const;
     double vz() const;
     int commLinkQuality() const;
+    QString commLinkCategory() const;
+    QVariantMap commLinkDiagnostics() const;
     int radioRssi() const;
     double radioPacketLoss() const;
 
@@ -121,6 +161,9 @@ public:
     void handleMessage(const mavlink_message_t &msg);
 
 signals:
+    void parametersReadyChanged();
+    void flightStateChanged();
+    void telemetryFreshnessChanged();
     void rollChanged();
     void pitchChanged();
     void yawChanged();
@@ -143,6 +186,16 @@ signals:
     void mavlinkMessageReceived(QString msgid, QString details);
 
 private:
+    void resetTelemetryState();
+    void updateTelemetryState(const mavlink_message_t &msg);
+    void expireTelemetryState();
+    QTimer freshnessTimer;
+    QElapsedTimer heartbeatReceipt, flightStateReceipt, positionReceipt, headingReceipt;
+    FlightPhase flightPhaseValue = Unknown;
+    bool flightStateFreshValue = false, airborneValue = false;
+    bool heartbeatFreshValue = false, positionFreshValue = false;
+    bool headingValidValue = false, headingFreshValue = false;
+    bool selectedArmed = false, airborneConfirmed = false;
     void setHomeLocation(double latitude, double longitude);
     void updateCommLinkQuality();
 
@@ -185,11 +238,8 @@ private:
 
     double vxValue = 0, vyValue = 0, vzValue = 0;
 
-    int commLinkQualityValue = -1;
-    double smoothedCommLinkQualityValue = -1.0;
-    int radioRssiValue = -1;
-    double radioPacketLossValue = -1;
 
+    ParameterManager *parameterManagerObject = nullptr;
     Mavlink *mavlinkObject = nullptr;
     Video *videoObject = nullptr;
 };
