@@ -1,5 +1,6 @@
 #include "Mavlink.h"
 #include "parameters/ParameterManager.h"
+#include "parameters/ParameterConfigurationController.h"
 #include "mavlink/MavlinkConsoleController.h"
 
 #include "mavlink/MavlinkInspectorController.h"
@@ -356,6 +357,7 @@ Mavlink::Mavlink(QObject *parent, ParameterManager *parameters, std::function<qi
     });
 
     parameterManagerObject = parameters ? parameters : new ParameterManager(this);
+    parameterConfigurationObject = new ParameterConfigurationController(this, parameterManagerObject);
     connect(parameterManagerObject, &ParameterManager::statusChanged, this, &Mavlink::parameterFetchStatusChanged);
     connect(parameterManagerObject, &ParameterManager::parameterUpdated, this, &Mavlink::parameterUpdated);
     // Presentation adapter only: use the same validator as command admission.
@@ -3870,3 +3872,4 @@ QVariantList Mavlink::buildMissionTerrainProfile(const QVariantList &profileWayp
 }
 
 QObject *Mavlink::console() const { return consoleController; }
+QObject *Mavlink::parameterConfiguration() const { return parameterConfigurationObject; }

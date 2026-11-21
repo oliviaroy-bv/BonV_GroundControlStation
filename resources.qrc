@@ -40,6 +40,7 @@
         <file alias="accessories/ParameterStatusButton.qml">ui/qml/accessories/ParameterStatusButton.qml</file>
         <file alias="accessories/ParameterSyncStatus.qml">ui/qml/accessories/ParameterSyncStatus.qml</file>
         <file alias="accessories/CommLinkDiagnostics.qml">ui/qml/accessories/CommLinkDiagnostics.qml</file>
+        <file alias="accessories/LinkDiagnosticIcon.qml">ui/qml/accessories/LinkDiagnosticIcon.qml</file>
         <file alias="accessories/Palette.qml">ui/qml/accessories/Palette.qml</file>
         <file alias="accessories/StateText.qml">ui/qml/accessories/StateText.qml</file>
         <file alias="accessories/TelemetryIcon.qml">ui/qml/accessories/TelemetryIcon.qml</file>
@@ -63,6 +64,8 @@
         <file alias="panels/TopPanel.qml">ui/qml/panels/TopPanel.qml</file>
         <file alias="panels/VerticalTelemetryPanel.qml">ui/qml/panels/VerticalTelemetryPanel.qml</file>
         <file alias="settings/OemSettingsPage.qml">ui/qml/settings/OemSettingsPage.qml</file>
+        <file alias="settings/FullParameterListPage.qml">ui/qml/settings/FullParameterListPage.qml</file>
+        <file alias="settings/ParameterConfigurationPanel.qml">ui/qml/settings/ParameterConfigurationPanel.qml</file>
         <file alias="settings/MavlinkInspectorPage.qml">ui/qml/settings/MavlinkInspectorPage.qml</file>
         <file alias="settings/MavlinkForwardingPage.qml">ui/qml/settings/MavlinkForwardingPage.qml</file>
         <file alias="settings/MavlinkConsole.qml">ui/qml/settings/MavlinkConsole.qml</file>

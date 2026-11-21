@@ -40,17 +40,37 @@ namespace {
 
 QFile *runtimeLogFile = nullptr;
 QMutex runtimeLogMutex;
+bool g_consoleAttached = false;
 
 #ifdef _WIN32
+// void attachConsole()
+// {
+//     if (AttachConsole(ATTACH_PARENT_PROCESS)) {
+//         FILE *fp;
+
+//         freopen_s(&fp, "CONOUT$", "w", stdout);
+//         freopen_s(&fp, "CONOUT$", "w", stderr);
+
+//         std::ios::sync_with_stdio(true);
+//     }
+// }
+// #endif
+
 void attachConsole()
 {
     if (AttachConsole(ATTACH_PARENT_PROCESS)) {
-        FILE *fp;
 
-        freopen_s(&fp, "CONOUT$", "w", stdout);
-        freopen_s(&fp, "CONOUT$", "w", stderr);
+        g_consoleAttached = true;
+
+        FILE *stream = nullptr;
+
+        freopen_s(&stream, "CONOUT$", "w", stdout);
+        freopen_s(&stream, "CONOUT$", "w", stderr);
 
         std::ios::sync_with_stdio(true);
+
+        setvbuf(stdout, nullptr, _IONBF, 0);
+        setvbuf(stderr, nullptr, _IONBF, 0);
     }
 }
 #endif
@@ -91,9 +111,21 @@ void runtimeMessageHandler(QtMsgType type, const QMessageLogContext &context, co
         }
     }
 
-    // QTextStream(stderr) << line;
-    fprintf(stderr, "%s", line.toUtf8().constData());
-    fflush(stderr);
+    // // QTextStream(stderr) << line;
+    // fprintf(stderr, "%s", line.toUtf8().constData());
+    // fflush(stderr);
+
+    #ifdef _WIN32
+        if (g_consoleAttached) {
+            const QByteArray output = line.toUtf8();
+            fprintf(stderr, "%s", output.constData());
+            fflush(stderr);
+        }
+        #else
+            const QByteArray output = line.toUtf8();
+            fprintf(stderr, "%s", output.constData());
+            fflush(stderr);
+    #endif
 
     if (type == QtFatalMsg) {
         abort();
@@ -120,6 +152,9 @@ void installRuntimeLogger()
 
 int main(int argc, char *argv[])
 {
+    #ifdef _WIN32
+        attachConsole();
+    #endif
     qputenv("QT_QUICK_CONTROLS_STYLE", "Basic");
 
     QWebEngineUrlScheme qrcScheme(QByteArrayLiteral("qrc"));
@@ -145,9 +180,9 @@ int main(int argc, char *argv[])
 
     QGuiApplication app(argc, argv);
 
-    #ifdef _WIN32
-    attachConsole();
-    #endif
+    // #ifdef _WIN32
+    // attachConsole();
+    // #endif
 
     app.setWindowIcon(QIcon(QStringLiteral(":/logo/BonVGCS_Icon.png")));
     AppDataPaths::ensureAllDirectories();

@@ -29,6 +29,9 @@ endfunction()
 addGcsTest(ParameterManagerTest
     ParameterManagerTest.cpp
 )
+addGcsTest(ParameterConfigurationTest
+    ParameterConfigurationTest.cpp
+)
 
 addGcsTest(MavlinkConsoleTest
     MavlinkConsoleTest.cpp

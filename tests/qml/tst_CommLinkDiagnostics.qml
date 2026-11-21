@@ -16,6 +16,21 @@ TestCase {
     property var serial: null
     SignalSpy { id: selections; signalName: "connectionRequested" }
     SignalSpy { id: cancellations; signalName: "cancelRequested" }
+    QtObject {
+        id: transport
+        property bool connected: true
+        property int connectionState: 2
+        property var serialPorts: []
+        property var linkQualityDiagnostics: ({qualityEstimate:80,confidence:"limited: sequence only",availableMetrics:["sequence continuity estimate"]})
+        signal connectionStatusChanged(bool connected)
+        signal connectionLifecycleChanged()
+        signal commandPrerequisiteRejected(string operation, string reason, var context)
+        function transportDiagnosticSnapshot() { return {endpoint:"TCP:127.0.0.1:5762",quality:80,rssi:-1,latencyMs:-1} }
+        function setTelemetryLoggingEnabled(enabled) {}
+        function setFlightControllerLoggingEnabled(enabled) {}
+        function setTelemetryLogDirectory(path) {}
+        function setFlightControllerLogDirectory(path) {}
+    }
     function init() {
         udp = createTemporaryObject(rowComponent, test, {linkRecord:{name:"UDP",protocol:"UDP",address:"127.0.0.1:14550"},endpoint:"UDP:127.0.0.1:14550",connectionActive:true})
         tcp = createTemporaryObject(rowComponent, test, {x:450,linkRecord:{name:"TCP",protocol:"TCP",address:"127.0.0.1:5760"},endpoint:"UDP:127.0.0.1:14550"})
@@ -94,7 +109,7 @@ TestCase {
         verify(!findChild(firstRow, "expandDiagnostics").enabled)
         firstRow.toggleDiagnostics()
         verify(!firstRow.expanded)
-        compare(popup.width, 310)
+        compare(popup.width, 374)
         compare(firstRow.value("received", ""), "N/A")
         compare(toolbar.width, 1600); compare(toolbar.height, 72)
         var tile = findChild(toolbar, "commLinkStatusTile")
@@ -102,7 +117,67 @@ TestCase {
         popup.close()
         tryCompare(popup, "opened", false)
         compare(toolbar.commLinks[0].connected, false)
-    }    function test_disconnectedArrowIsDisabled() {
+    }
+    function test_referenceLayoutAndMetrics() {
+        udp.width = 354
+        udp.linkRecord = {name:"Simulation",protocol:"TCP",address:"127.0.0.1:5762"}
+        udp.endpoint = "TCP:127.0.0.1:5762"
+        udp.diagnostics = {quality:80, rssi:-1, latencyMs:-1}
+        udp.qualityDiagnostics = {qualityEstimate:80,confidence:"limited: sequence only",availableMetrics:["sequence continuity estimate"]}
+        udp.toggleDiagnostics()
+        compare(udp.height,180)
+        compare(udp.sequenceText,"Limited"); compare(udp.continuityText,"Fresh")
+        compare(udp.qualityScore,80)
+        compare(findChild(udp,"linkConnectionIndicator").color,udp.goodColor)
+        compare(findChild(udp,"linkSelection").text,"DISCONNECT")
+        compare(findChild(tcp,"linkSelection").text,"CONNECT")
+        udp.connectionActive = false
+        compare(udp.height,54); verify(!udp.expanded)
+        verify(!findChild(udp,"expandDiagnostics").enabled)
+    }
+    function test_connectingCanCancelButCannotExpand() {
+        udp.connectionActive = false
+        udp.connecting = true
+        verify(!findChild(udp,"linkSelection").enabled)
+        verify(!findChild(udp,"expandDiagnostics").enabled)
+        var cancel = findChild(udp,"cancelLink")
+        verify(cancel.visible)
+        mouseClick(cancel)
+        compare(cancellations.count,1)
+        compare(selections.count,0)
+    }
+    function test_qualityCannotLeakAcrossGenerations() {
+        udp.diagnostics = {connectionGeneration:2,quality:70}
+        udp.qualityDiagnostics = {connectionGeneration:1,qualityEstimate:95,confidence:"limited: sequence only"}
+        compare(udp.qualityScore,70)
+        compare(udp.sequenceText,"N/A")
+        udp.qualityDiagnostics = {connectionGeneration:2,qualityEstimate:72,confidence:"limited: sequence only"}
+        compare(udp.qualityScore,72)
+        compare(udp.sequenceText,"Limited")
+    }
+    function test_allTopDropdownsShareFrameAndTheme() {
+        var toolbar = createTemporaryObject(toolbarComponent,test)
+        toolbar.cameraLinks = [{name:"Main Camera",protocol:"RTSP",address:"rtsp://127.0.0.1/live",connected:false}]
+        var ids = ["commLinksPopover","cameraLinksPopover","gpsDetailsPopup","batteryDetailsPopup"]
+        var titles = ["Communication Links","Camera Links","GPS Details","Battery"]
+        for (var i = 0; i < ids.length; ++i) {
+            var popup = findChild(toolbar,ids[i])
+            verify(popup !== null)
+            popup.open(); tryCompare(popup,"opened",true)
+            compare(popup.width,374); compare(popup.background.radius,10)
+            compare(popup.background.border.color,toolbar.accentColor)
+            compare(findChild(popup.contentItem,"topDropdownHeader").title,titles[i])
+            verify(popup.height > 60)
+            toolbar.darkTheme = false; wait(10)
+            compare(popup.background.color,"#f9fcff")
+            compare(popup.background.border.color,toolbar.accentColor)
+            toolbar.darkTheme = true
+            popup.close(); tryCompare(popup,"opened",false)
+        }
+        compare(toolbar.cameraLinks.length,1)
+        compare(toolbar.cameraLinks[0].connected,false)
+    }
+    function test_disconnectedArrowIsDisabled() {
         verify(!findChild(tcp, "expandDiagnostics").enabled)
         tcp.toggleDiagnostics()
         verify(!tcp.expanded)
@@ -110,6 +185,23 @@ TestCase {
         verify(!findChild(udp, "expandDiagnostics").enabled)
         udp.toggleDiagnostics()
         verify(!udp.expanded)
+    }
+    function test_connectedDropdownVisualAndTheme() {
+        var toolbar = createTemporaryObject(toolbarComponent,test,{mavlinkObject:transport})
+        toolbar.commLinks = [{name:"Simulation",protocol:"TCP",address:"127.0.0.1:5762",connected:true},
+            {name:"FC",protocol:"Serial",address:"COM5",baudRate:115200,connected:false}]
+        var popup = findChild(toolbar,"commLinksPopover")
+        popup.open(); tryCompare(popup,"opened",true)
+        var row = findChild(popup.contentItem,"commLinkDiagnosticsRow")
+        verify(row.canExpand)
+        mouseClick(findChild(row,"expandDiagnostics"))
+        verify(row.expanded); compare(row.qualityScore,80)
+        wait(30)
+        grabImage(test).save(decodeURIComponent(Qt.resolvedUrl("../../build/links-dropdown-dark.png").toString().replace(/^file:\/\/\//,"")))
+        toolbar.darkTheme = false; wait(30)
+        verify(row.expanded)
+        grabImage(test).save(decodeURIComponent(Qt.resolvedUrl("../../build/links-dropdown-light.png").toString().replace(/^file:\/\/\//,"")))
+        popup.close()
     }
     function test_disconnectCollapsesRssi() {
         udp.toggleDiagnostics()

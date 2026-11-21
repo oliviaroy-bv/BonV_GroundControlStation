@@ -12,6 +12,7 @@ Item {
     property var vehicle: null
     property QtObject palette: Palette { darkMode: root.darkTheme }
     property string activeDetailPage: ""
+    readonly property bool fixedParameterPage: activeDetailPage === "full-parameter-list"
     property int activeSectionIndex: -1
     property bool draftPayloadButtonVisible: false
     readonly property bool payloadButtonVisible: tacticalSettings.showPayloadButton
@@ -1059,10 +1060,10 @@ Item {
                 contentWidth: width
                 // Guided calibration and the MAVLink Inspector are fixed workspaces.
                 // Their own content panes scroll, never this outer settings viewport.
-                contentHeight: root.activeDetailPage === "joystick" || root.activeDetailPage === "mavlink-inspector"
+                contentHeight: root.activeDetailPage === "joystick" || root.activeDetailPage === "mavlink-inspector" || root.fixedParameterPage
                                ? height
                                : Math.max(height, detailColumn.implicitHeight + 40)
-                interactive: root.activeDetailPage !== "joystick" && root.activeDetailPage !== "mavlink-inspector"
+                interactive: root.activeDetailPage !== "joystick" && root.activeDetailPage !== "mavlink-inspector" && !root.fixedParameterPage
                 boundsBehavior: Flickable.StopAtBounds
                 clip: true
 
@@ -1072,7 +1073,7 @@ Item {
                     spacing: 18
 
                     RowLayout {
-                        visible: root.activeDetailPage !== "joystick" && root.activeDetailPage !== "mavlink-inspector"
+                        visible: root.activeDetailPage !== "joystick" && root.activeDetailPage !== "mavlink-inspector" && !root.fixedParameterPage
                         Layout.fillWidth: root.activeDetailPage !== "joystick" && root.activeDetailPage !== "mavlink-inspector"
                         Layout.preferredWidth: root.activeDetailPage === "joystick"
                                                ? Math.max(320, Math.min(detailFlickable.width - root.joystickDetailMargin * 2, root.joystickContentMaxWidth))
@@ -1132,7 +1133,7 @@ Item {
                         Layout.leftMargin: root.activeDetailPage === "joystick" ? root.joystickDetailMargin : 34
                         Layout.rightMargin: root.activeDetailPage === "joystick" ? root.joystickDetailMargin : 36
                         readonly property bool fitJoystickPage: root.activeDetailPage === "joystick"
-                        readonly property bool fitInspectorPage: root.activeDetailPage === "mavlink-inspector"
+                        readonly property bool fitInspectorPage: root.activeDetailPage === "mavlink-inspector" || root.fixedParameterPage
                         // Reserve the Flickable's bottom breathing room so the
                         // scaled content never extends below the visible page.
                         readonly property real availableHeight: Math.max(1, detailFlickable.height - 40)
@@ -1149,6 +1150,7 @@ Item {
 
                         Loader {
                             id: activePageLoader
+                            visible: !root.fixedParameterPage
                             x: activePageContainer.fitJoystickPage
                                ? Math.round((activePageContainer.width - width * activePageContainer.joystickScale) / 2)
                                : 0
@@ -1156,7 +1158,11 @@ Item {
                             height: activePageContainer.fitInspectorPage ? parent.height : implicitHeight
                             scale: activePageContainer.joystickScale
                             transformOrigin: Item.TopLeft
-                            sourceComponent: root.activeDetailPage === "servo-payload"
+                            sourceComponent: root.activeDetailPage === "vehicle-settings"
+                                             ? vehicleSettingsPage
+                                             : root.fixedParameterPage
+                                             ? null
+                                             : root.activeDetailPage === "servo-payload"
                                              ? servoSettingsPage
                                              : root.activeDetailPage === "rc"
                                                ? rcCalibrationPage
@@ -1173,6 +1179,17 @@ Item {
                                              : root.activeDetailPage === "vps"
                                              ? vpsSettingsPage
                                              : placeholderSettingsPage
+                        }
+                        // Keep proposals and result associations alive across OEM navigation.
+                        // Visibility never cancels a backend write transaction.
+                        FullParameterListPage {
+                            anchors.fill: parent
+                            visible: root.fixedParameterPage
+                            vehicle: root.vehicle
+                            darkTheme: root.darkTheme
+                            palette: root.palette
+                            active: root.open && root.fixedParameterPage
+                            onBackRequested: root.activeDetailPage = "vehicle-settings"
                         }
                     }
                 }
@@ -1208,6 +1225,28 @@ Item {
                 text: "SAVE"
                 active: true
                 onClicked: root.applyDraftSettings()
+            }
+        }
+    }
+
+    Component {
+        id: vehicleSettingsPage
+        ColumnLayout {
+            spacing: 12
+            Button {
+                objectName: "openFullParameterList"
+                Layout.fillWidth: true
+                Layout.preferredHeight: 72
+                padding: 14
+                onClicked: root.activeDetailPage = "full-parameter-list"
+                background: Rectangle {
+                    color: parent.hovered ? root.cardHoverColor : root.cardColor
+                    border.color: root.borderColor; border.width: 1; radius: 5
+                }
+                contentItem: ColumnLayout {
+                    Text { text: "Full Parameter List  ›"; color: root.accentColor; font.pixelSize: 14; font.bold: true }
+                    Text { text: "Browse the complete validated vehicle parameter snapshot."; color: root.mutedColor; font.pixelSize: 12; wrapMode: Text.Wrap; Layout.fillWidth: true }
+                }
             }
         }
     }

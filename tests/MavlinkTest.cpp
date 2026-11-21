@@ -11,6 +11,9 @@
 #include <QQmlEngine>
 #include <QQmlComponent>
 #include <QScopedPointer>
+#include <QProcess>
+#include <QProcessEnvironment>
+#include <QSettings>
 #include "vehicle/Vehicle.h"
 
 #include "mavlink/Mavlink.h"
@@ -308,6 +311,8 @@ private slots:
     void manualControlRemainsIndependentOfParameters_data();
     void manualControlRemainsIndependentOfParameters();
     void realVehicleAndQmlLifecycle();
+    void fullParameterEditorUsesConfirmedTransactions();
+    void favoritePreferencesPersistAcrossProcesses();
     void motorPrerequisitePresentationTracksBackend();
     void commandPrerequisites_data();
     void commandPrerequisites();
@@ -955,6 +960,119 @@ void MavlinkTest::realVehicleAndQmlLifecycle()
     QTRY_VERIFY(status->property("ready").toBool());
     QCOMPARE(manager->snapshotProvenance().value("sourceConnectionGeneration").toULongLong(), mavlink->connectionGeneration());
     QCOMPARE(events.count("published"), 2);
+}
+
+void MavlinkTest::fullParameterEditorUsesConfirmedTransactions()
+{
+    Vehicle vehicle;
+    auto *mavlink = qobject_cast<Mavlink *>(vehicle.mavlink());
+    auto *manager = qobject_cast<ParameterManager *>(vehicle.parameterManager());
+    QVERIFY(mavlink && manager);
+    mavlink->setTelemetryLoggingEnabled(false);
+    mavlink->setFlightControllerLoggingEnabled(false);
+    QQmlEngine engine;
+    QQmlEngine::setObjectOwnership(&vehicle, QQmlEngine::CppOwnership);
+    QQmlComponent component(&engine, QUrl::fromLocalFile(QFINDTESTDATA("../ui/qml/settings/FullParameterListPage.qml")));
+    QTRY_VERIFY(component.status() != QQmlComponent::Loading);
+    QVERIFY2(component.isReady(), qPrintable(component.errorString()));
+    QScopedPointer<QObject> page(component.createWithInitialProperties({
+        {"vehicle", QVariant::fromValue(static_cast<QObject *>(&vehicle))}, {"width", 1200}, {"height", 800}}));
+    QVERIFY2(page, qPrintable(component.errorString()));
+    QTcpServer server;
+    QVERIFY(server.listen(QHostAddress::LocalHost, 0));
+    QVERIFY(connectTestMavlink(*mavlink, server, 1000, 42));
+    auto *peer = server.nextPendingConnection();
+    QVERIFY(peer);
+    mavlink->requestParameters();
+    const auto echo = [&](float value) {
+        mavlink_message_t message{};
+        mavlink_msg_param_value_pack(42, 1, &message, "VALUE", value, MAV_PARAM_TYPE_REAL32, 1, 0);
+        writeMavlinkMessage(peer, message);
+    };
+    echo(1);
+    QTRY_VERIFY(page->property("writableReady").toBool());
+    QVERIFY(QMetaObject::invokeMethod(page.data(), "selectParameter", Q_ARG(QVariant, QVariant("VALUE"))));
+    QVERIFY(QMetaObject::invokeMethod(page.data(), "editDraft", Q_ARG(QVariant, QVariant("0.1"))));
+    QVERIFY(page->property("canApply").toBool());
+    QSignalSpy sets(manager, &ParameterManager::requestSet);
+    QVERIFY(QMetaObject::invokeMethod(page.data(), "applySelected"));
+    QCOMPARE(page->property("editorState").toString(), QString("Pending"));
+    QCOMPARE(manager->parameterValue("VALUE").value("value").toDouble(), 1.);
+    QTRY_COMPARE(sets.size(), 1);
+    QCOMPARE(sets[0][4].toFloat(), 0.1f);
+    echo(0.1f);
+    QTRY_COMPARE(page->property("editorState").toString(), QString("Confirmed"));
+    QCOMPARE(page->property("modifiedCount").toInt(), 0);
+    QCOMPARE(manager->parameterValue("VALUE").value("value").toDouble(), double(0.1f));
+    QVERIFY(QMetaObject::invokeMethod(page.data(), "editDraft", Q_ARG(QVariant, QVariant("2.5"))));
+    QVERIFY(QMetaObject::invokeMethod(page.data(), "applySelected"));
+    QTRY_COMPARE(sets.size(), 2);
+    echo(3.f);
+    QTRY_COMPARE(page->property("editorState").toString(), QString("Rejected"));
+    QCOMPARE(manager->parameterValue("VALUE").value("value").toDouble(), 3.);
+    QCOMPARE(page->property("proposedValue").toString(), QString("2.5"));
+    QVERIFY(!page->property("canApply").toBool());
+    QVERIFY(QMetaObject::invokeMethod(page.data(), "reviewProposal"));
+    QVERIFY(QMetaObject::invokeMethod(page.data(), "applySelected"));
+    QCOMPARE(page->property("editorState").toString(), QString("Pending"));
+    // Visibility does not cancel. Refresh does, using the manager's real generation rules.
+    page->setProperty("active", false);
+    mavlink->requestParameters();
+    QTRY_COMPARE(page->property("editorState").toString(), QString("Cancelled"));
+    QCOMPARE(page->property("modifiedCount").toInt(), 1);
+    QCOMPARE(manager->pendingWriteCount(), 0);
+}
+
+void MavlinkTest::favoritePreferencesPersistAcrossProcesses()
+{
+    const auto probe = qEnvironmentVariable("BONV_FAVORITES_TEST_PROBE");
+    if (probe.isEmpty()) {
+        QTemporaryDir directory;
+        QVERIFY(directory.isValid());
+        const auto settingsPath = directory.filePath(QStringLiteral("favorites.ini"));
+        for (const auto &mode : {QStringLiteral("write"), QStringLiteral("read")}) {
+            QProcess process;
+            auto environment = QProcessEnvironment::systemEnvironment();
+            environment.insert(QStringLiteral("BONV_FAVORITES_TEST_PROBE"), mode);
+            environment.insert(QStringLiteral("BONV_FAVORITES_TEST_PATH"), settingsPath);
+            process.setProcessEnvironment(environment);
+            process.start(QCoreApplication::applicationFilePath(), {QStringLiteral("favoritePreferencesPersistAcrossProcesses")});
+            QVERIFY(process.waitForStarted(5000));
+            QVERIFY(process.waitForFinished(30000));
+            const auto output = process.readAllStandardOutput() + process.readAllStandardError();
+            QCOMPARE(process.exitStatus(), QProcess::NormalExit);
+            QVERIFY2(process.exitCode() == 0, output.constData());
+        }
+        QSettings settings(settingsPath, QSettings::IniFormat);
+        settings.beginGroup(QStringLiteral("FullParameterList/Favorites/v1"));
+        QCOMPARE(settings.allKeys(), QStringList{QStringLiteral("selections")});
+        QCOMPARE(settings.value(QStringLiteral("selections")).toString(), QStringLiteral("{\"unknown/classic-v1\":[\"VALUE\"]}"));
+        return;
+    }
+    // Each probe is a fresh application process and QSettings instance.
+    Vehicle vehicle;
+    auto *manager = qobject_cast<ParameterManager *>(vehicle.parameterManager());
+    QVERIFY(manager);
+    manager->connectSource(42, 1, ParameterManager::NumericCast);
+    manager->refresh();
+    QByteArray name("VALUE");
+    name.resize(16, '\0');
+    manager->receive(42, 1, manager->generation(), {name, 1.f, MAV_PARAM_TYPE_REAL32, 0, 1});
+    QVERIFY(manager->hasCompleteSnapshot());
+    QQmlEngine engine;
+    QQmlEngine::setObjectOwnership(&vehicle, QQmlEngine::CppOwnership);
+    QQmlComponent component(&engine, QUrl::fromLocalFile(QFINDTESTDATA("../ui/qml/settings/FullParameterListPage.qml")));
+    QTRY_VERIFY(component.status() != QQmlComponent::Loading);
+    QVERIFY2(component.isReady(), qPrintable(component.errorString()));
+    QScopedPointer<QObject> page(component.createWithInitialProperties({
+        {"vehicle", QVariant::fromValue(static_cast<QObject *>(&vehicle))}, {"width", 1200}, {"height", 800},
+        {"favoritesSettingsLocation", QUrl::fromLocalFile(qEnvironmentVariable("BONV_FAVORITES_TEST_PATH"))}}));
+    QVERIFY2(page, qPrintable(component.errorString()));
+    if (probe == QLatin1String("write"))
+        QVERIFY(QMetaObject::invokeMethod(page.data(), "setFavorite", Q_ARG(QVariant, QVariant("VALUE")), Q_ARG(QVariant, QVariant(true))));
+    QVariant favorite;
+    QVERIFY(QMetaObject::invokeMethod(page.data(), "isFavorite", Q_RETURN_ARG(QVariant, favorite), Q_ARG(QVariant, QVariant("VALUE"))));
+    QVERIFY(favorite.toBool());
 }
 
 void MavlinkTest::motorPrerequisitePresentationTracksBackend()

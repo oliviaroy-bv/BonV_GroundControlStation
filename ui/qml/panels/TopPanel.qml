@@ -379,7 +379,8 @@ Rectangle {
             onClicked: {
                 var p = gpsStatusTile.mapToItem(Overlay.overlay, 0, gpsStatusTile.height)
                 gpsDetailsPopup.x = Math.max(8, Math.min(Overlay.overlay.width - gpsDetailsPopup.width - 8, Math.round(p.x)))
-                gpsDetailsPopup.y = Math.round(p.y + 6)
+                gpsDetailsPopup.y = Math.round(p.y + 2)
+                gpsDetailsPopup.pointerPosition = p.x + gpsStatusTile.width / 2 - gpsDetailsPopup.x
                 gpsDetailsPopup.opened ? gpsDetailsPopup.close() : gpsDetailsPopup.open()
                 root.statusMessageRequested(gpsDetailsPopup.opened ? "GPS details opened" : "GPS details closed")
             }
@@ -584,8 +585,8 @@ Rectangle {
         id: commLinksPopover
         objectName: "commLinksPopover"
         parent: Overlay.overlay
-        width: 310
-        height: Math.min(commLinksColumn.implicitHeight + 16, (root.Window.window ? root.Window.window.height : 800) - root.height - 24)
+        width: Math.min(374, (root.Window.window ? root.Window.window.width : 800) - 24)
+        height: Math.min(commLinksColumn.implicitHeight, (root.Window.window ? root.Window.window.height : 800) - root.height - 24)
         padding: 0
         modal: false
         focus: true
@@ -594,20 +595,17 @@ Rectangle {
         onAboutToShow: {
             var p = root.mapToItem(Overlay.overlay, 12, root.height)
             x = p.x
-            y = p.y + 6
+            y = p.y + 2
         }
 
-        background: Rectangle {
-            color: root.darkTheme ? "#ee090f18" : "#ffffff"
-            border.color: root.accentColor
-            border.width: 1
-        }
+        background: DropdownFrame {}
 
         property int diagnosticRevision: 0
         readonly property var diagnosticSnapshot: {
             var revision = diagnosticRevision
             return opened && root.mavlinkObject ? root.mavlinkObject.transportDiagnosticSnapshot() : ({})
         }
+        readonly property var qualitySnapshot: opened && root.mavlinkObject ? root.mavlinkObject.linkQualityDiagnostics || ({}) : ({})
         Timer {
             interval: 500
             repeat: true
@@ -620,16 +618,20 @@ Rectangle {
             Column {
                 id: commLinksColumn
                 width: commLinksPopover.width
-                padding: 8
-                spacing: 4
+                padding: 10
+                spacing: 8
+                DropdownHeader { width: commLinksColumn.width - 20; title: "Communication Links"; iconName: "link"; trailing: root.commLinks.length + (root.commLinks.length === 1 ? " Link" : " Links") }
+                DropdownDivider { width: commLinksColumn.width - 20 }
+                Text { visible: root.commLinks.length === 0; text: "No communication links configured"; color: root.mutedColor; font.family: "Segoe UI"; font.pixelSize: 12; height: 40 }
                 Repeater {
                     model: root.commLinks
                     delegate: CommLinkDiagnostics {
                         required property var modelData
                         required property int index
-                        width: commLinksColumn.width - 16
+                        width: commLinksColumn.width - 20
                         linkRecord: modelData
                         diagnostics: commLinksPopover.diagnosticSnapshot
+                        qualityDiagnostics: commLinksPopover.qualitySnapshot
                         endpoint: diagnostics.endpoint || ""
                         connectionActive: root.vehicleConnected
                         connecting: !modelData.connected && root.pendingCommAddress === modelData.address
@@ -649,9 +651,10 @@ Rectangle {
 
     Popup {
         id: cameraLinksPopover
+        objectName: "cameraLinksPopover"
         parent: Overlay.overlay
-        width: 330
-        height: cameraLinksColumn.implicitHeight + 16
+        width: Math.min(374, (root.Window.window ? root.Window.window.width : 800) - 24)
+        height: Math.min(cameraLinksColumn.implicitHeight, (root.Window.window ? root.Window.window.height : 800) - root.height - 24)
         padding: 0
         modal: false
         focus: true
@@ -659,21 +662,24 @@ Rectangle {
 
         onAboutToShow: {
             var p = root.mapToItem(Overlay.overlay, 124, root.height)
-            x = p.x
-            y = p.y + 6
+            x = Math.max(8, Math.min(Overlay.overlay.width - width - 8, p.x))
+            y = p.y + 2
+            pointerPosition = p.x + 46 - x
         }
 
-        background: Rectangle {
-            color: root.darkTheme ? "#ee090f18" : "#ffffff"
-            border.color: root.accentColor
-            border.width: 1
-        }
+        property real pointerPosition: 46
+        background: DropdownFrame { pointerX: cameraLinksPopover.pointerPosition }
 
-        contentItem: Column {
+        contentItem: ScrollView {
+            clip: true; contentWidth: availableWidth
+            Column {
             id: cameraLinksColumn
-            width: parent.width
-            padding: 8
-            spacing: 4
+            width: cameraLinksPopover.width
+            padding: 10
+            spacing: 8
+            DropdownHeader { width: cameraLinksColumn.width - 20; title: "Camera Links"; iconName: "camera"; trailing: root.cameraLinks.length + (root.cameraLinks.length === 1 ? " Link" : " Links") }
+            DropdownDivider { width: cameraLinksColumn.width - 20 }
+            Text { visible: root.cameraLinks.length === 0; text: "No camera links configured"; color: root.mutedColor; font.family: "Segoe UI"; font.pixelSize: 12; height: 40 }
 
             Repeater {
                 model: root.cameraLinks
@@ -681,8 +687,8 @@ Rectangle {
                     id: cameraLinkButton
                     readonly property bool connecting: !modelData.connected
                                                     && root.pendingCameraAddress === modelData.address
-                    width: cameraLinksColumn.width - 16
-                    height: 42
+                    width: cameraLinksColumn.width - 20
+                    height: 54
                     flat: true
                     padding: 0
                     hoverEnabled: true
@@ -697,17 +703,17 @@ Rectangle {
                             Layout.preferredWidth: 9
                             Layout.preferredHeight: 9
                             radius: 5
-                            color: modelData.connected ? "#ff4b46" : "#20d86c"
+                            color: modelData.connected ? "#26e47f" : cameraLinkButton.connecting ? "#d8a94d" : "#747d86"
                         }
 
                         ColumnLayout {
                             Layout.fillWidth: true
                             spacing: 1
-                            Text { text: modelData.name; color: root.textColor; font.pixelSize: 12; font.bold: true }
+                            Text { text: modelData.name; color: root.textColor; font.family: "Segoe UI"; font.pixelSize: 14; font.weight: Font.DemiBold }
                             Text {
                                 text: (modelData.protocol || "UDP") === "Serial" ? modelData.address + " @ " + (modelData.baudRate || 57600) : modelData.address
                                 color: root.mutedColor
-                                font.pixelSize: 10
+                                font.family: "Segoe UI"; font.pixelSize: 11
                                 elide: Text.ElideRight
                                 Layout.fillWidth: true
                             }
@@ -741,8 +747,9 @@ Rectangle {
                     }
 
                     background: Rectangle {
-                        color: cameraLinkButton.hovered ? root.hoverColor : "#00000000"
-                        border.color: modelData.connected ? (root.darkTheme ? "#663a2424" : "#efc2c2") : root.borderColor
+                        radius: 8
+                        color: cameraLinkButton.hovered ? root.hoverColor : root.darkTheme ? "#80101d28" : "#f5f9fc"
+                        border.color: modelData.connected ? (root.darkTheme ? "#1c6070" : "#78b8c3") : root.borderColor
                         border.width: 1
                     }
 
@@ -752,7 +759,7 @@ Rectangle {
 
             Button {
                 id: manageCameraLinksButton
-                width: cameraLinksColumn.width - 16
+                width: cameraLinksColumn.width - 20
                 height: 34
                 flat: true
                 padding: 0
@@ -768,6 +775,7 @@ Rectangle {
                 }
 
                 background: Rectangle {
+                    radius: 6
                     color: manageCameraLinksButton.hovered ? root.hoverColor : "#00000000"
                     border.color: root.borderColor
                     border.width: 1
@@ -779,37 +787,33 @@ Rectangle {
                     settingsWindow.openAtTopRight()
                 }
             }
+            }
         }
     }
 
     Popup {
         id: batteryDetailsPopup
+        objectName: "batteryDetailsPopup"
         parent: Overlay.overlay
-        width: 240
-        height: batteryDetailsContent.implicitHeight + 28
-        padding: 14
+        width: Math.min(374, (root.Window.window ? root.Window.window.width : 800) - 24)
+        height: Math.min(batteryDetailsContent.implicitHeight + 20, (root.Window.window ? root.Window.window.height : 800) - root.height - 24)
+        padding: 10
         modal: false
         focus: true
         closePolicy: Popup.CloseOnEscape | Popup.CloseOnReleaseOutside
 
-        background: Rectangle {
-            color: root.darkTheme ? "#f20b1018" : "#ffffff"
-            border.color: root.accentColor
-            border.width: 1
-        }
+        background: DropdownFrame { pointerX: batteryDetailsPopup.pointerPosition }
+        property real pointerPosition: width / 2
 
-        contentItem: ColumnLayout {
+        contentItem: ScrollView {
+            clip: true; contentWidth: availableWidth
+            ColumnLayout {
             id: batteryDetailsContent
-            width: batteryDetailsPopup.width - 28
-            spacing: 10
+            width: batteryDetailsPopup.width - 20
+            spacing: 8
 
-            Text {
-                Layout.fillWidth: true
-                text: "BATTERY"
-                color: root.accentColor
-                font.pixelSize: 13
-                font.bold: true
-            }
+            DropdownHeader { title: "Battery"; iconName: "battery" }
+            DropdownDivider {}
 
             DetailRow {
                 label: "Charge"
@@ -825,37 +829,33 @@ Rectangle {
                 label: "Current"
                 value: root.vehicleConnected && root.vehicle && root.vehicle.batteryCurrent >= 0 ? Number(root.vehicle.batteryCurrent).toFixed(2) + " A" : "--"
             }
+            }
         }
     }
 
     Popup {
         id: gpsDetailsPopup
+        objectName: "gpsDetailsPopup"
         parent: Overlay.overlay
-        width: 310
-        height: gpsDetailsContent.implicitHeight + 28
-        padding: 14
+        width: Math.min(374, (root.Window.window ? root.Window.window.width : 800) - 24)
+        height: Math.min(gpsDetailsContent.implicitHeight + 20, (root.Window.window ? root.Window.window.height : 800) - root.height - 24)
+        padding: 10
         modal: false
         focus: true
         closePolicy: Popup.CloseOnEscape | Popup.CloseOnReleaseOutside
 
-        background: Rectangle {
-            color: root.darkTheme ? "#f20b1018" : "#ffffff"
-            border.color: root.accentColor
-            border.width: 1
-        }
+        background: DropdownFrame { pointerX: gpsDetailsPopup.pointerPosition }
+        property real pointerPosition: 46
 
-        contentItem: ColumnLayout {
+        contentItem: ScrollView {
+            clip: true; contentWidth: availableWidth
+            ColumnLayout {
             id: gpsDetailsContent
-            width: gpsDetailsPopup.width - 28
-            spacing: 10
+            width: gpsDetailsPopup.width - 20
+            spacing: 8
 
-            Text {
-                Layout.fillWidth: true
-                text: "GPS"
-                color: root.accentColor
-                font.pixelSize: 13
-                font.bold: true
-            }
+            DropdownHeader { title: "GPS Details"; iconName: "gps" }
+            DropdownDivider {}
 
             DetailRow {
                 label: "Status"
@@ -926,6 +926,7 @@ Rectangle {
             //     label: "Heading accuracy"
             //     value: root.vehicle ? root.telemetryNumberText(root.vehicle.gpsHeadingAccuracy, 2, "deg") : "--"
             // }
+            }
         }
     }
 
@@ -1139,9 +1140,10 @@ Rectangle {
         padding: 0
         hoverEnabled: true
         onClicked: {
-            var p = batteryValueText.mapToItem(Overlay.overlay, 0, batteryValueText.height)
-            batteryDetailsPopup.x = Math.max(8, Math.min(Overlay.overlay.width - batteryDetailsPopup.width - 8, Math.round(p.x + batteryValueText.width / 2 - batteryDetailsPopup.width / 2)))
-            batteryDetailsPopup.y = Math.round(p.y + 6)
+            var p = batteryTile.mapToItem(Overlay.overlay, 0, batteryTile.height)
+            batteryDetailsPopup.x = Math.max(8, Math.min(Overlay.overlay.width - batteryDetailsPopup.width - 8, Math.round(p.x + batteryTile.width / 2 - batteryDetailsPopup.width / 2)))
+            batteryDetailsPopup.y = Math.round(p.y + 2)
+            batteryDetailsPopup.pointerPosition = p.x + batteryTile.width / 2 - batteryDetailsPopup.x
             batteryDetailsPopup.open()
         }
 
@@ -1199,26 +1201,65 @@ Rectangle {
         }
     }
 
-    component DetailRow: RowLayout {
+    component DropdownFrame: Rectangle {
+        id: frame
+        property real pointerX: 46
+        color: root.darkTheme ? "#ef08141d" : "#f9fcff"
+        border.color: root.accentColor; border.width: 1; radius: 10
+        onColorChanged: pointer.requestPaint()
+        Canvas {
+            id: pointer
+            x: Math.max(10, Math.min(frame.width - 30, frame.pointerX - 10))
+            y: -7; width: 20; height: 9
+            onPaint: {
+                var ctx = getContext("2d")
+                ctx.reset(); ctx.fillStyle = frame.color; ctx.strokeStyle = frame.border.color; ctx.lineWidth = 1
+                ctx.beginPath(); ctx.moveTo(0, 8); ctx.lineTo(10, 0); ctx.lineTo(20, 8); ctx.fill(); ctx.stroke()
+            }
+        }
+    }
+    component DropdownHeader: RowLayout {
+        id: header
+        objectName: "topDropdownHeader"
+        property string title: ""
+        property string iconName: "link"
+        property string trailing: ""
+        Layout.fillWidth: true
+        height: 24; implicitHeight: 24; spacing: 12
+        LinkDiagnosticIcon { name: header.iconName; color: root.accentColor; Layout.preferredWidth: 18; Layout.preferredHeight: 18 }
+        Text { text: header.title; color: root.textColor; font.family: "Segoe UI"; font.pixelSize: 14; font.weight: Font.DemiBold; Layout.fillWidth: true; elide: Text.ElideRight }
+        Text { text: header.trailing; color: root.mutedColor; font.family: "Segoe UI"; font.pixelSize: 11 }
+    }
+    component DropdownDivider: Rectangle {
+        Layout.fillWidth: true
+        height: 1; implicitHeight: 1
+        color: root.darkTheme ? "#19404c" : "#d3e1e9"
+    }
+    component DetailRow: Rectangle {
+        id: detail
         property string label: ""
         property string value: ""
         Layout.fillWidth: true
-        spacing: 10
-
+        implicitHeight: 42
+        radius: 6; color: root.darkTheme ? "#c010202a" : "#e9f1f6"
+        border.color: root.darkTheme ? "#142d39" : "#d3e1e9"
+        RowLayout {
+        anchors.fill: parent; anchors.margins: 10; spacing: 10
         Text {
             Layout.fillWidth: true
-            text: label
+            text: detail.label
             color: root.mutedColor
-            font.pixelSize: 11
+            font.family: "Segoe UI"; font.pixelSize: 11
             font.bold: true
         }
 
         Text {
-            text: value
+            text: detail.value
             color: root.textColor
-            font.pixelSize: 12
+            font.family: "Segoe UI"; font.pixelSize: 12
             font.bold: true
             horizontalAlignment: Text.AlignRight
+        }
         }
     }
     component StatusTile: Button {

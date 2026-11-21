@@ -95,6 +95,7 @@ class Mavlink : public QObject
     Q_PROPERTY(QString flightControllerLogDirectory READ flightControllerLogDirectory WRITE setFlightControllerLogDirectory NOTIFY flightControllerLogDirectoryChanged)
     Q_PROPERTY(QString currentFlightControllerLogPath READ currentFlightControllerLogPath NOTIFY flightControllerLogStateChanged)
     Q_PROPERTY(QObject *console READ console CONSTANT)
+    Q_PROPERTY(QObject *parameterConfiguration READ parameterConfiguration CONSTANT)
     Q_PROPERTY(QObject *inspector READ inspector CONSTANT)
     Q_PROPERTY(QObject *forwarder READ forwarder CONSTANT)
 
@@ -188,6 +189,7 @@ public:
     QString flightControllerLogDirectory() const;
     QString currentFlightControllerLogPath() const;
     QObject *console() const;
+    QObject *parameterConfiguration() const;
     QObject *inspector() const;
     QObject *forwarder() const;
 
@@ -297,6 +299,7 @@ private slots:
     void readData();
 
 private:
+    QObject *parameterConfigurationObject = nullptr;
     struct SequenceSample { qint64 at; int expected; };
     struct PingRequest { qint64 at; quint64 stamp; };
     struct LatencySample { qint64 at; int value; };

@@ -128,6 +128,7 @@ set(CORE_SOURCES
     core/storage/AppDataPaths.cpp
     core/terrain/TerrainProvider.cpp
     core/parameters/ParameterManager.cpp
+    core/parameters/ParameterConfigurationController.cpp
     core/vehicle/Vehicle.cpp
     core/vehicle/VehicleManager.cpp
     core/video/Video.cpp
@@ -169,6 +170,7 @@ set(CORE_HEADERS
     core/storage/AppDataPaths.h
     core/terrain/TerrainProvider.h
     core/parameters/ParameterManager.h
+    core/parameters/ParameterConfigurationController.h
     core/vehicle/Vehicle.h
     core/vehicle/VehicleManager.h
     core/video/Video.h
@@ -189,6 +191,7 @@ set(QML_FILES
     ${CMAKE_SOURCE_DIR}/ui/qml/accessories/ParameterStatusButton.qml
     ${CMAKE_SOURCE_DIR}/ui/qml/accessories/ParameterSyncStatus.qml
     ${CMAKE_SOURCE_DIR}/ui/qml/accessories/CommLinkDiagnostics.qml
+    ${CMAKE_SOURCE_DIR}/ui/qml/accessories/LinkDiagnosticIcon.qml
     ${CMAKE_SOURCE_DIR}/ui/qml/accessories/Palette.qml
     ${CMAKE_SOURCE_DIR}/ui/qml/accessories/StateText.qml
     ${CMAKE_SOURCE_DIR}/ui/qml/accessories/TelemetryIcon.qml
@@ -210,6 +213,8 @@ set(QML_FILES
     ${CMAKE_SOURCE_DIR}/ui/qml/panels/TopPanel.qml
     ${CMAKE_SOURCE_DIR}/ui/qml/panels/VerticalTelemetryPanel.qml
     ${CMAKE_SOURCE_DIR}/ui/qml/settings/OemSettingsPage.qml
+    ${CMAKE_SOURCE_DIR}/ui/qml/settings/FullParameterListPage.qml
+    ${CMAKE_SOURCE_DIR}/ui/qml/settings/ParameterConfigurationPanel.qml
     ${CMAKE_SOURCE_DIR}/ui/qml/settings/MavlinkInspectorPage.qml
     ${CMAKE_SOURCE_DIR}/ui/qml/settings/MavlinkForwardingPage.qml
     ${CMAKE_SOURCE_DIR}/ui/qml/settings/MavlinkConsole.qml
@@ -342,7 +347,7 @@ qt_add_executable(BonVGroundStation
 )
 
 if(WIN32)
-    set_target_properties(BonVGroundStation PROPERTIES WIN32_EXECUTABLE FALSE)
+    set_target_properties(BonVGroundStation PROPERTIES WIN32_EXECUTABLE TRUE)
 endif()
 
 if(MSVC)
